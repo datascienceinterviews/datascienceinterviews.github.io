@@ -236,8 +236,8 @@ nav:
 
   - 🤝 Contribute: Contribute.md
 
-  - <small>Privacy Policy</small>: privacy.md
-  - <small>Contact</small>: contact.md
+  # - <small>Privacy Policy</small>: privacy.md
+  # - <small>Contact</small>: contact.md
 
 # Copyright
 copyright: >-
