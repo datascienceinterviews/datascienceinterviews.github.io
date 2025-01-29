@@ -130,3 +130,10 @@ dmypy.json
 
 # pdf_output
 /pdf_output
+
+# Example data files
+docs/Cheat-Sheets/array.txt
+docs/Cheat-Sheets/arrays.npz
+docs/Cheat-Sheets/array.npy
+docs/Cheat-Sheets/data.csv
+docs/Cheat-Sheets/data.dat

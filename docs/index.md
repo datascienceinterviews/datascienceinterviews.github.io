@@ -101,6 +101,8 @@ Not only this, the platform will also serve as one point destination for all you
     === ":white_check_mark: Done"
 
         * [Cheat-Sheets/Hypothesis-Tests/](/Cheat-Sheets/Hypothesis-Tests/)
+        * [Cheat-Sheets/NumPy](Cheat-Sheets/NumPy)
+        * [Cheat-Sheets/Pandas](Cheat-Sheets/Pandas)
 
     === ":person_running: Under Development"
         
@@ -116,8 +118,6 @@ Not only this, the platform will also serve as one point destination for all you
         - [Cheat-Sheets/Flask](Cheat-Sheets/Flask.md)
         - [Cheat-Sheets/Hypothesis-Tests](Cheat-Sheets/Hypothesis-Tests.md)
         - [Cheat-Sheets/Keras](Cheat-Sheets/Keras.md)
-        - [Cheat-Sheets/NumPy](Cheat-Sheets/NumPy.md)
-        - [Cheat-Sheets/Pandas](Cheat-Sheets/Pandas.md)
         - [Cheat-Sheets/PySpark](Cheat-Sheets/PySpark.md)
         - [Cheat-Sheets/PyTorch](Cheat-Sheets/PyTorch.md)
         - [Cheat-Sheets/Python](Cheat-Sheets/Python.md)

@@ -124,8 +124,8 @@ plugins:
         - en
   # - privacy:
       # cache: false
-  - git-revision-date-localized:
-      type: date
+  # - git-revision-date-localized:
+  #     type: date
   - minify:
       minify_html: true
   - mkdocs-jupyter: #https://github.com/danielfrg/mkdocs-jupyter
@@ -187,7 +187,7 @@ nav:
       - Hypothesis Tests: Cheat-Sheets/Hypothesis-Tests.md
       - Keras: Cheat-Sheets/Keras.md
       - NumPy: Cheat-Sheets/NumPy.ipynb
-      - Pandas: Cheat-Sheets/Pandas.md
+      - Pandas: Cheat-Sheets/Pandas.ipynb
       - PySpark: Cheat-Sheets/PySpark.md
       - PyTorch: Cheat-Sheets/PyTorch.md
       - Python: Cheat-Sheets/Python.md
