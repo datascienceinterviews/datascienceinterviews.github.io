@@ -151,19 +151,43 @@ Not only this, the platform will also serve as one point destination for all you
         - [Interview-Questions/System-Design](Interview-Questions/System-design.md)
         - [Interview-Questions/Natural-Language-Processing](Interview-Questions/Natural-Language-Processing.md)
         - [Interview-Questions/Probability](Interview-Questions/Probability.md)
+
+        ---
+
+        <h3> Useful Commands </h3>
+
+        * `mkdocs serve` - Start the live-reloading docs server.
+        * `mkdocs build` - Build the documentation site.
+        * `mkdocs -h` - Print help message and exit.
+        * `mkdocs gh-deploy` - Use `mkdocs gh-deploy --help` to get a full list of options available for the `gh-deploy` command.
+            Be aware that you will not be able to review the built site before it is pushed to GitHub. Therefore, you may want to verify any changes you make to the docs beforehand by using the `build` or `serve` commands and reviewing the built files locally.
+        * ~~`mkdocs new [dir-name]` - Create a new project.~~ No need to create a new project
+
+        ---
+
+        <h3> Useful Documents </h3>
+
+        * 📑 MkDocs: 
+            * GitHub: [https://github.com/mkdocs/mkdocs](https://github.com/mkdocs/mkdocs)
+            * Documentation: [https://www.mkdocs.org/](https://www.mkdocs.org/)
+
+        * 🎨 Theme: 
+            * GitHub: [https://github.com/squidfunk/mkdocs-material](https://github.com/squidfunk/mkdocs-material)
+            * Documentation: [https://squidfunk.github.io/mkdocs-material/getting-started/](https://squidfunk.github.io/mkdocs-material/getting-started/)
                 
+    === ":material-information-outline: About"
 
+        <div class="grid cards" markdown>
 
+        - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
+        - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors)
+        - [:simple-unlicense: __AGPL-3.0__ license](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io#AGPL-3.0-1-ov-file)
+        - [:material-comment-account-outline: __Reach__ Out](/contact)
+
+        </div>
 
 
 ---
 
-<div class="grid cards" markdown>
 
-- [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
-- [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors)
-- [:simple-unlicense: __AGPL-3.0__ license](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io#AGPL-3.0-1-ov-file)
-- [:material-comment-account-outline: __Reach__ Out](/contact)
-
-</div>
 
