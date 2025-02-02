@@ -6,21 +6,7 @@ hide:
   - toc
 ---
 
-# Home
-
-<p align="center">
-  <a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/">
-    <img src="https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2" width="120" alt="Go to website">
-  </a>
-</p>
-
----
-
-This is a completely open-source platform for maintaining curated list of interview questions and answers for people looking and preparing for data science opportunities.
-
-Not only this, the platform will also serve as one point destination for all your needs like tutorials, online materials, etc.
-
-**This platform is maintained by you!** 🤗 You can <a href="/Contribute"><u>help us</u></a> by answering/ improving existing questions as well as by sharing any new questions that you faced during your interviews. You can also improve topics and articles.
+# Crack **Data Science** Interviews
 
 <div class="grid cards" markdown>
 
@@ -94,6 +80,22 @@ Not only this, the platform will also serve as one point destination for all you
         - [Popular Blogs](Online-Material/popular-resouces.md)
 
 </div>
+
+---
+
+<!-- <p align="center">
+  <a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/">
+    <img src="https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2" width="120" alt="Go to website">
+  </a>
+</p> -->
+
+This is a completely open-source platform for maintaining curated list of interview questions and answers for people looking and preparing for data science opportunities.
+
+Not only this, the platform will also serve as one point destination for all your needs like tutorials, online materials, etc.
+
+**This platform is maintained by you!** 🤗 You can <a href="/Contribute"><u>help us</u></a> by answering/ improving existing questions as well as by sharing any new questions that you faced during your interviews. You can also improve topics and articles.
+
+
 
 ---
 
@@ -188,6 +190,13 @@ Not only this, the platform will also serve as one point destination for all you
 
 
 ---
+
+<div class="grid cards" markdown>
+
+  - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
+  - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors)
+
+  </div>
 
 
 
