@@ -29,19 +29,19 @@ hide:
 
         Distilled down important concepts for your quick reference
 
-        - [Django](Cheat-Sheets/Django.md)
-        - [Flask](Cheat-Sheets/Flask.md)
-        - [Hypothesis Tests](Cheat-Sheets/Hypothesis-Tests.md)
-        - [Keras](Cheat-Sheets/Keras.md)
-        - [NumPy](Cheat-Sheets/NumPy.md)
-        - [Pandas](Cheat-Sheets/Pandas.md)
-        - [PySpark](Cheat-Sheets/PySpark.md)
-        - [PyTorch](Cheat-Sheets/PyTorch.md)
-        - [Python](Cheat-Sheets/Python.md)
-        - [Regular Expressions (RegEx)](Cheat-Sheets/RegEx.md)
-        - [Scikit Learn](Cheat-Sheets/Sk-learn.md)
-        - [SQL](Cheat-Sheets/SQL.md)
-        - [TensorFlow](Cheat-Sheets/tensorflow.md)
+        * [Cheat-Sheets/Django](Cheat-Sheets/Django)
+        * [Cheat-Sheets/Flask](Cheat-Sheets/Flask)
+        * [Cheat-Sheets/Hypothesis-Tests](Cheat-Sheets/Hypothesis-Tests)
+        * [Cheat-Sheets/Keras](Cheat-Sheets/Keras)
+        * [Cheat-Sheets/NumPy](Cheat-Sheets/NumPy)
+        * [Cheat-Sheets/Pandas](Cheat-Sheets/Pandas)
+        * [Cheat-Sheets/PySpark](Cheat-Sheets/PySpark)
+        * [Cheat-Sheets/PyTorch](Cheat-Sheets/PyTorch)
+        * [Cheat-Sheets/Python](Cheat-Sheets/Python)
+        * [Cheat-Sheets/RegEx](Cheat-Sheets/RegEx)
+        * [Cheat-Sheets/Sk-learn](Cheat-Sheets/Sk-learn)
+        * [Cheat-Sheets/SQL](Cheat-Sheets/SQL)
+        * [Cheat-Sheets/tensorflow](Cheat-Sheets/tensorflow)
 
 -   ??? ml-algo ":octicons-arrow-right-24: __ML Algorithms__"
 
@@ -101,10 +101,20 @@ Not only this, the platform will also serve as one point destination for all you
 
 ??? tip "Current Platform Status"
     === ":white_check_mark: Done"
-
-        * [Cheat-Sheets/Hypothesis-Tests/](/Cheat-Sheets/Hypothesis-Tests/)
+        * [Cheat-Sheets/Django](Cheat-Sheets/Django)
+        * [Cheat-Sheets/Flask](Cheat-Sheets/Flask)
+        * [Cheat-Sheets/Hypothesis-Tests](Cheat-Sheets/Hypothesis-Tests)
+        * [Cheat-Sheets/Keras](Cheat-Sheets/Keras)
         * [Cheat-Sheets/NumPy](Cheat-Sheets/NumPy)
         * [Cheat-Sheets/Pandas](Cheat-Sheets/Pandas)
+        * [Cheat-Sheets/PySpark](Cheat-Sheets/PySpark)
+        * [Cheat-Sheets/PyTorch](Cheat-Sheets/PyTorch)
+        * [Cheat-Sheets/Python](Cheat-Sheets/Python)
+        * [Cheat-Sheets/RegEx](Cheat-Sheets/RegEx)
+        * [Cheat-Sheets/Sk-learn](Cheat-Sheets/Sk-learn)
+        * [Cheat-Sheets/SQL](Cheat-Sheets/SQL)
+        * [Cheat-Sheets/tensorflow](Cheat-Sheets/tensorflow)
+
 
     === ":person_running: Under Development"
         
@@ -116,17 +126,6 @@ Not only this, the platform will also serve as one point destination for all you
         <br>
         You can pick anyone, write in `.py`, `.md`, `.txt` or `.ipynb`; I will format it!
 
-        - [Cheat-Sheets/Django](Cheat-Sheets/Django.md)
-        - [Cheat-Sheets/Flask](Cheat-Sheets/Flask.md)
-        - [Cheat-Sheets/Hypothesis-Tests](Cheat-Sheets/Hypothesis-Tests.md)
-        - [Cheat-Sheets/Keras](Cheat-Sheets/Keras.md)
-        - [Cheat-Sheets/PySpark](Cheat-Sheets/PySpark.md)
-        - [Cheat-Sheets/PyTorch](Cheat-Sheets/PyTorch.md)
-        - [Cheat-Sheets/Python](Cheat-Sheets/Python.md)
-        - [Cheat-Sheets/RegEx](Cheat-Sheets/RegEx.md)
-        - [Cheat-Sheets/Sk-learn](Cheat-Sheets/Sk-learn.md)
-        - [Cheat-Sheets/SQL](Cheat-Sheets/SQL.md)
-        - [Cheat-Sheets/TensorFlow](Cheat-Sheets/tensorflow.md)
         - [Machine-Learning/ARIMA](Machine-Learning/ARIMA.md)
         - [Machine-Learning/Activation-Functions](Machine-Learning/Activation%20functions.md)
         - [Machine-Learning/Collaborative-Filtering](Machine-Learning/Collaborative%20Filtering.md)
