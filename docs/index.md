@@ -22,6 +22,7 @@ hide:
         - [System Design](Interview-Questions/System-design.md)
         - [Natural Language Processing (NLP)](Interview-Questions/Natural-Language-Processing.md)
         - [Probability](Interview-Questions/Probability.md)
+        - [ML-Algorithms](Interview-Questions/Machine-Learning.md)
 
 -   ??? cheat-sheet ":octicons-arrow-right-24: __Cheat Sheets__"
 
@@ -114,6 +115,11 @@ Not only this, the platform will also serve as one point destination for all you
         * [Cheat-Sheets/Sk-learn](Cheat-Sheets/Sk-learn)
         * [Cheat-Sheets/SQL](Cheat-Sheets/SQL)
         * [Cheat-Sheets/tensorflow](Cheat-Sheets/tensorflow)
+        * [Interview-Questions/DSA](Interview-Questions/data-structures-algorithms.md)
+        * [Interview-Questions/System-Design](Interview-Questions/System-design.md)
+        * [Interview-Questions/Natural-Language-Processing](Interview-Questions/Natural-Language-Processing.md)
+        * [Interview-Questions/Probability](Interview-Questions/Probability.md)
+        * [Interview-Questions/ML-Algorithms](Interview-Questions/Machine-Learning.md)
 
 
     === ":person_running: Under Development"
@@ -148,10 +154,6 @@ Not only this, the platform will also serve as one point destination for all you
         - [Machine-Learning/kNN](Machine-Learning/kNN.md)
         - [Online-Material/Online-Material-for-Learning](Online-Material/Online-Material-for-Learning.md)
         - [Online-Material/Popular-Blogs](Online-Material/popular-resouces.md)
-        - [Interview-Questions/DSA](Interview-Questions/data-structures-algorithms.md)
-        - [Interview-Questions/System-Design](Interview-Questions/System-design.md)
-        - [Interview-Questions/Natural-Language-Processing](Interview-Questions/Natural-Language-Processing.md)
-        - [Interview-Questions/Probability](Interview-Questions/Probability.md)
 
         ---
 
