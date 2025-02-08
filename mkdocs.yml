@@ -116,6 +116,7 @@ plugins:
           - "Cheat-Sheets/*"
         exclude:
           - "Interview-Questions/Interview-Questions.md"
+          - "Interview-Questions/data-structures-algorithms.md"
         #   - another_page.md
         restart_increment_after:
           - Interview-Questions/*"
