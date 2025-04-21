@@ -10,6 +10,31 @@ description: A comprehensive reference guide for SQL, covering data types, DDL, 
 
 This cheat sheet provides an exhaustive overview of SQL (Structured Query Language), covering data types, Data Definition Language (DDL), Data Manipulation Language (DML), Data Query Language (DQL), Transaction Control Language (TCL), joins, subqueries, window functions, common table expressions (CTEs), and best practices. It aims to be a complete reference for writing and understanding SQL queries.  This cheat sheet is designed to be generally applicable across different SQL database systems (e.g., MySQL, PostgreSQL, SQL Server, Oracle, SQLite), but notes specific differences where significant.
 
+??? tip "SQL Cheat Sheet Images"
+    <figure markdown="span">
+        ![Image not found, use the link below](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheet-Sheet-1.png){ width="100%" }
+        ![Image not found, use the link below](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-2.png){ width="100%" }
+        ![Image not found, use the link below](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-3.png){ width="100%" }
+        <figcaption>https://www.sqltutorial.org/sql-cheat-sheet/</figcaption>
+    </figure>
+    ---
+    <figure markdown="span">
+        ![Image not found, use the link below](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-1.webp){ width="100%" }
+        ![Image not found, use the link below](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-2.webp){ width="100%" }
+        <figcaption>https://learnsql.com/blog/mysql-cheat-sheet/</figcaption>
+    </figure>
+    ---
+    <figure markdown="span">
+        ![Image not found, use the link below](https://media.datacamp.com/legacy/image/upload/v1714038485/SQL_for_Data_Science_826c347c43.png){ width="100%" }
+        <figcaption>https://www.datacamp.com/cheat-sheet/sql-basics-cheat-sheet</figcaption>
+    </figure>
+    ---
+    <figure markdown="span">
+        ![Image not found, use the link below](https://media.datacamp.com/legacy/image/upload/v1698139537/My_SQL_Cheat_Sheet_f2d0d7da20.png){ width="100%" }
+        <figcaption>https://www.datacamp.com/cheat-sheet/my-sql-basics-cheat-sheet</figcaption>
+    </figure>
+    
+
 ## Data Types
 
 ### Numeric
@@ -289,7 +314,23 @@ GROUP BY department_id
 HAVING AVG(salary) > 50000;
 ```
 
+## Order of execution
+??? tip "Order of execution"
+    <figure markdown="span">
+        ![Image not found, use the link below](../assets/img/SQL_order_of_execution.gif){ width="100%" }
+    </figure>
+
 ## Joins
+
+Visualise joins:
+
+- https://joins.spathon.com/
+- https://sql-joins.leopard.in.ua/
+
+<figure markdown="span">
+    ![Image not found, use the link below](../assets/img/sqlJoinsSummary.png){ width="100%" }
+    <figcaption>https://www.atlassian.com/data/sql/sql-join-types-explained-visually</figcaption>
+</figure>
 
 ### INNER JOIN
 
