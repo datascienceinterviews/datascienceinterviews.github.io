@@ -120,6 +120,7 @@ Not only this, the platform will also serve as one point destination for all you
         * [Interview-Questions/System-Design](Interview-Questions/System-design.md)
         * [Interview-Questions/Natural-Language-Processing](Interview-Questions/Natural-Language-Processing.md)
         * [Interview-Questions/Probability](Interview-Questions/Probability.md)
+        * [Interview-Questions/SQL](Interview-Questions/SQL-Interview-Questions.md)
         * [Interview-Questions/ML-Algorithms](Interview-Questions/Machine-Learning.md)
 
 

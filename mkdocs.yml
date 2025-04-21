@@ -121,6 +121,7 @@ plugins:
           - "Interview-Questions/System-design.md"
           - "Interview-Questions/Natural-Language-Processing.md"
           - "Interview-Questions/Probability.md"
+          - "Interview-Questions/SQL-Interview-Questions.md"
         #   - another_page.md
         restart_increment_after:
           - Interview-Questions/*"
