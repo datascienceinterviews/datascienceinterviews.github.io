@@ -22,6 +22,7 @@ hide:
         - [System Design](Interview-Questions/System-design.md)
         - [Natural Language Processing (NLP)](Interview-Questions/Natural-Language-Processing.md)
         - [Probability](Interview-Questions/Probability.md)
+        - [SQL](Interview-Questions/SQL-Interview-Questions.md)
         - [ML-Algorithms](Interview-Questions/Machine-Learning.md)
 
 -   ??? cheat-sheet ":octicons-arrow-right-24: __Cheat Sheets__"
