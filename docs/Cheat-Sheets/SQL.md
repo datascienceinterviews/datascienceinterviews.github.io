@@ -101,6 +101,9 @@ ALTER TABLE table_name DROP INDEX constraint_name; -- MySQL (for UNIQUE constrai
 
 ```sql
 DROP TABLE table_name;
+
+-- Drop table only if it exists (avoids error if it doesn't)
+DROP TABLE IF EXISTS table_name;
 ```
 
 ### TRUNCATE TABLE
@@ -144,6 +147,24 @@ FROM employees;
 ```sql
 DROP VIEW view_name;
 ```
+
+### DATABASE Operations
+
+```sql
+-- Create a new database
+CREATE DATABASE database_name;
+
+-- Delete an existing database
+DROP DATABASE database_name;
+
+-- Delete an existing database only if it exists (avoids error if it doesn't)
+DROP DATABASE IF EXISTS database_name;
+
+-- Select a database to use (syntax varies, common in MySQL)
+USE database_name;
+```
+
+
 
 ## Data Manipulation Language (DML)
 
@@ -232,7 +253,8 @@ SELECT * FROM table_name ORDER BY column1 ASC, column2 DESC;
 
 ```sql
 SELECT * FROM table_name LIMIT 10;  -- Get the first 10 rows
-SELECT * FROM table_name LIMIT 10 OFFSET 5;  -- Get 10 rows starting from row 6```
+SELECT * FROM table_name LIMIT 10 OFFSET 5;  -- Get 10 rows starting from row 6
+```
 
 ### Aggregate Functions
 
