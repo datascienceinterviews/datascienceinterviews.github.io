@@ -558,17 +558,59 @@ SET TRANSACTION ISOLATION LEVEL READ COMMITTED; -- Example
 
 ## Date and Time Functions
 
+
 *   `NOW()`, `CURRENT_TIMESTAMP`: Returns the current date and time.
 *   `CURDATE()`, `CURRENT_DATE`: Returns the current date.
 *   `CURTIME()`, `CURRENT_TIME`: Returns the current time.
 *   `DATE(expression)`: Extracts the date part of a date or datetime expression.
 *   `TIME(expression)`: Extracts the time part of a time or datetime expression.
-*   `YEAR(date)`, `MONTH(date)`, `DAY(date)`: Extracts the year, month, or day.
-*   `HOUR(time)`, `MINUTE(time)`, `SECOND(time)`: Extracts the hour, minute, or second.
-*   `DATE_ADD(date, INTERVAL expr unit)`, `DATE_SUB(date, INTERVAL expr unit)`: Adds or subtracts a time interval.
-*   `DATEDIFF(date1, date2)`: Returns the difference between two dates (in days).
-*   `TIMESTAMPDIFF(unit, datetime1, datetime2)`: Returns the difference between two datetimes in a specified unit.
-*   `DATE_FORMAT(date, format)`: Formats a date.
+*   `YEAR(date)`, `MONTH(date)`, `DAY(date)`: Extracts the year, month, or day from a date.
+*   `HOUR(time)`, `MINUTE(time)`, `SECOND(time)`: Extracts the hour, minute, or second from a time.
+*   `EXTRACT(unit FROM datetime)`: Extracts a specific unit (e.g., `YEAR`, `MONTH`, `DAY`, `HOUR`, `MINUTE`, `SECOND`) from a date or timestamp.
+*   `DATE_ADD(date, INTERVAL expr unit)`, `DATE_SUB(date, INTERVAL expr unit)`: Adds or subtracts a time interval (units: `DAY`, `WEEK`, `MONTH`, `YEAR`, etc.).
+*   `DATEDIFF(date1, date2)`: Returns the difference between two dates (result unit varies by database, often days).
+*   `TIMESTAMPDIFF(unit, datetime1, datetime2)`: Returns the difference between two datetimes in a specified unit (units: `MINUTE`, `HOUR`, `SECOND`, `DAY`, `MONTH`, `YEAR`).
+*   `DATE_FORMAT(date, format)`: Formats a date according to the specified format string (format codes vary by database).
+*   `DAYOFWEEK(date)`: Returns the day of the week as a number (e.g., 1=Sunday, 2=Monday...).
+*   `WEEKOFYEAR(date)`: Returns the week number of the year.
+*   `QUARTER(date)`: Returns the quarter of the year (1-4).
+*   `WEEK(date)`: Returns the week number (behavior can vary based on mode/database).
+
+```sql
+-- Get current date, time, timestamp
+SELECT CURRENT_DATE();
+SELECT CURRENT_TIME();
+SELECT CURRENT_TIMESTAMP();
+
+-- Extract parts of a date/time
+SELECT DATE(CURRENT_TIMESTAMP());
+SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP());
+SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP());
+SELECT EXTRACT(DAY FROM CURRENT_TIMESTAMP());
+SELECT EXTRACT(HOUR FROM CURRENT_TIMESTAMP());
+SELECT EXTRACT(MINUTE FROM CURRENT_TIMESTAMP());
+SELECT EXTRACT(SECOND FROM CURRENT_TIMESTAMP());
+
+-- Get week/day information
+SELECT DAYOFWEEK(CURRENT_TIMESTAMP()); -- 1=Sunday, 2=Monday, ..., 7=Saturday (common convention)
+SELECT WEEKOFYEAR(CURRENT_TIMESTAMP());
+SELECT QUARTER(CURRENT_DATE());
+SELECT WEEK(CURRENT_DATE()); -- Behavior might depend on mode
+
+-- Date arithmetic
+SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 4 DAY) AS four_days_from_today;
+SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 1 DAY);
+SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 2 WEEK);
+SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 3 MONTH);
+SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 4 YEAR);
+
+-- Date differences
+SELECT DATEDIFF(CURRENT_DATE(), '2023-01-01'); -- Difference in days (example)
+SELECT TIMESTAMPDIFF(HOUR, '2023-01-01 10:00:00', CURRENT_TIMESTAMP()); -- Difference in hours
+
+-- Formatting
+SELECT DATE_FORMAT(CURRENT_DATE(), '%Y-%m-%d'); -- Common format codes
+```
 
 ## Conditional Expressions
 
