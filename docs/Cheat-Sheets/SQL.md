@@ -391,6 +391,48 @@ FROM table1
 CROSS JOIN table2;
 ```
 
+## Set Operations
+
+### UNION
+
+Combines the results of two `SELECT` statements and removes duplicate rows.
+
+```sql
+SELECT column1, column2 FROM table1
+UNION
+SELECT column1, column2 FROM table2;
+```
+
+### UNION ALL
+
+Combines the results of two `SELECT` statements, including duplicate rows.
+
+```sql
+SELECT column1, column2 FROM table1
+UNION ALL
+SELECT column1, column2 FROM table2;
+```
+
+### INTERSECT
+
+Returns the rows that are common to both `SELECT` statements.
+
+```sql
+SELECT column1, column2 FROM table1
+INTERSECT
+SELECT column1, column2 FROM table2;
+```
+
+### EXCEPT
+
+Returns the rows that are in the first `SELECT` statement but not in the second.
+
+```sql
+SELECT column1, column2 FROM table1
+EXCEPT
+SELECT column1, column2 FROM table2;
+```
+
 ## Subqueries
 
 ```sql

@@ -107,6 +107,7 @@ theme:
 #plugins
 plugins:
   # - optimize
+  - glightbox
   - enumerate-headings:
         toc_depth: 6
         strict: true
