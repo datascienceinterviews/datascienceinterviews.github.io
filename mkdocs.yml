@@ -206,26 +206,26 @@ nav:
       - TensorFlow: Cheat-Sheets/tensorflow.md
 
   - ‍🎓 ML Topics:
-      - ARIMA: Machine-Learning\ARIMA.md
-      - Activation functions: Machine-Learning\Activation functions.md
-      - Collaborative Filtering: Machine-Learning\Collaborative Filtering.md
-      - Confusion Matrix: Machine-Learning\Confusion Matrix.md
-      - DBSCAN: Machine-Learning\DBSCAN.md
-      - Decision Trees: Machine-Learning\Decision Trees.md
-      - Gradient Boosting: Machine-Learning\Gradient Boosting.md
-      - K-means clustering: Machine-Learning\K-means clustering.md
-      - Linear Regression: Machine-Learning\Linear Regression.md
-      - Logistic Regression: Machine-Learning\Logistic Regression.md
-      - Loss Function MAE, RMSE: Machine-Learning\Loss Function MAE, RMSE.md
-      - Neural Networks: Machine-Learning\Neural Networks.md
-      - Normal Distribution: Machine-Learning\Normal Distribution.md
-      - Normalization Regularisation: Machine-Learning\Normalization Regularisation.md
-      - Overfitting, Underfitting: Machine-Learning\Overfitting, Underfitting.md
-      - PCA: Machine-Learning\PCA.md
-      - Random Forest: Machine-Learning\Random Forest.md
-      - Support Vector Machines: Machine-Learning\Support Vector Machines.md
-      - Unbalanced, Skewed data: Machine-Learning\Unbalanced, Skewed data.md
-      - kNN: Machine-Learning\kNN.md
+      - ARIMA: Machine-Learning/ARIMA.md
+      - Activation functions: Machine-Learning/Activation functions.md
+      - Collaborative Filtering: Machine-Learning/Collaborative Filtering.md
+      - Confusion Matrix: Machine-Learning/Confusion Matrix.md
+      - DBSCAN: Machine-Learning/DBSCAN.md
+      - Decision Trees: Machine-Learning/Decision Trees.md
+      - Gradient Boosting: Machine-Learning/Gradient Boosting.md
+      - K-means clustering: Machine-Learning/K-means clustering.md
+      - Linear Regression: Machine-Learning/Linear Regression.md
+      - Logistic Regression: Machine-Learning/Logistic Regression.md
+      - Loss Function MAE, RMSE: Machine-Learning/Loss Function MAE, RMSE.md
+      - Neural Networks: Machine-Learning/Neural Networks.md
+      - Normal Distribution: Machine-Learning/Normal Distribution.md
+      - Normalization Regularisation: Machine-Learning/Normalization Regularisation.md
+      - Overfitting, Underfitting: Machine-Learning/Overfitting, Underfitting.md
+      - PCA: Machine-Learning/PCA.md
+      - Random Forest: Machine-Learning/Random Forest.md
+      - Support Vector Machines: Machine-Learning/Support Vector Machines.md
+      - Unbalanced, Skewed data: Machine-Learning/Unbalanced, Skewed data.md
+      - kNN: Machine-Learning/kNN.md
 
   - 👨🏾‍💻 Online Resources:
       - Online Study Material: Online-Material/Online-Material-for-Learning.md

@@ -4,14 +4,13 @@ description: Comprehensive guide to Logistic Regression with mathematical intuit
 comments: true
 ---
 
-# 🔥 Logistic Regression
+# =Ø Logistic Regression
 
 Logistic Regression is a statistical method used for binary and multiclass classification problems that models the probability of class membership using the logistic function.
 
 **Resources:** [Scikit-learn Logistic Regression](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression) | [Stanford CS229 Notes](http://cs229.stanford.edu/notes2020spring/cs229-notes1.pdf)
 
-## 
- Summary
+##  Summary
 
 Logistic Regression is a linear classifier that uses the logistic function (sigmoid) to map any real-valued number into a value between 0 and 1, making it suitable for probability estimation and classification tasks.
 
@@ -35,7 +34,7 @@ Logistic Regression is a linear classifier that uses the logistic function (sigm
 - **Multinomial Logistic Regression**: Multiple classes (>2)
 - **Ordinal Logistic Regression**: Ordered categories
 
-## 🧠 Intuition
+## >à Intuition
 
 ### How Logistic Regression Works
 
@@ -338,7 +337,7 @@ best_pred = best_model.predict(X_test_scaled)
 print("Best model test accuracy:", accuracy_score(y_test, best_pred))
 ```
 
-## 🔧 From Scratch Implementation
+##  From Scratch Implementation
 
 ```python
 import numpy as np
@@ -613,7 +612,7 @@ print(f"L2 weights: {l2_model.weights}")
 print(f"No reg weights: {custom_lr.weights}")
 ```
 
-## ⚠️ Assumptions and Limitations
+##   Assumptions and Limitations
 
 ### Assumptions
 
@@ -667,7 +666,7 @@ print(f"No reg weights: {custom_lr.weights}")
 - L When you have very high-dimensional data
 - L When interpretability is not important and accuracy is paramount
 
-## ❓ Interview Questions
+## =¡ Interview Questions
 
 ??? question "1. Explain the difference between Linear Regression and Logistic Regression."
 
@@ -677,7 +676,7 @@ print(f"No reg weights: {custom_lr.weights}")
     |--------|------------------|-------------------|
     | **Purpose** | Predicts continuous values | Predicts probabilities/classes |
     | **Output range** | (-, +) | [0, 1] |
-    | **Function** | Linear: y = Â²X + Âµ | Logistic: p = 1/(1 + e^(-Â²X)) |
+    | **Function** | Linear: y = ²X + µ | Logistic: p = 1/(1 + e^(-²X)) |
     | **Error distribution** | Normal | Binomial |
     | **Cost function** | Mean Squared Error | Log-likelihood |
     | **Parameters estimation** | Least squares | Maximum likelihood |
@@ -685,9 +684,9 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Mathematical relationship:**
     ```
-    Linear Regression: y = Â²Â + Â²ÂxÂ + Â²ÂxÂ + ... + Â²ÂxÂ + Âµ
+    Linear Regression: y = ² + ²x + ²x + ... + ²x + µ
     
-    Logistic Regression: log(p/(1-p)) = Â²Â + Â²ÂxÂ + Â²ÂxÂ + ... + Â²ÂxÂ
+    Logistic Regression: log(p/(1-p)) = ² + ²x + ²x + ... + ²x
     ```
 
     **When to use each:**
@@ -722,7 +721,7 @@ print(f"No reg weights: {custom_lr.weights}")
     plt.plot(z, y, 'b-', linewidth=2)
     plt.axhline(y=0.5, color='r', linestyle='--', alpha=0.7, label='Decision boundary')
     plt.xlabel('z (linear combination)')
-    plt.ylabel('Ã(z) (probability)')
+    plt.ylabel('Ã(z) (probability)')
     plt.title('Sigmoid Function')
     plt.grid(True, alpha=0.3)
     plt.legend()
@@ -731,7 +730,7 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Mathematical advantages:**
     - Maps any real number to (0,1)
-    - Derivative: Ã'(z) = Ã(z)(1 - Ã(z))
+    - Derivative: Ã'(z) = Ã(z)(1 - Ã(z))
     - Smooth gradient for optimization
     - Interpretable as probability
 
@@ -739,13 +738,13 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Coefficient Interpretation:**
 
-    **Raw Coefficients (Â²):**
+    **Raw Coefficients (²):**
     - Represent change in **log-odds** per unit change in feature
-    - If Â²Â = 0.5, then one unit increase in xÂ increases log-odds by 0.5
+    - If ² = 0.5, then one unit increase in x increases log-odds by 0.5
 
-    **Odds Ratios (e^Â²):**
+    **Odds Ratios (e^²):**
     - More interpretable than raw coefficients
-    - If OR = e^Â² = 2, the odds double with one unit increase in feature
+    - If OR = e^² = 2, the odds double with one unit increase in feature
 
     **Example interpretation:**
     ```python
@@ -757,9 +756,9 @@ print(f"No reg weights: {custom_lr.weights}")
     odds_ratios = np.exp(coefficients)
     
     interpretations = [
-        f"word_count: Â²={coefficients[0]}, OR={odds_ratios[0]:.2f}",
-        f"has_links: Â²={coefficients[1]}, OR={odds_ratios[1]:.2f}", 
-        f"sender_reputation: Â²={coefficients[2]}, OR={odds_ratios[2]:.2f}"
+        f"word_count: ²={coefficients[0]}, OR={odds_ratios[0]:.2f}",
+        f"has_links: ²={coefficients[1]}, OR={odds_ratios[1]:.2f}", 
+        f"sender_reputation: ²={coefficients[2]}, OR={odds_ratios[2]:.2f}"
     ]
     
     for interp in interpretations:
@@ -767,13 +766,13 @@ print(f"No reg weights: {custom_lr.weights}")
     ```
 
     **Interpretation:**
-    - **word_count (Â²=0.1)**: Each additional word increases spam odds by 10%
-    - **has_links (Â²=1.2)**: Having links increases spam odds by 232%  
-    - **sender_reputation (Â²=-0.8)**: Better reputation decreases spam odds by 55%
+    - **word_count (²=0.1)**: Each additional word increases spam odds by 10%
+    - **has_links (²=1.2)**: Having links increases spam odds by 232%  
+    - **sender_reputation (²=-0.8)**: Better reputation decreases spam odds by 55%
 
     **Key points:**
-    - Positive Â²: Increases probability of positive class
-    - Negative Â²: Decreases probability of positive class
+    - Positive ²: Increases probability of positive class
+    - Negative ²: Decreases probability of positive class
     - Magnitude indicates strength of effect
     - Sign indicates direction of effect
 
@@ -800,17 +799,17 @@ print(f"No reg weights: {custom_lr.weights}")
     # Examples
     probabilities = [0.1, 0.25, 0.5, 0.75, 0.9]
     
-    print("Probability Â Odds conversion:")
+    print("Probability  Odds conversion:")
     for p in probabilities:
         odds = prob_to_odds(p)
-        print(f"P = {p:.2f} Â Odds = {odds:.2f}")
+        print(f"P = {p:.2f}  Odds = {odds:.2f}")
     
     # Output:
-    # P = 0.10 Â Odds = 0.11  (1:9 against)
-    # P = 0.25 Â Odds = 0.33  (1:3 against) 
-    # P = 0.50 Â Odds = 1.00  (1:1 even)
-    # P = 0.75 Â Odds = 3.00  (3:1 for)
-    # P = 0.90 Â Odds = 9.00  (9:1 for)
+    # P = 0.10  Odds = 0.11  (1:9 against)
+    # P = 0.25  Odds = 0.33  (1:3 against) 
+    # P = 0.50  Odds = 1.00  (1:1 even)
+    # P = 0.75  Odds = 3.00  (3:1 for)
+    # P = 0.90  Odds = 9.00  (9:1 for)
     ```
 
     **Log-odds (logit):**
@@ -879,7 +878,7 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Why regularization is needed:**
 
-    1. **Perfect separation**: When classes are linearly separable, coefficients Â 
+    1. **Perfect separation**: When classes are linearly separable, coefficients  
     2. **Overfitting**: High-dimensional data with few samples
     3. **Multicollinearity**: Correlated features cause unstable estimates
     4. **Numerical stability**: Prevents extreme coefficient values
@@ -1282,7 +1281,7 @@ print(f"No reg weights: {custom_lr.weights}")
     - Use PR-AUC over ROC-AUC for severe imbalance
     - Combine multiple approaches (e.g., SMOTE + class weighting)
 
-## 💡 Examples
+## >à Examples
 
 ### Example 1: Customer Churn Prediction
 
@@ -1627,7 +1626,7 @@ for _, case in high_risk_cases.iterrows():
           f"(Actual: {case['Actual']})")
 ```
 
-## 📚 References
+## =Ú References
 
 1. **Books:**
    - [The Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/) - Hastie, Tibshirani, Friedman
