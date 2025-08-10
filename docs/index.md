@@ -79,7 +79,7 @@ hide:
         Most popular and commonly reffered online resources
 
         - [Online Study Material](Online-Material/Online-Material-for-Learning.md)
-        - [Popular Blogs](Online-Material/popular-resouces.md)
+        - [Popular Blogs](Online-Material/popular-resources.md)
 
 </div>
 
@@ -122,6 +122,26 @@ Not only this, the platform will also serve as one point destination for all you
         * [Interview-Questions/Probability](Interview-Questions/Probability.md)
         * [Interview-Questions/SQL](Interview-Questions/SQL-Interview-Questions.md)
         * [Interview-Questions/ML-Algorithms](Interview-Questions/Machine-Learning.md)
+        * [Machine-Learning/ARIMA](Machine-Learning/ARIMA.md)
+        * [Machine-Learning/Activation-Functions](Machine-Learning/Activation%20functions.md)
+        * [Machine-Learning/Collaborative-Filtering](Machine-Learning/Collaborative%20Filtering.md)
+        * [Machine-Learning/Confusion-Matrix](Machine-Learning/Confusion%20Matrix.md)
+        * [Machine-Learning/DBSCAN](Machine-Learning/DBSCAN.md)
+        * [Machine-Learning/Decision-Trees](Machine-Learning/Decision%20Trees.md)
+        * [Machine-Learning/Gradient-Boosting](Machine-Learning/Gradient%20Boosting.md)
+        * [Machine-Learning/K-means-Clustering](Machine-Learning/K-means%20clustering.md)
+        * [Machine-Learning/Linear-Regression](Machine-Learning/Linear%20Regression.md)
+        * [Machine-Learning/Logistic-Regression](Machine-Learning/Logistic%20Regression.md)
+        * [Machine-Learning/Loss-Function-MAE-RMSE](Machine-Learning/Loss%20Function%20MAE,%20RMSE.md)
+        * [Machine-Learning/Neural-Networks](Machine-Learning/Neural%20Networks.md)
+        * [Machine-Learning/Normal-Distribution](Machine-Learning/Normal%20Distribution.md)
+        * [Machine-Learning/Normalization-Regularisation](Machine-Learning/Normalization%20Regularisation.md)
+        * [Machine-Learning/Overfitting-Underfitting](Machine-Learning/Overfitting,%20Underfitting.md)
+        * [Machine-Learning/PCA](Machine-Learning/PCA.md)
+        * [Machine-Learning/Random-Forest](Machine-Learning/Random%20Forest.md)
+        * [Machine-Learning/Support-Vector-Machines](Machine-Learning/Support%20Vector%20Machines.md)
+        * [Machine-Learning/Unbalanced-Skewed-Data](Machine-Learning/Unbalanced,%20Skewed%20data.md)
+        * [Machine-Learning/kNN](Machine-Learning/kNN.md)
 
 
     === ":person_running: Under Development"
@@ -134,28 +154,8 @@ Not only this, the platform will also serve as one point destination for all you
         <br>
         You can pick anyone, write in `.py`, `.md`, `.txt` or `.ipynb`; I will format it!
 
-        - [Machine-Learning/ARIMA](Machine-Learning/ARIMA.md)
-        - [Machine-Learning/Activation-Functions](Machine-Learning/Activation%20functions.md)
-        - [Machine-Learning/Collaborative-Filtering](Machine-Learning/Collaborative%20Filtering.md)
-        - [Machine-Learning/Confusion-Matrix](Machine-Learning/Confusion%20Matrix.md)
-        - [Machine-Learning/DBSCAN](Machine-Learning/DBSCAN.md)
-        - [Machine-Learning/Decision-Trees](Machine-Learning/Decision%20Trees.md)
-        - [Machine-Learning/Gradient-Boosting](Machine-Learning/Gradient%20Boosting.md)
-        - [Machine-Learning/K-means-Clustering](Machine-Learning/K-means%20clustering.md)
-        - [Machine-Learning/Linear-Regression](Machine-Learning/Linear%20Regression.md)
-        - [Machine-Learning/Logistic-Regression](Machine-Learning/Logistic%20Regression.md)
-        - [Machine-Learning/Loss-Function-MAE-RMSE](Machine-Learning/Loss%20Function%20MAE,%20RMSE.md)
-        - [Machine-Learning/Neural-Networks](Machine-Learning/Neural%20Networks.md)
-        - [Machine-Learning/Normal-Distribution](Machine-Learning/Normal%20Distribution.md)
-        - [Machine-Learning/Normalization-Regularisation](Machine-Learning/Normalization%20Regularisation.md)
-        - [Machine-Learning/Overfitting-Underfitting](Machine-Learning/Overfitting,%20Underfitting.md)
-        - [Machine-Learning/PCA](Machine-Learning/PCA.md)
-        - [Machine-Learning/Random-Forest](Machine-Learning/Random%20Forest.md)
-        - [Machine-Learning/Support-Vector-Machines](Machine-Learning/Support%20Vector%20Machines.md)
-        - [Machine-Learning/Unbalanced-Skewed-Data](Machine-Learning/Unbalanced,%20Skewed%20data.md)
-        - [Machine-Learning/kNN](Machine-Learning/kNN.md)
         - [Online-Material/Online-Material-for-Learning](Online-Material/Online-Material-for-Learning.md)
-        - [Online-Material/Popular-Blogs](Online-Material/popular-resouces.md)
+        - [Online-Material/Popular-Blogs](Online-Material/popular-resources.md)
 
         ---
 

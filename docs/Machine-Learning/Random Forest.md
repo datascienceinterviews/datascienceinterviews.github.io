@@ -4,7 +4,7 @@ description: Comprehensive guide to Random Forest ensemble method with mathemati
 comments: true
 ---
 
-# =Ø Random Forest
+# ðŸŒ³ Random Forest
 
 Random Forest is a powerful ensemble machine learning algorithm that builds multiple decision trees and combines their predictions to create a more robust and accurate model, reducing overfitting while maintaining interpretability.
 
@@ -38,7 +38,7 @@ Random Forest is an ensemble learning method that combines multiple decision tre
 - **Extremely Randomized Trees (Extra Trees)**: Uses random thresholds for splits
 - **Isolation Forest**: Specialized variant for anomaly detection
 
-## >à Intuition
+## >ï¿½ Intuition
 
 ### How Random Forest Works
 
@@ -227,7 +227,7 @@ oob_score_reg = rf_regressor.oob_score_
 
 print(f"\nRandom Forest Regression Results:")
 print(f"RMSE: {rmse:.3f}")
-print(f"R² Score: {r2:.3f}")
+print(f"Rï¿½ Score: {r2:.3f}")
 print(f"Out-of-bag Score: {oob_score_reg:.3f}")
 
 # Plot predictions vs actual
@@ -237,7 +237,7 @@ plt.plot([y_test_reg.min(), y_test_reg.max()],
          [y_test_reg.min(), y_test_reg.max()], 'r--', lw=2)
 plt.xlabel('Actual Values')
 plt.ylabel('Predicted Values')
-plt.title(f'Random Forest Regression: Actual vs Predicted (R² = {r2:.3f})')
+plt.title(f'Random Forest Regression: Actual vs Predicted (Rï¿½ = {r2:.3f})')
 plt.grid(True)
 plt.show()
 ```
@@ -313,7 +313,7 @@ def plot_learning_curves(estimator, X, y, cv=5):
 plot_learning_curves(RandomForestClassifier(random_state=42), X_iris, y_iris)
 ```
 
-## ™ From Scratch Implementation
+## ï¿½ From Scratch Implementation
 
 ```python
 import numpy as np
@@ -616,7 +616,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-##   Assumptions and Limitations
+## ï¿½ Assumptions and Limitations
 
 ### Key Assumptions
 
@@ -671,7 +671,7 @@ plt.show()
 - L High interpretability requirements
 - L Memory constraints
 
-## =¡ Interview Questions
+## â“ Interview Questions
 
 ??? question "How does Random Forest reduce overfitting compared to a single decision tree?"
 
@@ -682,7 +682,7 @@ plt.show()
     3. **Ensemble Averaging**: Averaging multiple models reduces overall variance
     4. **Bias-Variance Tradeoff**: Trades slight bias increase for large variance reduction
     
-    **Mathematical intuition**: If individual trees have variance Ã², ensemble variance is Ã²/B for independent trees, or ÁÃ² + (1-Á)Ã²/B for correlated trees. Random features reduce correlation Á.
+    **Mathematical intuition**: If individual trees have variance Ã², ensemble variance is Ã²/B for independent trees, or ï¿½Ã² + (1-ï¿½)Ã²/B for correlated trees. Random features reduce correlation ï¿½.
     
     **Practical impact**: Single tree might achieve 85% accuracy with high variance, while Random Forest with 100 trees achieves 92% accuracy with much lower variance.
 
@@ -798,7 +798,7 @@ plt.show()
     **Answer:** Key hyperparameters and their effects:
     
     **Tree-level parameters**:
-    - **n_estimators**: More trees ’ better performance, diminishing returns after ~100-500
+    - **n_estimators**: More trees ï¿½ better performance, diminishing returns after ~100-500
     - **max_depth**: Controls overfitting vs underfitting
     - **min_samples_split/leaf**: Higher values prevent overfitting
     - **max_features**: 'sqrt' (classification), 'log2', or fraction of features
@@ -836,15 +836,15 @@ plt.show()
     **Answer:** Computational complexity analysis:
     
     **Training complexity**:
-    - **Single tree**: O(n × m × log n) where n=samples, m=features
-    - **Random Forest**: O(B × n × m × log n) where B=number of trees
-    - **With random features**: O(B × n × m × log n) for classification
+    - **Single tree**: O(n ï¿½ m ï¿½ log n) where n=samples, m=features
+    - **Random Forest**: O(B ï¿½ n ï¿½ m ï¿½ log n) where B=number of trees
+    - **With random features**: O(B ï¿½ n ï¿½ m ï¿½ log n) for classification
     - **Parallelizable**: Trees can be trained independently
     
     **Prediction complexity**:
     - **Single tree**: O(log n) for balanced tree
-    - **Random Forest**: O(B × log n)
-    - **Space complexity**: O(B × tree_size)
+    - **Random Forest**: O(B ï¿½ log n)
+    - **Space complexity**: O(B ï¿½ tree_size)
     
     **Memory usage**:
     ```python
@@ -1011,7 +1011,7 @@ plt.show()
     
     **Best approach**: Combine multiple strategies and validate with appropriate metrics.
 
-## >à Examples
+## >ï¿½ Examples
 
 ### Real-world Example: Credit Risk Assessment
 
@@ -1302,7 +1302,7 @@ mae = mean_absolute_error(y_test_h, y_pred_h)
 r2 = r2_score(y_test_h, y_pred_h)
 
 print(f"\nHouse Price Prediction Results:")
-print(f"R² Score: {r2:.3f}")
+print(f"Rï¿½ Score: {r2:.3f}")
 print(f"RMSE: ${rmse:,.0f}")
 print(f"MAE: ${mae:,.0f}")
 print(f"MAPE: {np.mean(np.abs((y_test_h - y_pred_h) / y_test_h)) * 100:.1f}%")
@@ -1331,7 +1331,7 @@ axes[0, 1].plot([y_test_h.min(), y_test_h.max()],
                 [y_test_h.min(), y_test_h.max()], 'r--', lw=2)
 axes[0, 1].set_xlabel('Actual Price ($)')
 axes[0, 1].set_ylabel('Predicted Price ($)')
-axes[0, 1].set_title(f'Actual vs Predicted (R² = {r2:.3f})')
+axes[0, 1].set_title(f'Actual vs Predicted (Rï¿½ = {r2:.3f})')
 
 # Residuals
 residuals = y_test_h - y_pred_h
@@ -1416,7 +1416,7 @@ print(f"\nSample Predictions with Intervals:")
 print(examples.round(0))
 ```
 
-## =Ú References
+## ðŸ“š References
 
 - **Original Paper:**
   - [Random Forests](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf) by Leo Breiman (2001)
@@ -1425,7 +1425,7 @@ print(examples.round(0))
 - **Books:**
   - [The Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/) by Hastie, Tibshirani, and Friedman - Chapter 15
   - [Introduction to Statistical Learning](https://www.statlearning.com/) by James, Witten, Hastie, and Tibshirani - Chapter 8
-  - [Hands-On Machine Learning](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/) by Aurélien Géron - Chapter 7
+  - [Hands-On Machine Learning](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/) by Aurï¿½lien Gï¿½ron - Chapter 7
 
 - **Documentation:**
   - [Scikit-learn Random Forest](https://scikit-learn.org/stable/modules/ensemble.html#random-forests)

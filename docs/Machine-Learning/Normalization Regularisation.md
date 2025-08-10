@@ -4,13 +4,14 @@ description: Comprehensive guide to feature normalization and model regularizati
 comments: true
 ---
 
-# =ÿ Normalization and Regularisation
+# üìä Normalization and Regularisation
 
 Normalization and regularisation are fundamental techniques in machine learning: normalization ensures features are on similar scales for optimal algorithm performance, while regularisation prevents overfitting by constraining model complexity.
 
 **Resources:** [Scikit-learn Preprocessing](https://scikit-learn.org/stable/modules/preprocessing.html) | [Regularization in Deep Learning](https://www.deeplearningbook.org/contents/regularization.html) | [Elements of Statistical Learning - Chapter 3](https://web.stanford.edu/~hastie/ElemStatLearn/)
 
-##  Summary
+## üìä Summary
+
 
 **Normalization** (Feature Scaling) transforms features to similar scales, ensuring no single feature dominates due to its scale. **Regularisation** adds penalty terms to the loss function to prevent overfitting by constraining model complexity.
 
@@ -41,7 +42,7 @@ Regularisation prevents overfitting by adding penalty terms that discourage comp
 - Tree-based models (pruning)
 - Computer vision and NLP pipelines
 
-## >‡ Intuition
+## üß† Intuition
 
 ### Normalization Intuition
 
@@ -56,8 +57,8 @@ Imagine you're comparing houses using price (in hundreds of thousands) and squar
 Think of regularisation like speed limits on roads. Without limits (regularisation), drivers (models) might go too fast (overfit) and crash. Regularisation enforces "speed limits" on model complexity, ensuring safer (more generalizable) performance.
 
 **Analogy**: 
-- **No regularisation**: Memorizing exam answers í fails on new questions
-- **With regularisation**: Understanding concepts í succeeds on new questions
+- **No regularisation**: Memorizing exam answers Œª fails on new questions
+- **With regularisation**: Understanding concepts Œª succeeds on new questions
 
 ### Mathematical Foundation
 
@@ -100,7 +101,7 @@ $$\frac{\partial}{\partial w_i} \lambda |w_i| = \lambda \cdot \text{sign}(w_i)$$
 **L2 gradient** (shrinks coefficients):
 $$\frac{\partial}{\partial w_i} \lambda w_i^2 = 2\lambda w_i$$
 
-## =" Implementation using Libraries
+## üõ†Ô∏è Implementation using Libraries
 
 ### Normalization with Scikit-learn
 
@@ -380,7 +381,7 @@ for name, model in models.items():
         results[name]['non_zero_coef'] = non_zero
     
     print(f"\n{name}:")
-    print(f"  Train R≤: {train_r2:.3f}, Test R≤: {test_r2:.3f}")
+    print(f"  Train R¬≤: {train_r2:.3f}, Test R¬≤: {test_r2:.3f}")
     print(f"  Train MSE: {train_mse:.3f}, Test MSE: {test_mse:.3f}")
     print(f"  Overfitting gap: {train_r2 - test_r2:.3f}")
     if hasattr(model, 'coef_'):
@@ -397,10 +398,10 @@ test_r2s = [results[name]['test_r2'] for name in model_names]
 x = np.arange(len(model_names))
 width = 0.35
 
-axes[0,0].bar(x - width/2, train_r2s, width, label='Train R≤', alpha=0.7)
-axes[0,0].bar(x + width/2, test_r2s, width, label='Test R≤', alpha=0.7)
+axes[0,0].bar(x - width/2, train_r2s, width, label='Train R¬≤', alpha=0.7)
+axes[0,0].bar(x + width/2, test_r2s, width, label='Test R¬≤', alpha=0.7)
 axes[0,0].set_xlabel('Model')
-axes[0,0].set_ylabel('R≤ Score')
+axes[0,0].set_ylabel('R¬≤ Score')
 axes[0,0].set_title('Train vs Test Performance')
 axes[0,0].set_xticks(x)
 axes[0,0].set_xticklabels(model_names, rotation=45)
@@ -410,7 +411,7 @@ axes[0,0].grid(True, alpha=0.3)
 # Overfitting comparison
 overfitting_gaps = [results[name]['overfitting'] for name in model_names]
 axes[0,1].bar(model_names, overfitting_gaps, alpha=0.7)
-axes[0,1].set_ylabel('Overfitting Gap (Train R≤ - Test R≤)')
+axes[0,1].set_ylabel('Overfitting Gap (Train R¬≤ - Test R¬≤)')
 axes[0,1].set_title('Overfitting Comparison')
 axes[0,1].tick_params(axis='x', rotation=45)
 axes[0,1].grid(True, alpha=0.3)
@@ -481,7 +482,7 @@ fig, axes = plt.subplots(2, 2, figsize=(15, 12))
 for i in range(min(10, n_features)):  # Plot first 10 features
     axes[0,0].plot(alphas, ridge_coefs[:, i], label=f'Feature {i}' if i < 5 else "")
 axes[0,0].set_xscale('log')
-axes[0,0].set_xlabel('Regularization Strength (±)')
+axes[0,0].set_xlabel('Regularization Strength (Œª)')
 axes[0,0].set_ylabel('Coefficient Value')
 axes[0,0].set_title('Ridge Regression Path')
 axes[0,0].legend()
@@ -491,7 +492,7 @@ axes[0,0].grid(True, alpha=0.3)
 for i in range(min(10, n_features)):  # Plot first 10 features
     axes[0,1].plot(alphas, lasso_coefs[:, i], label=f'Feature {i}' if i < 5 else "")
 axes[0,1].set_xscale('log')
-axes[0,1].set_xlabel('Regularization Strength (±)')
+axes[0,1].set_xlabel('Regularization Strength (Œª)')
 axes[0,1].set_ylabel('Coefficient Value')
 axes[0,1].set_title('Lasso Regression Path')
 axes[0,1].legend()
@@ -501,8 +502,8 @@ axes[0,1].grid(True, alpha=0.3)
 axes[1,0].plot(alphas, ridge_scores, 'b-', label='Ridge', linewidth=2)
 axes[1,0].plot(alphas, lasso_scores, 'r-', label='Lasso', linewidth=2)
 axes[1,0].set_xscale('log')
-axes[1,0].set_xlabel('Regularization Strength (±)')
-axes[1,0].set_ylabel('R≤ Score')
+axes[1,0].set_xlabel('Regularization Strength (Œª)')
+axes[1,0].set_ylabel('R¬≤ Score')
 axes[1,0].set_title('Performance vs Regularization')
 axes[1,0].legend()
 axes[1,0].grid(True, alpha=0.3)
@@ -515,7 +516,7 @@ axes[1,1].plot(alphas, ridge_sparsity, 'b-', label='Ridge', linewidth=2)
 axes[1,1].plot(alphas, lasso_sparsity, 'r-', label='Lasso', linewidth=2)
 axes[1,1].axhline(y=5, color='green', linestyle='--', label='True non-zero features')
 axes[1,1].set_xscale('log')
-axes[1,1].set_xlabel('Regularization Strength (±)')
+axes[1,1].set_xlabel('Regularization Strength (Œª)')
 axes[1,1].set_ylabel('Number of Non-zero Coefficients')
 axes[1,1].set_title('Sparsity vs Regularization')
 axes[1,1].legend()
@@ -527,11 +528,11 @@ plt.show()
 print(f"\nKey Insights:")
 print(f"- Ridge: Shrinks coefficients but rarely makes them exactly zero")
 print(f"- Lasso: Creates sparse solutions by setting coefficients to exactly zero")
-print(f"- Optimal ± for Ridge: {alphas[np.argmax(ridge_scores)]:.4f}")
-print(f"- Optimal ± for Lasso: {alphas[np.argmax(lasso_scores)]:.4f}")
+print(f"- Optimal Œª for Ridge: {alphas[np.argmax(ridge_scores)]:.4f}")
+print(f"- Optimal Œª for Lasso: {alphas[np.argmax(lasso_scores)]:.4f}")
 ```
 
-## ô From Scratch Implementation
+## Œª From Scratch Implementation
 
 ### Custom Scalers Implementation
 
@@ -757,7 +758,7 @@ class RidgeRegressionFromScratch:
         
         n_features = X_with_intercept.shape[1]
         
-        # Ridge regression closed-form solution: (X'X + ±I)^(-1)X'y
+        # Ridge regression closed-form solution: (X'X + ŒªI)^(-1)X'y
         # Don't regularize the intercept term
         I = np.eye(n_features)
         if self.fit_intercept:
@@ -784,7 +785,7 @@ class RidgeRegressionFromScratch:
         return X @ self.coef_ + self.intercept_
     
     def score(self, X, y):
-        """Calculate R≤ score"""
+        """Calculate R¬≤ score"""
         y_pred = self.predict(X)
         ss_res = np.sum((y - y_pred) ** 2)
         ss_tot = np.sum((y - np.mean(y)) ** 2)
@@ -851,7 +852,7 @@ class LassoRegressionFromScratch:
         return X @ self.coef_ + self.intercept_
     
     def score(self, X, y):
-        """Calculate R≤ score"""
+        """Calculate R¬≤ score"""
         y_pred = self.predict(X)
         ss_res = np.sum((y - y_pred) ** 2)
         ss_tot = np.sum((y - np.mean(y)) ** 2)
@@ -882,8 +883,8 @@ ridge_sklearn = Ridge(alpha=1.0)
 ridge_sklearn.fit(X_train_test, y_train_test)
 
 print(f"\nRidge Regression Comparison:")
-print(f"Custom Ridge R≤: {ridge_custom.score(X_val_test, y_val_test):.4f}")
-print(f"Sklearn Ridge R≤: {ridge_sklearn.score(X_val_test, y_val_test):.4f}")
+print(f"Custom Ridge R¬≤: {ridge_custom.score(X_val_test, y_val_test):.4f}")
+print(f"Sklearn Ridge R¬≤: {ridge_sklearn.score(X_val_test, y_val_test):.4f}")
 
 coef_diff_ridge = np.max(np.abs(ridge_custom.coef_ - ridge_sklearn.coef_))
 print(f"Max coefficient difference: {coef_diff_ridge:.2e}")
@@ -896,8 +897,8 @@ lasso_sklearn = Lasso(alpha=0.1, max_iter=2000)
 lasso_sklearn.fit(X_train_test, y_train_test)
 
 print(f"\nLasso Regression Comparison:")
-print(f"Custom Lasso R≤: {lasso_custom.score(X_val_test, y_val_test):.4f}")
-print(f"Sklearn Lasso R≤: {lasso_sklearn.score(X_val_test, y_val_test):.4f}")
+print(f"Custom Lasso R¬≤: {lasso_custom.score(X_val_test, y_val_test):.4f}")
+print(f"Sklearn Lasso R¬≤: {lasso_sklearn.score(X_val_test, y_val_test):.4f}")
 
 # Compare sparsity
 custom_nonzero = np.sum(np.abs(lasso_custom.coef_) > 1e-5)
@@ -930,7 +931,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-## † Assumptions and Limitations
+## Œª Assumptions and Limitations
 
 ### Normalization Assumptions and Limitations
 
@@ -1014,7 +1015,7 @@ plt.show()
 - **Lasso**: Feature selection needed, sparse solution desired
 - **Elastic Net**: Correlated features, balanced selection and shrinkage
 
-## =° Interview Questions
+## ‚ùì Interview Questions
 
 ??? question "Why is feature normalization important in machine learning, and when might you skip it?"
 
@@ -1079,10 +1080,10 @@ plt.show()
     ```
     
     **Decision framework**:
-    1. **Check for outliers** í If many, use RobustScaler
-    2. **Check distribution** í If normal, use StandardScaler  
-    3. **Check requirements** í If bounded output needed, use MinMaxScaler
-    4. **Algorithm requirements** í Neural networks often prefer MinMax
+    1. **Check for outliers** Œª If many, use RobustScaler
+    2. **Check distribution** Œª If normal, use StandardScaler  
+    3. **Check requirements** Œª If bounded output needed, use MinMaxScaler
+    4. **Algorithm requirements** Œª Neural networks often prefer MinMax
 
 ??? question "Explain the difference between L1 and L2 regularization. When would you use each?"
 
@@ -1102,13 +1103,13 @@ plt.show()
     
     **Mathematical intuition**:
     ```
-    L1 gradient: /w (ª|w|) = ª∑sign(w)    # Constant push toward zero
-    L2 gradient: /w (ªw≤) = 2ªw           # Proportional shrinkage
+    L1 gradient: /w (Œª|w|) = ŒªŒªsign(w)    # Constant push toward zero
+    L2 gradient: /w (ŒªwŒª) = 2Œªw           # Proportional shrinkage
     ```
     
     **Visual difference**:
-    - **L1 constraint region**: Diamond shape í creates sparsity at corners
-    - **L2 constraint region**: Circle shape í shrinks uniformly
+    - **L1 constraint region**: Diamond shape Œª creates sparsity at corners
+    - **L2 constraint region**: Circle shape Œª shrinks uniformly
     
     **When to use L1**:
     -  Feature selection needed
@@ -1197,13 +1198,13 @@ plt.show()
     **With Regularization**:
     - **Higher bias**: Model constrained, can't fit training data perfectly
     - **Lower variance**: More stable predictions across different training sets
-    - **Goal**: Minimize total error = Bias≤ + Variance + Noise
+    - **Goal**: Minimize total error = BiasŒª + Variance + Noise
     
     **Regularization effects**:
     ```python
-    # No regularization (ª = 0): High variance, low bias
-    # Strong regularization (ª >> 1): Low variance, high bias  
-    # Optimal ª: Minimizes bias≤ + variance
+    # No regularization (Œª = 0): High variance, low bias
+    # Strong regularization (Œª >> 1): Low variance, high bias  
+    # Optimal Œª: Minimizes biasŒª + variance
     ```
     
     **Visual intuition**:
@@ -1214,9 +1215,9 @@ plt.show()
     **Practical example**:
     ```python
     # Polynomial regression with different regularization
-    ª = 0:    Perfect training fit, poor test performance (overfit)
-    ª = 0.1:  Good training fit, good test performance (balanced)  
-    ª = 100:  Poor training fit, poor test performance (underfit)
+    Œª = 0:    Perfect training fit, poor test performance (overfit)
+    Œª = 0.1:  Good training fit, good test performance (balanced)  
+    Œª = 100:  Poor training fit, poor test performance (underfit)
     ```
     
     **How to detect**:
@@ -1225,8 +1226,8 @@ plt.show()
     - **Optimal point**: Minimal validation error
     
     **Regularization strength effects**:
-    - **Increasing ª**: Reduces variance, increases bias
-    - **Decreasing ª**: Reduces bias, increases variance
+    - **Increasing Œª**: Reduces variance, increases bias
+    - **Decreasing Œª**: Reduces bias, increases variance
     - **Sweet spot**: Cross-validation finds optimal balance
 
 ??? question "How does regularization help with multicollinearity, and what's the difference between Ridge and Lasso in handling it?"
@@ -1489,20 +1490,20 @@ plt.show()
     **Advanced combinations**:
     ```python
     # Multi-task learning with shared regularization
-    Loss = £ TaskLoss_i + ªÅ||W_shared||Ç≤ + ªÇ||W_specific||Å
+    Loss = Œª TaskLoss_i + ŒªŒª||W_shared||ŒªŒª + ŒªŒª||W_specific||Œª
     
-    # Adaptive regularization (learning ª)
-    ª = ªÄ * exp(-decay * epoch)
+    # Adaptive regularization (learning Œª)
+    Œª = ŒªŒª * exp(-decay * epoch)
     ```
     
     **Selection criteria**:
-    - **Data structure**: Spatial/temporal data í Fused Lasso
+    - **Data structure**: Spatial/temporal data Œª Fused Lasso
     - **High dimensions**: Group Lasso, Nuclear norm
     - **Neural networks**: Dropout, Batch norm, Weight decay
     - **Interpretability needs**: L1, Group Lasso
     - **Stability needs**: L2, Elastic Net
 
-## >‡ Examples
+## üìù Examples
 
 ### Real-world Example: Customer Churn Prediction
 
@@ -1838,7 +1839,7 @@ plt.show()
 print(f"\nTop 10 Most Important Features:")
 for i, (_, row) in enumerate(top_features.iterrows()):
     direction = "increases" if row['coefficient'] > 0 else "decreases"
-    print(f"{i+1:2d}. {row['feature']:25} í {direction} churn risk (coef: {row['coefficient']:+.3f})")
+    print(f"{i+1:2d}. {row['feature']:25} Œª {direction} churn risk (coef: {row['coefficient']:+.3f})")
 ```
 
 ### Financial Risk Assessment Example
@@ -1994,8 +1995,8 @@ for scaler_name, scaler in scalers_robust.items():
         'mae': mae
     }
     
-    print(f"  Train R≤: {train_score:.3f}")
-    print(f"  Test R≤: {test_score:.3f}")
+    print(f"  Train R¬≤: {train_score:.3f}")
+    print(f"  Test R¬≤: {test_score:.3f}")
     print(f"  RMSE: {rmse:.3f}")
     print(f"  MAE: {mae:.3f}")
 
@@ -2027,8 +2028,8 @@ for i, scaler_name in enumerate(['StandardScaler', 'RobustScaler', 'QuantileTran
 
 # Performance comparison
 axes[1, 1].bar(scaling_results.keys(), [v['test_r2'] for v in scaling_results.values()], alpha=0.7)
-axes[1, 1].set_title('Test R≤ by Scaling Method')
-axes[1, 1].set_ylabel('R≤ Score')
+axes[1, 1].set_title('Test R¬≤ by Scaling Method')
+axes[1, 1].set_ylabel('R¬≤ Score')
 axes[1, 1].tick_params(axis='x', rotation=45)
 axes[1, 1].grid(True, alpha=0.3)
 
@@ -2099,7 +2100,7 @@ for model_name, base_model in regularization_models.items():
     best_test_score = test_scores[best_idx]
     
     print(f"  Best alpha: {best_alpha:.4f}")
-    print(f"  Best test R≤: {best_test_score:.3f}")
+    print(f"  Best test R¬≤: {best_test_score:.3f}")
     print(f"  Sparsity at best alpha: {sparsity_levels[best_idx]:.1%}")
 
 # Visualize regularization paths
@@ -2110,8 +2111,8 @@ for i, (model_name, results) in enumerate(regularization_paths.items()):
     axes[0, i].plot(alphas, results['train_scores'], 'b-', label='Train', linewidth=2)
     axes[0, i].plot(alphas, results['test_scores'], 'r-', label='Test', linewidth=2)
     axes[0, i].set_xscale('log')
-    axes[0, i].set_xlabel('Regularization Strength (±)')
-    axes[0, i].set_ylabel('R≤ Score')
+    axes[0, i].set_xlabel('Regularization Strength (Œª)')
+    axes[0, i].set_ylabel('R¬≤ Score')
     axes[0, i].set_title(f'{model_name}: Performance vs Regularization')
     axes[0, i].legend()
     axes[0, i].grid(True, alpha=0.3)
@@ -2119,7 +2120,7 @@ for i, (model_name, results) in enumerate(regularization_paths.items()):
     # Mark best alpha
     best_idx = np.argmax(results['test_scores'])
     axes[0, i].axvline(alphas[best_idx], color='green', linestyle='--', alpha=0.7, 
-                      label=f'Best ±={alphas[best_idx]:.4f}')
+                      label=f'Best Œª={alphas[best_idx]:.4f}')
     
     # Coefficient paths (show first 5 features)
     for j in range(min(5, results['coefficients'].shape[1])):
@@ -2127,7 +2128,7 @@ for i, (model_name, results) in enumerate(regularization_paths.items()):
                        label=f'Feature {j+1}' if i == 0 else "")
     
     axes[1, i].set_xscale('log')
-    axes[1, i].set_xlabel('Regularization Strength (±)')
+    axes[1, i].set_xlabel('Regularization Strength (Œª)')
     axes[1, i].set_ylabel('Coefficient Value')
     axes[1, i].set_title(f'{model_name}: Coefficient Paths')
     if i == 0:
@@ -2153,8 +2154,8 @@ final_r2 = r2_score(y_test, y_pred_final)
 final_rmse = np.sqrt(mean_squared_error(y_test, y_pred_final))
 final_mae = mean_absolute_error(y_test, y_pred_final)
 
-print(f"Final Ridge Model (± = {best_alpha_ridge:.4f}):")
-print(f"  Test R≤: {final_r2:.3f}")
+print(f"Final Ridge Model (Œª = {best_alpha_ridge:.4f}):")
+print(f"  Test R¬≤: {final_r2:.3f}")
 print(f"  RMSE: {final_rmse:.3f}")
 print(f"  MAE: {final_mae:.3f}")
 
@@ -2168,7 +2169,7 @@ feature_importance = pd.DataFrame({
 print(f"\nFeature Importance Ranking:")
 for i, (_, row) in enumerate(feature_importance.iterrows()):
     direction = "increases" if row['coefficient'] > 0 else "decreases"
-    print(f"{i+1:2d}. {row['feature']:20} í {direction} risk (coef: {row['coefficient']:+.4f})")
+    print(f"{i+1:2d}. {row['feature']:20} Œª {direction} risk (coef: {row['coefficient']:+.4f})")
 
 # Final visualization
 plt.figure(figsize=(12, 5))
@@ -2178,7 +2179,7 @@ plt.scatter(y_test, y_pred_final, alpha=0.6)
 plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
 plt.xlabel('Actual Risk Score')
 plt.ylabel('Predicted Risk Score')
-plt.title(f'Final Model Performance\nR≤ = {final_r2:.3f}')
+plt.title(f'Final Model Performance\nR¬≤ = {final_r2:.3f}')
 plt.grid(True, alpha=0.3)
 
 plt.subplot(1, 2, 2)
@@ -2196,7 +2197,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-## =⁄ References
+## üìö References
 
 - **Books:**
   - [The Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/) by Hastie, Tibshirani, and Friedman - Chapters 3, 18

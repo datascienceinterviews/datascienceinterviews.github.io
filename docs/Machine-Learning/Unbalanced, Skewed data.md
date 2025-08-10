@@ -4,7 +4,7 @@ description: Comprehensive guide to handling Unbalanced and Skewed Data with sam
 comments: true
 ---
 
-# =Ø Unbalanced and Skewed Data
+# âš–ï¸ Unbalanced and Skewed Data
 
 Unbalanced and Skewed Data are common challenges in machine learning where the distribution of classes or feature values is highly imbalanced, leading to biased models that favor majority classes or specific value ranges.
 
@@ -42,7 +42,7 @@ Unbalanced and Skewed Data are common challenges in machine learning where the d
 - **Ensemble Methods**: Combining multiple models to improve minority class performance
 - **Evaluation Metrics**: Precision, Recall, F1-score, AUC-ROC for imbalanced datasets
 
-## >à Intuition
+## >ï¿½ Intuition
 
 ### How Imbalanced Data Affects Learning
 
@@ -318,7 +318,7 @@ for metric in ['precision', 'recall', 'f1', 'auc']:
         print(f"{metric.upper():10s}: {best_model} ({best_score:.3f})")
 ```
 
-## ™ From Scratch Implementation
+## ï¿½ From Scratch Implementation
 
 ### SMOTE Implementation from Scratch
 
@@ -599,7 +599,7 @@ if __name__ == "__main__":
     custom_model.plot_cost_history()
 ```
 
-##   Assumptions and Limitations
+## ï¿½ Assumptions and Limitations
 
 ### Assumptions for Imbalanced Data Techniques
 
@@ -652,7 +652,7 @@ if __name__ == "__main__":
 - **Threshold**: Simple post-processing approach
 - **Data Modification**: Changes training process but may introduce artifacts
 
-## =¡ Interview Questions
+## =ï¿½ Interview Questions
 
 ??? question "1. What is the difference between imbalanced and skewed data? How do you detect each?"
     **Answer:**
@@ -694,7 +694,7 @@ if __name__ == "__main__":
     - **SMOTE Algorithm**:
       - Finds k-nearest neighbors of minority samples
       - Creates synthetic samples along lines between samples and neighbors
-      - Formula: new_sample = sample + » × (neighbor - sample), »  [0,1]
+      - Formula: new_sample = sample + ï¿½ ï¿½ (neighbor - sample), ï¿½  [0,1]
     - **Advantages**:
       - Increases minority class size without exact duplication
       - Considers local neighborhood structure
@@ -874,7 +874,7 @@ if __name__ == "__main__":
       - Learned importance of domain expertise in feature engineering
       - Ongoing monitoring revealed seasonal drift patterns
 
-## >à Examples
+## >ï¿½ Examples
 
 ### Real-World Example: Credit Fraud Detection
 
@@ -1207,10 +1207,10 @@ print(f"" Regular model retraining as fraud patterns evolve")
 - **Evaluation is Critical**: Standard metrics can be misleading; business metrics are essential
 - **Threshold Optimization**: Can significantly improve business outcomes without changing the model
 
-## =Ú References
+## =ï¿½ References
 
 1. **Books:**
-   - [Learning from Imbalanced Data Sets - Alberto Fernández](https://link.springer.com/book/10.1007/978-3-319-98074-4)
+   - [Learning from Imbalanced Data Sets - Alberto Fernï¿½ndez](https://link.springer.com/book/10.1007/978-3-319-98074-4)
    - [Imbalanced Learning: Foundations, Algorithms, and Applications - He & Ma](https://ieeexplore.ieee.org/book/6267335)
    - [The Elements of Statistical Learning - Hastie, Tibshirani, Friedman](https://web.stanford.edu/~hastie/ElemStatLearn/)
 

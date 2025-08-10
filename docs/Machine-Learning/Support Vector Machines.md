@@ -4,7 +4,7 @@ description: Comprehensive guide to Support Vector Machines with mathematical in
 comments: true
 ---
 
-# =Ø Support Vector Machines (SVM)
+# âš”ï¸ Support Vector Machines (SVM)
 
 Support Vector Machines are powerful supervised learning algorithms that find the optimal decision boundary by maximizing the margin between classes, capable of handling both linear and non-linear classification and regression problems through kernel methods.
 
@@ -40,7 +40,7 @@ Support Vector Machine (SVM) is a discriminative classifier that finds the optim
 - **SVR (Support Vector Regression)**: For regression tasks
 - **One-Class SVM**: For anomaly detection and novelty detection
 
-## >à Intuition
+## >ï¿½ Intuition
 
 ### How SVM Works
 
@@ -353,7 +353,7 @@ for i, (name, model) in enumerate(svr_models.items()):
     rmse = np.sqrt(mse)
     r2 = r2_score(y_test_reg, y_pred_reg)
     
-    print(f"{name}: RMSE = {rmse:.3f}, R² = {r2:.3f}, Support Vectors = {len(model.support_)}")
+    print(f"{name}: RMSE = {rmse:.3f}, Rï¿½ = {r2:.3f}, Support Vectors = {len(model.support_)}")
     
     # Plot results
     plt.subplot(1, 3, i+1)
@@ -375,7 +375,7 @@ for i, (name, model) in enumerate(svr_models.items()):
     
     plt.xlabel('Feature (standardized)')
     plt.ylabel('Target')
-    plt.title(f'{name}\nR² = {r2:.3f}')
+    plt.title(f'{name}\nRï¿½ = {r2:.3f}')
     plt.legend()
     plt.grid(True, alpha=0.3)
 
@@ -430,7 +430,7 @@ plt.xlabel('Predicted Label')
 plt.show()
 ```
 
-## ™ From Scratch Implementation
+## ï¿½ From Scratch Implementation
 
 ```python
 import numpy as np
@@ -745,7 +745,7 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
                    f'Sklearn SVM (Acc: {accuracy_sklearn:.3f})')
 ```
 
-##   Assumptions and Limitations
+## ï¿½ Assumptions and Limitations
 
 ### Key Assumptions
 
@@ -757,7 +757,7 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
 
 ### Limitations
 
-1. **Computational complexity**: O(n³) training complexity for SMO algorithm
+1. **Computational complexity**: O(nï¿½) training complexity for SMO algorithm
    - **Impact**: Slow on large datasets (>10,000 samples)
    - **Solution**: Use approximate methods, sub-sampling, or linear SVM
 
@@ -781,7 +781,7 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
 
 | Algorithm | Training Speed | Prediction Speed | Memory Usage | Interpretability | Non-linear Capability |
 |-----------|----------------|------------------|---------------|------------------|----------------------|
-| SVM | Slow (O(n³)) | Fast | High | Low (kernel) | High |
+| SVM | Slow (O(nï¿½)) | Fast | High | Low (kernel) | High |
 | Logistic Regression | Fast | Very Fast | Low | High | Low |
 | Random Forest | Medium | Medium | Medium | Medium | High |
 | Neural Networks | Slow | Fast | High | Very Low | Very High |
@@ -802,7 +802,7 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
 - L Real-time prediction requirements
 - L Interpretability is crucial
 
-## =¡ Interview Questions
+## â“ Interview Questions
 
 ??? question "Explain the mathematical intuition behind SVM and the concept of margin maximization."
 
@@ -815,13 +815,13 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     4. **Constraints**: Ensure correct classification: $y_i(w^T x_i + b) \geq 1$
     
     **Intuition**: 
-    - Larger margins ’ better generalization (statistical learning theory)
+    - Larger margins ï¿½ better generalization (statistical learning theory)
     - Only support vectors (points on margin) determine decision boundary
     - All other points could be removed without changing the model
     
     **Why maximize margin?**
     - Provides robustness against small perturbations
-    - Reduces VC dimension ’ better generalization bounds
+    - Reduces VC dimension ï¿½ better generalization bounds
     - Unique solution (convex optimization problem)
 
 ??? question "What is the kernel trick and how does it enable SVM to handle non-linear data?"
@@ -829,16 +829,16 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     **Answer:** The kernel trick allows SVM to handle non-linear data without explicitly computing high-dimensional transformations:
     
     **The trick**:
-    1. **Replace dot products** in dual formulation with kernel function: $x_i^T x_j ’ K(x_i, x_j)$
-    2. **Implicit mapping**: $K(x_i, x_j) = Æ(x_i)^T Æ(x_j)$ where Æ maps to higher dimension
-    3. **No explicit computation** of Æ(x) needed
+    1. **Replace dot products** in dual formulation with kernel function: $x_i^T x_j ï¿½ K(x_i, x_j)$
+    2. **Implicit mapping**: $K(x_i, x_j) = ï¿½(x_i)^T ï¿½(x_j)$ where ï¿½ maps to higher dimension
+    3. **No explicit computation** of ï¿½(x) needed
     
     **Popular kernels**:
     ```python
     # Linear: K(x,z) = x^T z
     # Polynomial: K(x,z) = (x^T z + c)^d
-    # RBF: K(x,z) = exp(-³||x-z||²)
-    # Sigmoid: K(x,z) = tanh(³x^T z + c)
+    # RBF: K(x,z) = exp(-ï¿½||x-z||ï¿½)
+    # Sigmoid: K(x,z) = tanh(ï¿½x^T z + c)
     ```
     
     **Example**: RBF kernel maps data to infinite-dimensional space, allowing separation of any finite dataset
@@ -907,14 +907,14 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     
     **Soft Margin SVM**:
     - **Assumption**: Data may have noise/overlap
-    - **Slack variables**: $¾_i e 0$ allow constraint violations
-    - **Modified constraints**: $y_i(w^T x_i + b) \geq 1 - ¾_i$
-    - **Objective**: $\min \frac{1}{2}||w||^2 + C\sum ¾_i$
+    - **Slack variables**: $ï¿½_i e 0$ allow constraint violations
+    - **Modified constraints**: $y_i(w^T x_i + b) \geq 1 - ï¿½_i$
+    - **Objective**: $\min \frac{1}{2}||w||^2 + C\sum ï¿½_i$
     - **Trade-off**: Margin maximization vs. training error
     
     **C parameter controls**:
-    - $C ’ $: Approaches hard margin (no violations)
-    - $C ’ 0$: Allows many violations (maximum margin)
+    - $C ï¿½ $: Approaches hard margin (no violations)
+    - $C ï¿½ 0$: Allows many violations (maximum margin)
     
     **Practical impact**:
     ```python
@@ -1006,8 +1006,8 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     -  Smooth decision boundaries
     
     **Disadvantages**:
-    - L Requires hyperparameter tuning (³)
-    - L Can overfit with large ³
+    - L Requires hyperparameter tuning (ï¿½)
+    - L Can overfit with large ï¿½
     - L Less interpretable
     - L Slower than linear
     
@@ -1115,10 +1115,10 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     **Training Complexity**:
     
     **SMO Algorithm** (most common):
-    - **Time**: O(n²) to O(n³) depending on data
-    - **Average case**: O(n²·³) for most datasets
-    - **Worst case**: O(n³) for very difficult datasets
-    - **Space**: O(n²) for kernel matrix storage
+    - **Time**: O(nï¿½) to O(nï¿½) depending on data
+    - **Average case**: O(nï¿½ï¿½ï¿½) for most datasets
+    - **Worst case**: O(nï¿½) for very difficult datasets
+    - **Space**: O(nï¿½) for kernel matrix storage
     
     **Factors affecting training time**:
     ```python
@@ -1137,14 +1137,14 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     ```
     
     **Prediction Complexity**:
-    - **Time**: O(n_support_vectors × n_features)
+    - **Time**: O(n_support_vectors ï¿½ n_features)
     - **Typical**: Much faster than training
     - **Linear kernel**: O(n_features) - very fast
-    - **Non-linear**: O(n_sv × n_features) - depends on support vectors
+    - **Non-linear**: O(n_sv ï¿½ n_features) - depends on support vectors
     
     **Memory Requirements**:
     ```python
-    # Kernel matrix: n × n × 8 bytes (for RBF/poly)
+    # Kernel matrix: n ï¿½ n ï¿½ 8 bytes (for RBF/poly)
     memory_gb = (n_samples ** 2 * 8) / (1024**3)
     
     # For 10,000 samples: ~0.75 GB
@@ -1155,7 +1155,7 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     1. **Linear SVM**: Use for n > 10,000
     2. **Sampling**: Train on subset of data
     3. **Online SVM**: Incremental learning algorithms
-    4. **Approximate methods**: Nyström approximation
+    4. **Approximate methods**: Nystrï¿½m approximation
     5. **Alternative algorithms**: Random Forest, XGBoost for large data
     
     **Practical guidelines**:
@@ -1257,7 +1257,7 @@ plot_svm_comparison(X_train_demo_scaled, y_train_demo, svm_custom, svm_sklearn,
     print(f"Average distance from boundary: {np.mean(abs(decision_scores_errors))}")
     ```
 
-## >à Examples
+## >ï¿½ Examples
 
 ### Real-world Example: Text Classification
 
@@ -1606,8 +1606,8 @@ for i, (name, model) in enumerate(svr_models.items()):
     test_mae = mean_absolute_error(y_test_reg, y_pred_test)
     
     print(f"\n{name} Results:")
-    print(f"Train R²: {train_r2:.3f}")
-    print(f"Test R²: {test_r2:.3f}")
+    print(f"Train Rï¿½: {train_r2:.3f}")
+    print(f"Test Rï¿½: {test_r2:.3f}")
     print(f"Test RMSE: {test_rmse:.3f}")
     print(f"Test MAE: {test_mae:.3f}")
     print(f"Support vectors: {len(model.support_)} ({len(model.support_)/len(X_train_reg_scaled)*100:.1f}%)")
@@ -1637,7 +1637,7 @@ for i, (name, model) in enumerate(svr_models.items()):
     
     plt.xlabel('Feature (standardized)')
     plt.ylabel('Target')
-    plt.title(f'{name}\nR² = {test_r2:.3f}, RMSE = {test_rmse:.1f}')
+    plt.title(f'{name}\nRï¿½ = {test_r2:.3f}, RMSE = {test_rmse:.1f}')
     plt.legend()
     plt.grid(True, alpha=0.3)
 
@@ -1678,11 +1678,11 @@ plt.scatter(X_test_reg_scaled, y_test_reg, alpha=0.6, color='blue',
 plt.plot(X_sorted, y_pred_sorted, color='green', linewidth=2, 
          label='SVR prediction')
 plt.fill_between(X_sorted[:, 0], y_pred_sorted - epsilon, y_pred_sorted + epsilon,
-                alpha=0.3, color='yellow', label=f'µ-tube (µ={epsilon})')
+                alpha=0.3, color='yellow', label=f'ï¿½-tube (ï¿½={epsilon})')
 
 plt.xlabel('Feature (standardized)')
 plt.ylabel('Target')
-plt.title('SVR with µ-insensitive Loss')
+plt.title('SVR with ï¿½-insensitive Loss')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
@@ -1709,14 +1709,14 @@ for epsilon in epsilon_values:
             best_score = score
             best_params = {'C': C, 'epsilon': epsilon}
         
-        print(f"C={C:4}, µ={epsilon:4.2f}: R² = {score:.3f}, "
+        print(f"C={C:4}, ï¿½={epsilon:4.2f}: Rï¿½ = {score:.3f}, "
               f"Support vectors: {len(svr_temp.support_):3d}")
 
 print(f"\nBest parameters: {best_params}")
-print(f"Best R² score: {best_score:.3f}")
+print(f"Best Rï¿½ score: {best_score:.3f}")
 ```
 
-## =Ú References
+## ðŸ“š References
 
 - **Original Papers:**
   - [Support-Vector Networks](https://link.springer.com/article/10.1007/BF00994018) by Cortes & Vapnik (1995)
@@ -1726,7 +1726,7 @@ print(f"Best R² score: {best_score:.3f}")
 - **Books:**
   - [The Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/) by Hastie, Tibshirani, and Friedman - Chapter 12
   - [Pattern Recognition and Machine Learning](https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf) by Christopher Bishop - Chapter 7
-  - [Learning with Kernels](https://mitpress.mit.edu/books/learning-kernels) by Schölkopf and Smola
+  - [Learning with Kernels](https://mitpress.mit.edu/books/learning-kernels) by Schï¿½lkopf and Smola
 
 - **Documentation:**
   - [Scikit-learn SVM Guide](https://scikit-learn.org/stable/modules/svm.html)
@@ -1744,7 +1744,7 @@ print(f"Best R² score: {best_score:.3f}")
   - [Linear SVM](https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html) for large datasets
 
 - **Research Papers:**
-  - Schölkopf, B., & Smola, A. J. (2002). Learning with kernels: Support vector machines
+  - Schï¿½lkopf, B., & Smola, A. J. (2002). Learning with kernels: Support vector machines
   - Chang, C. C., & Lin, C. J. (2011). LIBSVM: A library for support vector machines
   - Fan, R. E., Chang, K. W., Hsieh, C. J., Wang, X. R., & Lin, C. J. (2008). LIBLINEAR: A library for large linear classification
 

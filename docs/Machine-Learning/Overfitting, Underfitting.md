@@ -4,13 +4,13 @@ description: Comprehensive guide to Overfitting and Underfitting with mathematic
 comments: true
 ---
 
-# =ÿ Overfitting and Underfitting
+# üéØ Overfitting and Underfitting
 
 Overfitting and Underfitting are fundamental concepts in machine learning that describe how well a model generalizes to unseen data - the central challenge in building reliable predictive models.
 
 **Resources:** [Scikit-learn Model Selection](https://scikit-learn.org/stable/modules/model_evaluation.html) | [ESL Chapter 7](https://web.stanford.edu/~hastie/ElemStatLearn/) | [Bias-Variance Tradeoff Paper](https://www.cs.cornell.edu/courses/cs4780/2018fa/lectures/lecturenote12.html)
 
-##  Summary
+## üìä Summary
 
 **Overfitting** occurs when a model learns the training data too well, capturing noise and specific patterns that don't generalize to new data. **Underfitting** happens when a model is too simple to capture the underlying patterns in the data.
 
@@ -42,7 +42,7 @@ Overfitting and Underfitting are fundamental concepts in machine learning that d
 - **Regularization**: Primary technique to prevent overfitting
 - **Cross-Validation**: Method to detect and measure fitting issues
 
-## >‡ Intuition
+## üß† Intuition
 
 ### How Overfitting and Underfitting Work
 
@@ -86,7 +86,7 @@ Training and validation error as functions of:
 - **Sample size**: $\text{Error}(n)$
 - **Model complexity**: $\text{Error}(\lambda)$ where $\lambda$ controls complexity
 
-## =" Implementation using Libraries
+## üõ†Ô∏è Implementation using Libraries
 
 ### Scikit-learn Implementation
 
@@ -148,7 +148,7 @@ for i, (name, model) in enumerate(models.items(), 1):
     plt.scatter(X_train, y_train, alpha=0.6, label='Training Data')
     plt.scatter(X_test, y_test, alpha=0.6, label='Test Data')
     plt.plot(X_plot, results[name]['predictions'], 'r-', linewidth=2)
-    plt.title(f'{name}\nTrain R≤: {train_score:.3f}, Test R≤: {test_score:.3f}')
+    plt.title(f'{name}\nTrain R¬≤: {train_score:.3f}, Test R¬≤: {test_score:.3f}')
     plt.legend()
     plt.xlabel('X')
     plt.ylabel('y')
@@ -160,7 +160,7 @@ plt.show()
 print("Model Performance Comparison:")
 print("-" * 50)
 for name, result in results.items():
-    print(f"{name:25s} | Train R≤: {result['train_score']:.3f} | Test R≤: {result['test_score']:.3f}")
+    print(f"{name:25s} | Train R¬≤: {result['train_score']:.3f} | Test R¬≤: {result['test_score']:.3f}")
 ```
 
 ### Learning Curves Analysis
@@ -233,7 +233,7 @@ alpha_range = np.logspace(-4, 2, 20)
 plot_validation_curve(ridge_model, X, y, 'ridge__alpha', alpha_range, 'Ridge Alpha')
 ```
 
-## ô From Scratch Implementation
+## üîß From Scratch Implementation
 
 ### Simple Overfitting Detection Framework
 
@@ -290,7 +290,7 @@ class FittingAnalyzer:
         I = np.eye(X.shape[1])
         I[0, 0] = 0  # Don't regularize intercept
         
-        # Ridge regression solution: (X^T X + ±I)^(-1) X^T y
+        # Ridge regression solution: (X^T X + ŒªI)^(-1) X^T y
         coefficients = np.linalg.solve(X.T @ X + alpha * I, X.T @ y)
         
         return coefficients
@@ -304,7 +304,7 @@ class FittingAnalyzer:
         return np.mean((y_true - y_pred) ** 2)
     
     def r2_score(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
-        """Calculate R≤ score"""
+        """Calculate R¬≤ score"""
         ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
         ss_res = np.sum((y_true - y_pred) ** 2)
         return 1 - (ss_res / ss_tot)
@@ -387,14 +387,14 @@ class FittingAnalyzer:
         ax1.legend()
         ax1.grid(True, alpha=0.3)
         
-        # Plot R≤ vs complexity
+        # Plot R¬≤ vs complexity
         ax2.plot(results['degrees'], results['train_r2s'], 'o-', 
-                label='Training R≤', color='blue')
+                label='Training R¬≤', color='blue')
         ax2.plot(results['degrees'], results['test_r2s'], 'o-', 
-                label='Validation R≤', color='red')
+                label='Validation R¬≤', color='red')
         ax2.set_xlabel('Polynomial Degree (Model Complexity)')
-        ax2.set_ylabel('R≤ Score')
-        ax2.set_title('R≤ vs Model Complexity')
+        ax2.set_ylabel('R¬≤ Score')
+        ax2.set_title('R¬≤ vs Model Complexity')
         ax2.legend()
         ax2.grid(True, alpha=0.3)
         
@@ -433,7 +433,7 @@ if __name__ == "__main__":
     optimal_degree = results['degrees'][optimal_idx]
     
     print(f"\nOptimal polynomial degree: {optimal_degree}")
-    print(f"Test R≤ at optimal complexity: {results['test_r2s'][optimal_idx]:.3f}")
+    print(f"Test R¬≤ at optimal complexity: {results['test_r2s'][optimal_idx]:.3f}")
     
     # Detect fitting issues for different complexities
     for i, degree in enumerate([1, optimal_degree, 15]):
@@ -445,7 +445,7 @@ if __name__ == "__main__":
             print(f"Degree {degree}: {status}")
 ```
 
-## † Assumptions and Limitations
+## ‚ö†Ô∏è Assumptions and Limitations
 
 ### Overfitting Assumptions and Limitations
 
@@ -492,7 +492,7 @@ if __name__ == "__main__":
 - **Advantages**: Interpretable individual models
 - **Disadvantages**: May still overfit collectively
 
-## =° Interview Questions
+## ‚ùì Interview Questions
 
 ??? question "1. What is the fundamental difference between overfitting and underfitting? How do they relate to the bias-variance tradeoff?"
     **Answer:**
@@ -502,7 +502,7 @@ if __name__ == "__main__":
       - Overfitting: Low training error, high test error (high variance)
       - Underfitting: High training error, high test error (high bias)
       - Optimal model: Balance between bias and variance
-    - **Total Error** = Bias≤ + Variance + Irreducible Error
+    - **Total Error** = Bias¬≤ + Variance + Irreducible Error
     - **Goal**: Find the sweet spot that minimizes total expected error
 
 ??? question "2. How would you detect overfitting in a machine learning model? Provide multiple approaches."
@@ -592,8 +592,8 @@ if __name__ == "__main__":
       - Flexibility of the model to fit different patterns
       - Measured by VC dimension, degrees of freedom, etc.
     - **Relationship to Overfitting**:
-      - Higher complexity í Higher risk of overfitting
-      - Lower complexity í Higher risk of underfitting
+      - Higher complexity ‚Üí Higher risk of overfitting
+      - Lower complexity ‚Üí Higher risk of underfitting
       - Sweet spot depends on data size and problem complexity
     - **Choosing Right Complexity**:
       - **Validation curves**: Plot performance vs complexity parameter
@@ -697,7 +697,7 @@ if __name__ == "__main__":
       - For deep learning, often need much more
       - Consider domain complexity when sizing models
 
-## >‡ Examples
+## üìù Examples
 
 ### Real-World Example: House Price Prediction
 
@@ -740,10 +740,10 @@ train_score_simple = simple_model.score(X_train[['Size_sqft']], y_train)
 test_score_simple = simple_model.score(X_test[['Size_sqft']], y_test)
 
 print(f"Simple Model (Size only):")
-print(f"Training R≤: {train_score_simple:.3f}")
-print(f"Test R≤: {test_score_simple:.3f}")
+print(f"Training R¬≤: {train_score_simple:.3f}")
+print(f"Test R¬≤: {test_score_simple:.3f}")
 print(f"Performance Gap: {abs(train_score_simple - test_score_simple):.3f}")
-print("Analysis: Both scores are low í UNDERFITTING")
+print("Analysis: Both scores are low ‚Üí UNDERFITTING")
 
 # Model 2: Good fit
 print("\n2. GOOD FIT EXAMPLE:")
@@ -756,10 +756,10 @@ train_score_good = good_model.score(X_train, y_train)
 test_score_good = good_model.score(X_test, y_test)
 
 print(f"Ridge Model (All features):")
-print(f"Training R≤: {train_score_good:.3f}")
-print(f"Test R≤: {test_score_good:.3f}")
+print(f"Training R¬≤: {train_score_good:.3f}")
+print(f"Test R¬≤: {test_score_good:.3f}")
 print(f"Performance Gap: {abs(train_score_good - test_score_good):.3f}")
-print("Analysis: Both scores reasonable, small gap í GOOD FIT")
+print("Analysis: Both scores reasonable, small gap ‚Üí GOOD FIT")
 
 # Model 3: Overfitting (too complex)
 print("\n3. OVERFITTING EXAMPLE:")
@@ -777,10 +777,10 @@ train_score_overfit = overfit_model.score(X_train, y_train)
 test_score_overfit = overfit_model.score(X_test, y_test)
 
 print(f"Polynomial Model (degree=8):")
-print(f"Training R≤: {train_score_overfit:.3f}")
-print(f"Test R≤: {test_score_overfit:.3f}")
+print(f"Training R¬≤: {train_score_overfit:.3f}")
+print(f"Test R¬≤: {test_score_overfit:.3f}")
 print(f"Performance Gap: {abs(train_score_overfit - test_score_overfit):.3f}")
-print("Analysis: High training score, low test score í OVERFITTING")
+print("Analysis: High training score, low test score ‚Üí OVERFITTING")
 
 # Cross-validation analysis
 print("\n4. CROSS-VALIDATION ANALYSIS:")
@@ -798,7 +798,7 @@ for name, model in models.items():
     else:
         cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='r2')
     
-    print(f"{name:12s}: Mean CV R≤ = {cv_scores.mean():.3f} (±{cv_scores.std():.3f})")
+    print(f"{name:12s}: Mean CV R¬≤ = {cv_scores.mean():.3f} (¬±{cv_scores.std():.3f})")
 
 # Learning curves visualization
 def plot_learning_curve_example():
@@ -871,12 +871,12 @@ print("" Feature engineering might help more than complex models")
 - **Overfitting**: High-degree polynomial model shows perfect training performance but poor test performance
 - **Learning Curves**: Reveal the characteristic patterns of each fitting scenario
 
-## =⁄ References
+## üìö References
 
 1. **Books:**
    - [The Elements of Statistical Learning - Hastie, Tibshirani, Friedman](https://web.stanford.edu/~hastie/ElemStatLearn/)
    - [Pattern Recognition and Machine Learning - Bishop](https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf)
-   - [Hands-On Machine Learning - AurÈlien GÈron](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/)
+   - [Hands-On Machine Learning - Aur√©lien G√©ron](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/)
 
 2. **Papers:**
    - [A Few Useful Things to Know About Machine Learning - Domingos](https://homes.cs.washington.edu/~pedrod/papers/cacm12.pdf)

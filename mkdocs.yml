@@ -11,8 +11,10 @@ site_description: >-
 repo_name: singhsidhukuldeep/singhsidhukuldeep.github.io
 repo_url: https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io
 
-# extra_javascript:
-#   - 'javascripts/xfile.js'
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/xfile.js
 extra_css:
   - 'stylesheets/extra.css'
 extra:
@@ -149,7 +151,8 @@ plugins:
 markdown_extensions:
   - attr_list
   - md_in_html
-  - pymdownx.arithmatex
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
