@@ -154,8 +154,7 @@ Not only this, the platform will also serve as one point destination for all you
         <br>
         You can pick anyone, write in `.py`, `.md`, `.txt` or `.ipynb`; I will format it!
 
-        - [Online-Material/Online-Material-for-Learning](Online-Material/Online-Material-for-Learning.md)
-        - [Online-Material/Popular-Blogs](Online-Material/popular-resources.md)
+        *Currently no pending items - all major sections are complete!*
 
         ---
 
