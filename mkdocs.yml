@@ -184,8 +184,9 @@ nav:
 
   # - 📅 Suggested Learning Paths: Suggested-Learning-Paths.md
 
-  - 👨🏿‍🏫 Interview Questions: 
+  - 👨🏿‍🏫 Interview Questions:
       # - 👨🏿‍🏫 Interview Questions: Interview-Questions/Interview-Questions.md
+      - 📚 Interview Question Resources: Interview-Questions/Interview-Question-Resources.md
       - DSA (Data Structures & Algorithms): Interview-Questions/data-structures-algorithms.md
       - Machine Learning: Interview-Questions/Machine-Learning.md
       - System Design: Interview-Questions/System-design.md

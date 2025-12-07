@@ -14,10 +14,11 @@ hide:
 
         ---
 
-        These are currently most commonly asked interview questions. 
+        These are currently most commonly asked interview questions.
 
         Questions can be removed if they are no longer popular in interview circles and added as new question banks are released.
 
+        - [📚 Interview Question Resources](Interview-Questions/Interview-Question-Resources.md) - **Community-curated sources for all topics**
         - [DSA (Data Structures & Algorithms)](Interview-Questions/data-structures-algorithms.md)
         - [System Design](Interview-Questions/System-design.md)
         - [Natural Language Processing (NLP)](Interview-Questions/Natural-Language-Processing.md)
