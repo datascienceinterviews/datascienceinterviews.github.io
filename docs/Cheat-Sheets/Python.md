@@ -10,6 +10,10 @@ description: A comprehensive reference guide for Python, covering syntax, data s
 
 This cheat sheet provides an exhaustive overview of the Python programming language, covering essential syntax, data structures, functions, modules, and best practices for efficient development. It aims to be a one-stop reference for common tasks.
 
+??? note "**Python Mindmap** - Visual Overview"
+
+    ![Python Mindmap](../assets/img/Python-mindmap-1.png)
+
 ## Getting Started
 
 ### Installation
@@ -63,66 +67,124 @@ is_active = True
 
 ### Data Types
 
-*   `int`: Integer
-*   `float`: Floating-point number
-*   `str`: String
-*   `bool`: Boolean (True/False)
-*   `list`: List
-*   `tuple`: Tuple
-*   `dict`: Dictionary
-*   `set`: Set
-*   `NoneType`: None
+**`int`** - Integer numbers
+```python
+x = 42  # Immutable, supports +, -, *, /, //, %, **
+```
+
+**`float`** - Floating-point numbers
+```python
+pi = 3.14  # Immutable, supports arithmetic ops, .is_integer()
+```
+
+**`str`** - Strings (text)
+```python
+name = "Alice"  # Immutable, supports +, *, slicing, .upper(), .lower(), .split()
+```
+
+**`bool`** - Boolean values
+```python
+is_active = True  # Subclass of int (True=1, False=0)
+```
+
+**`list`** - Ordered, mutable collection
+```python
+items = [1, 2, 3]  # Mutable, supports indexing, .append(), .extend(), .pop()
+```
+
+**`tuple`** - Ordered, immutable collection
+```python
+coords = (10, 20)  # Immutable, faster than lists, supports indexing
+```
+
+**`dict`** - Key-value pairs
+```python
+user = {"name": "Bob", "age": 30}  # Mutable, supports .keys(), .values(), .items()
+```
+
+**`set`** - Unordered, unique elements
+```python
+tags = {1, 2, 3}  # Mutable, supports .add(), .remove(), set operations (|, &, -)
+```
+
+**`NoneType`** - Absence of value
+```python
+result = None  # Singleton object, often used as default/placeholder
+```
 
 ### Operators
 
-Arithmetic:
+**Arithmetic Operators**
+```python
+x, y = 10, 3
+x + y    # 13 - Addition
+x - y    # 7  - Subtraction
+x * y    # 30 - Multiplication
+x / y    # 3.33 - Division (float)
+x // y   # 3  - Floor division (integer)
+x % y    # 1  - Modulus (remainder)
+x ** y   # 1000 - Exponentiation (power)
+```
 
-*   `+`: Addition
-*   `-`: Subtraction
-*   `*`: Multiplication
-*   `/`: Division
-*   `//`: Floor division
-*   `%`: Modulus
-*   `**`: Exponentiation
+**Comparison Operators**
+```python
+x, y = 5, 3
+x == y   # False - Equal to
+x != y   # True  - Not equal to
+x > y    # True  - Greater than
+x < y    # False - Less than
+x >= y   # True  - Greater than or equal to
+x <= y   # False - Less than or equal to
+```
 
-Comparison:
+**Logical Operators**
+```python
+x, y = True, False
+x and y  # False - Logical AND (both must be True)
+x or y   # True  - Logical OR (at least one must be True)
+not x    # False - Logical NOT (negates the value)
+```
 
-*   `==`: Equal to
-*   `!=`: Not equal to
-*   `>`: Greater than
-*   `<`: Less than
-*   `>=`: Greater than or equal to
-*   `<=`: Less than or equal to
+**Assignment Operators**
+```python
+x = 10      # Simple assignment
+x += 5      # x = x + 5  (compound addition)
+x -= 3      # x = x - 3  (compound subtraction)
+x *= 2      # x = x * 2  (compound multiplication)
+x /= 4      # x = x / 4  (compound division)
+x //= 2     # x = x // 2 (compound floor division)
+x %= 3      # x = x % 3  (compound modulus)
+x **= 2     # x = x ** 2 (compound exponentiation)
+```
 
-Logical:
+**Identity Operators**
+```python
+a = [1, 2, 3]
+b = a
+c = [1, 2, 3]
+a is b       # True  - Same object in memory
+a is c       # False - Different objects (same values)
+a is not c   # True  - Different objects
+```
 
-*   `and`: Logical AND
-*   `or`: Logical OR
-*   `not`: Logical NOT
+**Membership Operators**
+```python
+my_list = [1, 2, 3, 4, 5]
+3 in my_list        # True  - Value exists in sequence
+6 in my_list        # False - Value doesn't exist
+6 not in my_list    # True  - Value doesn't exist
+```
 
-Assignment:
-
-*   `=`: Assignment
-*   `+=`, `-=`, `*=`, `/=`, `//=`, `%=`, `**=`: Compound assignment
-
-Identity:
-
-*   `is`: Tests if two variables refer to the same object
-*   `is not`: Tests if two variables do not refer to the same object
-
-Membership:
-
-*   `in`: Tests if a value is a member of a sequence
-*   `not in`: Tests if a value is not a member of a sequence
-
-Bitwise:
-
-*   `&`: Bitwise AND
-*   `|`: Bitwise OR
-*   `^`: Bitwise XOR
-*   `~`: Bitwise NOT
-*   `<<`: Left shift
-*   `>>`: Right shift
+**Bitwise Operators** (work on binary representations)
+```python
+a, b = 5, 3  # Binary: 101, 011
+a & b    # 1   - AND (001)
+a | b    # 7   - OR (111)
+a ^ b    # 6   - XOR (110)
+~a       # -6  - NOT (inverts all bits)
+a << 1   # 10  - Left shift (1010)
+a >> 1   # 2   - Right shift (010)
+```
 
 ### Control Flow
 
@@ -192,17 +254,48 @@ greet()
 
 Function Arguments:
 
-*   Positional arguments
-*   Keyword arguments
-*   Default arguments
-*   `*args`: Variable-length positional arguments (as a tuple)
-*   `**kwargs`: Variable-length keyword arguments (as a dictionary)
+**Positional Arguments** - Required, order matters
+```python
+def greet(name, age):
+    print(f"{name} is {age} years old")
+greet("Alice", 30)  # Must provide in order
+```
 
+**Keyword Arguments** - Named parameters, order flexible
+```python
+greet(age=30, name="Alice")  # Order doesn't matter
+```
+
+**Default Arguments** - Optional with default values
+```python
+def greet(name, greeting="Hello"):
+    print(f"{greeting}, {name}!")
+greet("Alice")           # Uses default greeting
+greet("Bob", "Hi")       # Overrides default
+```
+
+**`*args`** - Variable positional arguments (tuple)
+```python
+def sum_all(*numbers):
+    return sum(numbers)
+sum_all(1, 2, 3, 4, 5)   # Can pass any number of args
+```
+
+**`**kwargs`** - Variable keyword arguments (dict)
+```python
+def print_info(**info):
+    for key, value in info.items():
+        print(f"{key}: {value}")
+print_info(name="Alice", age=30, city="NYC")
+```
+
+**Combined Example** - All argument types together
 ```python
 def my_function(a, b=2, *args, **kwargs):
     print(f"a: {a}, b: {b}, args: {args}, kwargs: {kwargs}")
 
 my_function(1, 2, 3, 4, name="Alice", age=30)
+# Output: a: 1, b: 2, args: (3, 4), kwargs: {'name': 'Alice', 'age': 30}
 ```
 
 Lambda Functions:
@@ -397,452 +490,6 @@ age = 30
 print("My name is %s and I am %d years old." % (name, age))
 ```
 
-## Regular Expressions
-
-### Importing the `re` Module
-
-```python
-import re
-```
-
-### Common Functions
-
-*   `re.search(pattern, string)`: Searches for a pattern in a string.
-*   `re.match(pattern, string)`: Matches a pattern at the beginning of a string.
-*   `re.findall(pattern, string)`: Finds all occurrences of a pattern.
-*   `re.sub(pattern, replacement, string)`: Replaces occurrences of a pattern.
-*   `re.split(pattern, string)`: Splits a string by a pattern.
-
-### Example
-
-```python
-import re
-
-text = "The quick brown fox jumps over the lazy dog."
-pattern = r"\b\w{5}\b"  # Matches 5-letter words
-
-matches = re.findall(pattern, text)
-print(matches)  # Output: ['quick', 'brown', 'jumps']
-```
-
-## Date and Time
-
-### Importing the `datetime` Module
-
-```python
-import datetime
-```
-
-### Common Functions
-
-*   `datetime.datetime.now()`: Returns the current date and time.
-*   `datetime.date.today()`: Returns the current date.
-*   `datetime.datetime(year, month, day, hour, minute, second)`: Creates a datetime object.
-*   `datetime.timedelta(days, seconds, microseconds)`: Represents a duration.
-*   `datetime.strftime(format)`: Formats a datetime object as a string.
-*   `datetime.strptime(date_string, format)`: Parses a string into a datetime object.
-
-### Example
-
-```python
-import datetime
-
-now = datetime.datetime.now()
-print(now)
-
-formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
-print(formatted_date)
-
-parsed_date = datetime.datetime.strptime("2025-02-08 10:30:00", "%Y-%m-%d %H:%M:%S")
-print(parsed_date)
-```
-
-## JSON Processing
-
-### Importing the `json` Module
-
-```python
-import json
-```
-
-### Common Functions
-
-*   `json.dumps(object)`: Serializes a Python object to a JSON string.
-*   `json.loads(json_string)`: Deserializes a JSON string to a Python object.
-*   `json.dump(object, file)`: Serializes a Python object to a JSON file.
-*   `json.load(file)`: Deserializes a JSON file to a Python object.
-
-### Example
-
-```python
-import json
-
-data = {"name": "Alice", "age": 30}
-json_string = json.dumps(data)
-print(json_string)
-
-parsed_data = json.loads(json_string)
-print(parsed_data["name"])
-```
-
-## Working with CSV Files
-
-### Importing the `csv` Module
-
-```python
-import csv
-```
-
-### Reading CSV Files
-
-```python
-with open('my_data.csv', 'r') as file:
-    reader = csv.reader(file)
-    for row in reader:
-        print(row)
-```
-
-### Writing CSV Files
-
-```python
-data = [['Name', 'Age', 'City'],
-        ['Alice', 30, 'New York'],
-        ['Bob', 25, 'Paris']]
-
-with open('output.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerows(data)
-```
-
-### Reading CSV Files as Dictionaries
-
-```python
-import csv
-
-with open('my_data.csv', mode='r') as csv_file:
-    csv_reader = csv.DictReader(csv_file)
-    for row in csv_reader:
-        print(row['Name'], row['Age'], row['City'])
-```
-
-### Writing CSV Files from Dictionaries
-
-```python
-import csv
-
-fieldnames = ['Name', 'Age', 'City']
-data = [
-    {'Name': 'Alice', 'Age': 30, 'City': 'New York'},
-    {'Name': 'Bob', 'Age': 25, 'City': 'Paris'}
-]
-
-with open('output.csv', mode='w', newline='') as csv_file:
-    writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-
-    writer.writeheader()
-    writer.writerows(data)
-```
-
-## Working with OS
-
-### Importing the `os` Module
-
-```python
-import os
-```
-
-### Common Functions
-
-*   `os.getcwd()`: Returns the current working directory.
-*   `os.chdir(path)`: Changes the current working directory.
-*   `os.listdir(path)`: Returns a list of files and directories in a directory.
-*   `os.mkdir(path)`: Creates a directory.
-*   `os.makedirs(path)`: Creates a directory and any necessary parent directories.
-*   `os.remove(path)`: Removes a file.
-*   `os.rmdir(path)`: Removes a directory.
-*   `os.path.join(path1, path2, ...)`: Joins path components.
-*   `os.path.exists(path)`: Checks if a path exists.
-*   `os.path.isfile(path)`: Checks if a path is a file.
-*   `os.path.isdir(path)`: Checks if a path is a directory.
-*   `os.path.splitext(path)`: Splits a path into filename and extension.
-
-### Example
-
-```python
-import os
-
-current_directory = os.getcwd()
-print(current_directory)
-
-new_path = os.path.join(current_directory, "my_folder")
-if not os.path.exists(new_path):
-    os.makedirs(new_path)
-```
-
-## Working with Collections
-
-### Importing the `collections` Module
-
-```python
-import collections
-```
-
-### Common Data Structures
-
-*   `Counter`: Counts the frequency of items in a sequence.
-*   `defaultdict`: A dictionary that provides a default value for missing keys.
-*   `namedtuple`: Creates named tuples.
-*   `deque`: A double-ended queue.
-
-### Example
-
-```python
-from collections import Counter, defaultdict, namedtuple
-
-# Counter
-my_list = [1, 2, 2, 3, 3, 3]
-count = Counter(my_list)
-print(count)
-
-# defaultdict
-my_dict = defaultdict(int)
-my_dict["a"] += 1
-print(my_dict["a"])
-print(my_dict["b"])
-
-# namedtuple
-Point = namedtuple("Point", ["x", "y"])
-p = Point(10, 20)
-print(p.x, p.y)
-```
-
-## Working with Itertools
-
-### Importing the `itertools` Module
-
-```python
-import itertools
-```
-
-### Common Functions
-
-*   `itertools.count(start, step)`: Returns an infinite iterator that produces consecutive integers.
-*   `itertools.cycle(iterable)`: Returns an infinite iterator that cycles through the elements of an iterable.
-*   `itertools.repeat(object, times)`: Returns an iterator that produces the same object a specified number of times.
-*   `itertools.chain(*iterables)`: Chains multiple iterables together into a single iterator.
-*   `itertools.combinations(iterable, r)`: Returns all possible combinations of length `r` from the elements of an iterable.
-*   `itertools.permutations(iterable, r)`: Returns all possible permutations of length `r` from the elements of an iterable.
-*   `itertools.product(*iterables)`: Returns the Cartesian product of multiple iterables.
-*   `itertools.groupby(iterable, key)`: Groups consecutive elements of an iterable based on a key function.
-
-### Example
-
-```python
-import itertools
-
-# Count
-for i in itertools.count(start=10, step=2):
-    if i > 20:
-        break
-    print(i)
-
-# Cycle
-count = 0
-for item in itertools.cycle(['A', 'B', 'C']):
-    if count > 5:
-        break
-    print(item)
-    count += 1
-
-# Combinations
-for combo in itertools.combinations([1, 2, 3, 4], 2):
-    print(combo)
-```
-
-## Working with functools
-
-### Importing the `functools` Module
-
-```python
-import functools
-```
-
-### Common Functions
-
-*   `functools.partial(func, *args, **kwargs)`: Creates a new function with some of the arguments of the original function pre-filled.
-*   `functools.lru_cache(maxsize=128)`: Decorator that caches the results of a function call.
-*   `functools.reduce(function, iterable[, initializer])`: Apply function of two arguments cumulatively to the items of iterable, from left to right, so as to reduce the iterable to a single value.
-
-### Example
-
-```python
-import functools
-
-def power(base, exponent):
-    return base ** exponent
-
-square = functools.partial(power, exponent=2)
-cube = functools.partial(power, exponent=3)
-
-print(square(5))  # Output: 25
-print(cube(2))    # Output: 8
-
-@functools.lru_cache(maxsize=None)
-def fibonacci(n):
-    if n < 2:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-
-print(fibonacci(10))
-```
-
-## Concurrency and Parallelism
-
-### Threads
-
-```python
-import threading
-
-def my_task(name):
-    print(f"Thread {name}: starting")
-    # Perform some work
-    print(f"Thread {name}: finishing")
-
-threads = []
-for i in range(3):
-    t = threading.Thread(target=my_task, args=(i,))
-    threads.append(t)
-    t.start()
-
-for t in threads:
-    t.join()
-```
-
-### Processes
-
-```python
-import multiprocessing
-
-def my_task(name):
-    print(f"Process {name}: starting")
-    # Perform some work
-    print(f"Process {name}: finishing")
-
-processes = []
-for i in range(3):
-    p = multiprocessing.Process(target=my_task, args=(i,))
-    processes.append(p)
-    p.start()
-
-for p in processes:
-    p.join()
-```
-
-### Asyncio
-
-```python
-import asyncio
-
-async def my_coroutine(name):
-    print(f"Coroutine {name}: starting")
-    await asyncio.sleep(1)
-    print(f"Coroutine {name}: finishing")
-
-async def main():
-    tasks = [my_coroutine(i) for i in range(3)]
-    await asyncio.gather(*tasks)
-
-asyncio.run(main())
-```
-
-## Type Hints
-
-```python
-def add(x: int, y: int) -> int:
-    return x + y
-
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
-
-from typing import List, Tuple, Dict
-
-my_list: List[int] = [1, 2, 3]
-my_tuple: Tuple[str, int] = ("Alice", 30)
-my_dict: Dict[str, int] = {"a": 1, "b": 2}
-```
-
-## Virtual Environments
-
-### Creating a Virtual Environment
-
-```bash
-python -m venv myenv
-```
-
-### Activating a Virtual Environment
-
-On Linux/macOS:
-
-```bash
-source myenv/bin/activate
-```
-
-On Windows:
-
-```bash
-myenv\Scripts\activate
-```
-
-### Deactivating a Virtual Environment
-
-```bash
-deactivate
-```
-
-## Testing
-
-### Using `unittest`
-
-```python
-import unittest
-
-class MyTestCase(unittest.TestCase):
-    def test_addition(self):
-        self.assertEqual(1 + 1, 2)
-
-    def test_subtraction(self):
-        self.assertNotEqual(5 - 2, 4)
-
-if __name__ == '__main__':
-    unittest.main()
-```
-
-### Using `pytest`
-
-Installation:
-
-```bash
-pip install pytest
-```
-
-Test Example:
-
-```python
-# test_my_module.py
-def add(x, y):
-    return x + y
-
-def test_add():
-    assert add(1, 2) == 3
-    assert add(-1, 1) == 0
-```
-
-Run tests:
-
-```bash
-pytest
-```
-
 ## Decorators
 
 ```python
@@ -859,6 +506,25 @@ def say_hello(name):
     print(f"Hello, {name}!")
 
 say_hello("Alice")
+```
+
+### Decorators with Arguments
+
+```python
+def repeat(num_times):
+    def decorator_repeat(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(num_times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator_repeat
+
+@repeat(num_times=3)
+def greet(name):
+    print(f"Hello {name}")
+
+greet("Alice")
 ```
 
 ## Context Managers
@@ -1093,68 +759,6 @@ for square in squares:
     print(square)
 ```
 
-## Decorators
-
-```python
-def my_decorator(func):
-    def wrapper(*args, **kwargs):
-        print("Before function execution")
-        result = func(*args, **kwargs)
-        print("After function execution")
-        return result
-    return wrapper
-
-@my_decorator
-def say_hello(name):
-    print(f"Hello, {name}!")
-
-say_hello("Alice")
-```
-
-### Decorators with Arguments
-
-```python
-def repeat(num_times):
-    def decorator_repeat(func):
-        def wrapper(*args, **kwargs):
-            for _ in range(num_times):
-                result = func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator_repeat
-
-@repeat(num_times=3)
-def greet(name):
-    print(f"Hello {name}")
-
-greet("Alice")
-```
-
-## Context Managers
-
-```python
-with open("my_file.txt", "r") as f:
-    content = f.read()
-    print(content)
-
-# Custom context manager
-class MyContextManager:
-    def __enter__(self):
-        print("Entering the context")
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print("Exiting the context")
-        if exc_type:
-            print(f"An exception occurred: {exc_type}")
-
-    def do_something(self):
-        print("Doing something in the context")
-
-with MyContextManager() as cm:
-    cm.do_something()
-```
-
 ## Descriptors
 
 ```python
@@ -1178,40 +782,6 @@ obj = MyClass()
 obj.my_attribute = 10
 print(obj.my_attribute)
 del obj.my_attribute
-```
-
-## Metaclasses
-
-```python
-class MyMetaclass(type):
-    def __new__(cls, name, bases, attrs):
-        attrs['attribute'] = 100
-        return super().__new__(cls, name, bases, attrs)
-
-class MyClass(metaclass=MyMetaclass):
-    pass
-
-obj = MyClass()
-print(obj.attribute)  # Output: 100
-```
-
-## Abstract Base Classes (ABCs)
-
-```python
-from abc import ABC, abstractmethod
-
-class MyAbstractClass(ABC):
-    @abstractmethod
-    def my_method(self):
-        pass
-
-class MyConcreteClass(MyAbstractClass):
-    def my_method(self):
-        print("Implementation of my_method")
-
-# obj = MyAbstractClass()  # TypeError: Can't instantiate abstract class MyAbstractClass with abstract methods my_method
-obj = MyConcreteClass()
-obj.my_method()
 ```
 
 ## Working with Dates and Times
@@ -1671,13 +1241,15 @@ def my_function(x: Any) -> None:
 
 ## Virtual Environments
 
-### Creating a Virtual Environment
+### Using venv (Built-in)
+
+**Creating a Virtual Environment**
 
 ```bash
 python -m venv myenv
 ```
 
-### Activating a Virtual Environment
+**Activating a Virtual Environment**
 
 On Linux/macOS:
 
@@ -1691,10 +1263,75 @@ On Windows:
 myenv\Scripts\activate
 ```
 
-### Deactivating a Virtual Environment
+**Deactivating a Virtual Environment**
 
 ```bash
 deactivate
+```
+
+### Using Conda
+
+**Creating a Conda Environment**
+
+```bash
+# Create environment with specific Python version
+conda create --name myenv python=3.11
+
+# Create environment with packages
+conda create --name myenv python=3.11 numpy pandas scikit-learn
+
+# Create from environment.yml file
+conda env create -f environment.yml
+```
+
+**Activating a Conda Environment**
+
+```bash
+conda activate myenv
+```
+
+**Deactivating a Conda Environment**
+
+```bash
+conda deactivate
+```
+
+**Managing Conda Environments**
+
+```bash
+# List all environments
+conda env list
+
+# Remove an environment
+conda env remove --name myenv
+
+# Export environment to file
+conda env export > environment.yml
+
+# Clone an environment
+conda create --name newenv --clone myenv
+```
+
+**Installing Packages in Conda**
+
+```bash
+# Install packages
+conda install numpy pandas matplotlib
+
+# Install specific version
+conda install numpy=1.24.0
+
+# Install from conda-forge channel
+conda install -c conda-forge package_name
+
+# List installed packages
+conda list
+
+# Update a package
+conda update numpy
+
+# Update all packages
+conda update --all
 ```
 
 ## Testing

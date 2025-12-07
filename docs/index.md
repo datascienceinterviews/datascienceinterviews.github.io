@@ -1,10 +1,45 @@
 ---
 comments: true
-title: Data Science 
-description: Home page for the platform for Data Science Interview Questions 
+title: Data Science
+description: Home page for the platform for Data Science Interview Questions
 hide:
   - toc
 ---
+
+<style>
+.interview-questions {
+  animation: glow-tile 2s ease-in-out infinite;
+}
+
+@keyframes glow-tile {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(157, 78, 221, 0.5),
+                0 0 10px rgba(157, 78, 221, 0.4),
+                0 0 15px rgba(157, 78, 221, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(157, 78, 221, 0.8),
+                0 0 25px rgba(157, 78, 221, 0.6),
+                0 0 50px rgba(157, 78, 221, 0.4);
+  }
+}
+
+.pulse-text {
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.015);
+    opacity: 0.99;
+  }
+}
+</style>
 
 # Crack **Data Science** Interviews
 
@@ -18,7 +53,7 @@ hide:
 
         Questions can be removed if they are no longer popular in interview circles and added as new question banks are released.
 
-        - [📚 Interview Question Resources](Interview-Questions/Interview-Question-Resources.md) - **Community-curated sources for all topics**
+        - <span class="pulse-text">[📚 Interview Question Resources](Interview-Questions/Interview-Question-Resources.md) - **Community-curated sources for all topics**</span>
         - [DSA (Data Structures & Algorithms)](Interview-Questions/data-structures-algorithms.md)
         - [System Design](Interview-Questions/System-design.md)
         - [Natural Language Processing (NLP)](Interview-Questions/Natural-Language-Processing.md)

@@ -8,6 +8,9 @@ description: Community-curated collection of the best sources for data science i
 !!! abstract "About This Guide"
     A comprehensive collection of **community-recommended** resources for data science interview preparation. These sources are valued by real practitioners, featuring GitHub repositories with significant stars, practice platforms used by the community, and actual interview experiences from top companies.
 
+
+*Made with ❤️ for the data science community*
+
 ---
 
 ## 📊 Quick Reference Table
@@ -768,4 +771,3 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
 ---
 
-*Made with ❤️ for the data science community*
