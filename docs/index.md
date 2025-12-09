@@ -60,6 +60,11 @@ hide:
         - [Probability](Interview-Questions/Probability.md)
         - [SQL](Interview-Questions/SQL-Interview-Questions.md)
         - [ML-Algorithms](Interview-Questions/Machine-Learning.md)
+        - [Pandas](Interview-Questions/Pandas.md)
+        - [NumPy](Interview-Questions/NumPy.md)
+        - [Scikit-Learn](Interview-Questions/Scikit-Learn.md)
+        - [LangChain](Interview-Questions/LangChain.md)
+        - [LangGraph](Interview-Questions/LangGraph.md)
 
 -   ??? cheat-sheet ":octicons-arrow-right-24: __Cheat Sheets__"
 
@@ -158,6 +163,11 @@ Not only this, the platform will also serve as one point destination for all you
         * [Interview-Questions/Probability](Interview-Questions/Probability.md)
         * [Interview-Questions/SQL](Interview-Questions/SQL-Interview-Questions.md)
         * [Interview-Questions/ML-Algorithms](Interview-Questions/Machine-Learning.md)
+        * [Interview-Questions/Pandas](Interview-Questions/Pandas.md)
+        * [Interview-Questions/NumPy](Interview-Questions/NumPy.md)
+        * [Interview-Questions/Scikit-Learn](Interview-Questions/Scikit-Learn.md)
+        * [Interview-Questions/LangChain](Interview-Questions/LangChain.md)
+        * [Interview-Questions/LangGraph](Interview-Questions/LangGraph.md)
         * [Machine-Learning/ARIMA](Machine-Learning/ARIMA.md)
         * [Machine-Learning/Activation-Functions](Machine-Learning/Activation%20functions.md)
         * [Machine-Learning/Collaborative-Filtering](Machine-Learning/Collaborative%20Filtering.md)

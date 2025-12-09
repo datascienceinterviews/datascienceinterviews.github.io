@@ -125,6 +125,11 @@ plugins:
           - "Interview-Questions/Natural-Language-Processing.md"
           - "Interview-Questions/Probability.md"
           - "Interview-Questions/SQL-Interview-Questions.md"
+          - "Interview-Questions/Pandas.md"
+          - "Interview-Questions/NumPy.md"
+          - "Interview-Questions/Scikit-Learn.md"
+          - "Interview-Questions/LangChain.md"
+          - "Interview-Questions/LangGraph.md"
         #   - another_page.md
         restart_increment_after:
           - Interview-Questions/*"
@@ -193,6 +198,11 @@ nav:
       - Natural Language Processing (NLP): Interview-Questions/Natural-Language-Processing.md
       - Probability: Interview-Questions/Probability.md
       - SQL: Interview-Questions/SQL-Interview-Questions.md
+      - Pandas: Interview-Questions/Pandas.md
+      - NumPy: Interview-Questions/NumPy.md
+      - Scikit-Learn: Interview-Questions/Scikit-Learn.md
+      - LangChain: Interview-Questions/LangChain.md
+      - LangGraph: Interview-Questions/LangGraph.md
   
   - 📝 Cheat Sheets:
       - Django: Cheat-Sheets/Django.md
