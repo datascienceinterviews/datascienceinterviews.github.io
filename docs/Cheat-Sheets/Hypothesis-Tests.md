@@ -9,6 +9,10 @@ description: A cheat sheet for the most popular statistical hypothesis tests for
 
 A [**statistical hypothesis test**](https://en.wikipedia.org/wiki/Statistical_hypothesis_testing) is a method of [statistical inference](https://en.wikipedia.org/wiki/Statistical_inference "Statistical inference") used to decide whether the data at hand sufficiently support a particular hypothesis. Hypothesis testing allows us to make probabilistic statements about population parameters.
 
+??? note "**Hypothesis Tests Mindmap** - Visual Overview"
+
+    ![Hypothesis Tests Mindmap](../assets/img/Hypothesis-Tests-mindmap-1.png)
+
 **Few Notes:**
 
 - When it comes to assumptions such as the expected distribution of data or sample size, the results of a given test are likely to degrade gracefully rather than become immediately unusable if an assumption is violated.
