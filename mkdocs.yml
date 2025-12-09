@@ -124,7 +124,9 @@ plugins:
           - "Interview-Questions/System-design.md"
           - "Interview-Questions/Natural-Language-Processing.md"
           - "Interview-Questions/Probability.md"
+          - "Interview-Questions/AB-testing.md"
           - "Interview-Questions/SQL-Interview-Questions.md"
+          - "Interview-Questions/Python.md"
           - "Interview-Questions/Pandas.md"
           - "Interview-Questions/NumPy.md"
           - "Interview-Questions/Scikit-Learn.md"
@@ -197,7 +199,9 @@ nav:
       - System Design: Interview-Questions/System-design.md
       - Natural Language Processing (NLP): Interview-Questions/Natural-Language-Processing.md
       - Probability: Interview-Questions/Probability.md
+      - A/B Testing: Interview-Questions/AB-testing.md
       - SQL: Interview-Questions/SQL-Interview-Questions.md
+      - Python: Interview-Questions/Python.md
       - Pandas: Interview-Questions/Pandas.md
       - NumPy: Interview-Questions/NumPy.md
       - Scikit-Learn: Interview-Questions/Scikit-Learn.md
