@@ -14,6 +14,1296 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
+## Premium Interview Questions
+
+### What is LangGraph and How Does It Differ from LangChain? - Google, OpenAI Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Basics` | **Asked by:** Google, OpenAI, Amazon, Meta
+
+??? success "View Answer"
+
+    **LangGraph = Graph-based orchestration for agentic workflows**
+    
+    | Feature | LangChain | LangGraph |
+    |---------|-----------|-----------|
+    | Structure | Linear chains | Graphs with cycles |
+    | State | Implicit | Explicit state management |
+    | Control | Sequential | Conditional branching |
+    | Use case | Simple pipelines | Complex agents |
+    
+    ```python
+    from langgraph.graph import StateGraph, END
+    
+    workflow = StateGraph(AgentState)
+    workflow.add_node("agent", agent_function)
+    workflow.add_edge("agent", END)
+    app = workflow.compile()
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows when LangGraph is preferred over LangChain.
+
+---
+
+### Explain StateGraph and State Management - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `State Management` | **Asked by:** Google, Amazon, OpenAI
+
+??? success "View Answer"
+
+    ```python
+    from typing import TypedDict, Annotated
+    import operator
+    from langchain_core.messages import BaseMessage
+    
+    class AgentState(TypedDict):
+        messages: Annotated[list[BaseMessage], operator.add]
+        next_step: str
+        iteration: int
+    
+    def agent_node(state: AgentState) -> dict:
+        # Return partial state update
+        return {
+            "messages": [AIMessage(content="Response")],
+            "iteration": state["iteration"] + 1
+        }
+    ```
+    
+    **Key:** State updates are merged using reducers (operator.add for lists).
+
+    !!! tip "Interviewer's Insight"
+        Uses Annotated with reducers for list state.
+
+---
+
+### How to Implement Human-in-the-Loop? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `HITL` | **Asked by:** Google, Amazon, OpenAI
+
+??? success "View Answer"
+
+    ```python
+    from langgraph.checkpoint.memory import MemorySaver
+    
+    memory = MemorySaver()
+    graph = workflow.compile(
+        checkpointer=memory,
+        interrupt_before=["human_review"]
+    )
+    
+    # Run until interruption
+    thread = {"configurable": {"thread_id": "1"}}
+    for event in graph.stream(inputs, thread):
+        pass
+    
+    # Get current state
+    state = graph.get_state(thread)
+    
+    # Human reviews and approves
+    # Resume execution
+    graph.stream(None, thread)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses checkpointer for state persistence and resumption.
+
+---
+
+### Explain the Supervisor Pattern - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Multi-Agent` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Supervisor = Central coordinator that routes to worker agents**
+    
+    ```python
+    members = ["researcher", "coder", "writer"]
+    
+    def supervisor(state):
+        # LLM decides next worker
+        response = llm.invoke("Who should act next?")
+        return {"next": response.next_agent}
+    
+    workflow = StateGraph(State)
+    workflow.add_node("supervisor", supervisor)
+    for member in members:
+        workflow.add_node(member, worker_functions[member])
+    
+    # Conditional edges based on supervisor decision
+    workflow.add_conditional_edges("supervisor", route_function)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows supervisor vs hierarchical vs peer-to-peer patterns.
+
+---
+
+### How to Implement Reflection/Self-Correction? - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Reliability` | **Asked by:** Google, OpenAI, Anthropic
+
+??? success "View Answer"
+
+    ```python
+    def generate(state):
+        response = llm.invoke(state["messages"])
+        return {"draft": response}
+    
+    def reflect(state):
+        critique = llm.invoke(f"Critique: {state['draft']}")
+        return {"feedback": critique}
+    
+    def should_continue(state):
+        if state["iteration"] > 3 or state["feedback"].approved:
+            return "end"
+        return "reflect"
+    
+    workflow.add_edge("generate", "reflect")
+    workflow.add_conditional_edges("reflect", should_continue)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Implements iteration limits to prevent infinite loops.
+
+---
+
+### How to Handle Tool Execution Errors? - Amazon, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Error Handling` | **Asked by:** Amazon, Meta, Google
+
+??? success "View Answer"
+
+    ```python
+    def tool_node(state):
+        try:
+            result = execute_tool(state["tool_call"])
+            return {"result": result, "error": None}
+        except Exception as e:
+            return {"result": None, "error": str(e)}
+    
+    def route_after_tool(state):
+        if state["error"]:
+            return "handle_error"
+        return "continue"
+    
+    workflow.add_conditional_edges("tool", route_after_tool)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses conditional edges for graceful error handling.
+
+---
+
+### What is a Checkpointer? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Persistence` | **Asked by:** Google, Amazon, OpenAI
+
+??? success "View Answer"
+
+    **Checkpointer = Persists graph state between runs**
+    
+    ```python
+    from langgraph.checkpoint.memory import MemorySaver
+    from langgraph.checkpoint.postgres import PostgresSaver
+    
+    # In-memory (development)
+    memory = MemorySaver()
+    
+    # Postgres (production)
+    postgres = PostgresSaver.from_conn_string(conn_string)
+    
+    graph = workflow.compile(checkpointer=memory)
+    
+    # State persists across invocations
+    thread = {"configurable": {"thread_id": "user-123"}}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses persistent checkpointer for production.
+
+---
+
+### How to Implement Subgraphs? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Composition` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    # Define subgraph
+    research_graph = StateGraph(ResearchState)
+    research_graph.add_node("search", search_node)
+    research_graph.add_node("summarize", summarize_node)
+    research_compiled = research_graph.compile()
+    
+    # Use in parent graph
+    main_graph = StateGraph(MainState)
+    main_graph.add_node("research", research_compiled)
+    main_graph.add_node("write", write_node)
+    ```
+    
+    **Benefits:** Modularity, reusability, easier testing.
+
+    !!! tip "Interviewer's Insight"
+        Uses subgraphs for modular agent design.
+
+---
+
+### Explain Conditional Edges - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Control Flow` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    def routing_function(state: AgentState) -> str:
+        if state["needs_research"]:
+            return "research"
+        elif state["needs_coding"]:
+            return "code"
+        else:
+            return END
+    
+    workflow.add_conditional_edges(
+        "decision",
+        routing_function,
+        {
+            "research": "research_node",
+            "code": "code_node",
+            END: END
+        }
+    )
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses conditional edges for dynamic routing.
+
+---
+
+### How to Visualize and Debug Graphs? - Google, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Debugging` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    # Visualize structure
+    graph.get_graph().draw_mermaid()
+    
+    # Save as image
+    graph.get_graph().draw_mermaid_png(output_path="graph.png")
+    
+    # Debug with LangSmith
+    import os
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    
+    # Time travel debugging
+    history = list(graph.get_state_history(thread))
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses visualization and LangSmith for debugging.
+
+---
+
+### How to Implement ReAct Pattern? - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Agents` | **Asked by:** Google, OpenAI, Anthropic
+
+??? success "View Answer"
+
+    **ReAct = Reason + Act iteratively**
+    
+    ```python
+    from langgraph.prebuilt import create_react_agent
+    
+    agent = create_react_agent(llm, tools)
+    
+    # Agent loop:
+    # 1. Reason: What should I do?
+    # 2. Act: Call a tool
+    # 3. Observe: Get result
+    # 4. Repeat until done
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows ReAct vs other agent patterns (Plan-Execute).
+
+---
+
+### What is Plan-and-Execute Pattern? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Agents` | **Asked by:** Google, Amazon, OpenAI
+
+??? success "View Answer"
+
+    **Separate planning from execution**
+    
+    ```python
+    # Plan: Create high-level steps
+    plan = planner.invoke("Research topic X")
+    # → ["Search web", "Read articles", "Summarize"]
+    
+    # Execute: Run each step
+    for step in plan:
+        result = executor.invoke(step)
+    ```
+    
+    **Advantages:** Better for complex, multi-step tasks.
+
+    !!! tip "Interviewer's Insight"
+        Uses for complex tasks requiring planning.
+
+---
+
+### How to Handle Long-Running Tasks? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Production` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from langgraph.checkpoint.postgres_aio import AsyncPostgresSaver
+    
+    # Async checkpoint for non-blocking
+    checkpointer = AsyncPostgresSaver.from_conn_string(conn_str)
+    
+    graph = workflow.compile(checkpointer=checkpointer)
+    
+    # Run with timeout
+    import asyncio
+    result = await asyncio.wait_for(
+        graph.ainvoke(inputs, config),
+        timeout=300  # 5 min timeout
+    )
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses async and timeouts for production.
+
+---
+
+### What is Message Passing in LangGraph? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Communication` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+    
+    class State(TypedDict):
+        messages: Annotated[list, operator.add]
+    
+    def agent_node(state):
+        response = llm.invoke(state["messages"])
+        return {"messages": [response]}
+    
+    # Messages accumulate through the graph
+    ```
+    
+    **Messages = primary way agents communicate**.
+
+    !!! tip "Interviewer's Insight"
+        Uses message-based state for agent communication.
+
+---
+
+### How to Implement Tool Validation? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Safety` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    def tool_node(state):
+        tool_call = state["messages"][-1].tool_calls[0]
+        
+        # Validate before execution
+        if tool_call["name"] == "delete_data":
+            if not is_admin(state["user"]):
+                return {"messages": [ToolMessage(
+                    content="Unauthorized",
+                    tool_call_id=tool_call["id"]
+                )]}
+        
+        # Execute validated tool
+        result = tools[tool_call["name"]].invoke(tool_call["args"])
+        return {"messages": [ToolMessage(content=result, ...)]}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Validates tools before execution for security.
+
+---
+
+### What is Send API in LangGraph? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Parallelism` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Send = Spawn parallel sub-tasks**
+    
+    ```python
+    from langgraph.constants import Send
+    
+    def router(state):
+        # Send to multiple workers in parallel
+        return [
+            Send("worker", {"task": task})
+            for task in state["tasks"]
+        ]
+    
+    workflow.add_conditional_edges("router", router)
+    ```
+    
+    **Use for:** Map-reduce, parallel research.
+
+    !!! tip "Interviewer's Insight"
+        Uses Send for parallel agent execution.
+
+---
+
+### How to Implement Retry Logic? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Reliability` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    def tool_node_with_retry(state):
+        for attempt in range(3):
+            try:
+                result = execute_tool(state)
+                return {"result": result, "error": None}
+            except Exception as e:
+                if attempt == 2:
+                    return {"result": None, "error": str(e)}
+                time.sleep(2 ** attempt)  # Exponential backoff
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Implements retry with exponential backoff.
+
+---
+
+### What is the Command Pattern? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Advanced` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Command = Control graph flow from within nodes**
+    
+    ```python
+    from langgraph.types import Command
+    
+    def decision_node(state):
+        if state["should_skip"]:
+            return Command(goto="end", update={"skipped": True})
+        return Command(goto="next", update={"processed": True})
+    ```
+    
+    More flexible than conditional edges.
+
+    !!! tip "Interviewer's Insight"
+        Uses Command for complex flow control.
+
+---
+
+### How to Implement Streaming in LangGraph? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `UX` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    # Stream node outputs
+    for event in graph.stream(inputs, stream_mode="values"):
+        print(event)
+    
+    # Stream updates only
+    for update in graph.stream(inputs, stream_mode="updates"):
+        print(update)
+    
+    # Stream with LLM tokens
+    async for event in graph.astream_events(inputs, version="v2"):
+        if event["event"] == "on_chat_model_stream":
+            print(event["data"]["chunk"].content, end="")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses appropriate stream mode for use case.
+
+---
+
+### What is Dynamic Breakpoints? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `HITL` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Conditional interruption based on state**
+    
+    ```python
+    from langgraph.types import interrupt
+    
+    def review_node(state):
+        if state["confidence"] < 0.8:
+            # Dynamically request human review
+            human_input = interrupt("Please review this output")
+            return {"approved": human_input == "approve"}
+        return {"approved": True}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses dynamic interrupts for conditional HITL.
+
+---
+
+### How to Handle Graph Cycles? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Design` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    def should_continue(state):
+        if state["iteration"] >= 5:
+            return "end"  # Prevent infinite loops
+        if state["task_complete"]:
+            return "end"
+        return "agent"  # Continue loop
+    
+    workflow.add_conditional_edges("check", should_continue, {
+        "agent": "agent",
+        "end": END
+    })
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Always implements iteration limits.
+
+---
+
+### What is State Reduction? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `State` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Reducers merge node outputs into state**
+    
+    ```python
+    from typing import Annotated
+    import operator
+    
+    class State(TypedDict):
+        # List: append new items
+        messages: Annotated[list, operator.add]
+        
+        # Counter: sum values
+        count: Annotated[int, operator.add]
+        
+        # Last value: replace
+        current: str
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses appropriate reducers for state fields.
+
+---
+
+### How to Test LangGraph Agents? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Testing` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    import pytest
+    
+    def test_agent_workflow():
+        # Mock LLM
+        mock_llm = FakeLLM(responses=["Use search tool", "Final answer"])
+        
+        graph = create_agent_graph(llm=mock_llm)
+        
+        result = graph.invoke({"question": "What is X?"})
+        
+        assert result["answer"] is not None
+        assert "search" in result["tools_used"]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses mocks for deterministic testing.
+
+---
+
+### What is Thread Management? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Sessions` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Threads = Separate conversation contexts**
+    
+    ```python
+    # Each thread has its own state history
+    config_user1 = {"configurable": {"thread_id": "user-123"}}
+    config_user2 = {"configurable": {"thread_id": "user-456"}}
+    
+    # Different users, different states
+    graph.invoke(input1, config_user1)
+    graph.invoke(input2, config_user2)
+    
+    # Get history for specific thread
+    history = list(graph.get_state_history(config_user1))
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses threads for multi-user applications.
+
+---
+
+### How to Deploy LangGraph? - Amazon, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Deployment` | **Asked by:** Amazon, Google
+
+??? success "View Answer"
+
+    **Options:**
+    
+    1. **LangGraph Cloud:** Managed hosting
+    2. **LangServe:** FastAPI wrapper
+    3. **Docker:** Self-hosted
+    
+    ```python
+    # LangServe
+    from fastapi import FastAPI
+    from langserve import add_routes
+    
+    app = FastAPI()
+    add_routes(app, compiled_graph, path="/agent")
+    
+    # Endpoints: /agent/invoke, /agent/stream
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses LangGraph Cloud for production.
+
+---
+
+### What is Map-Reduce in LangGraph? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Patterns` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Parallel processing followed by aggregation**
+    
+    ```python
+    from langgraph.constants import Send
+    
+    def map_node(state):
+        return [Send("worker", {"item": item}) for item in state["items"]]
+    
+    def reduce_node(state):
+        return {"result": aggregate(state["partial_results"])}
+    
+    workflow.add_conditional_edges("mapper", map_node)
+    workflow.add_edge("worker", "reducer")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses Send for parallel map operations.
+
+---
+
+### What is the Hierarchical Pattern? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Multi-Agent` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Tree of agents: manager → sub-managers → workers**
+    
+    ```
+    CEO Agent
+    ├── Research Manager
+    │   ├── Web Researcher
+    │   └── Document Analyst
+    └── Writing Manager
+        ├── Drafter
+        └── Editor
+    ```
+    
+    Useful for complex, multi-stage tasks.
+
+    !!! tip "Interviewer's Insight"
+        Knows when to use hierarchical vs flat patterns.
+
+---
+
+### How to Implement Agent Handoffs? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Multi-Agent` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    def routing_function(state):
+        if state["needs_research"]:
+            return "research_agent"
+        elif state["needs_coding"]:
+            return "coding_agent"
+        return END
+    
+    workflow.add_conditional_edges("supervisor", routing_function, {
+        "research_agent": "research_agent",
+        "coding_agent": "coding_agent",
+        END: END
+    })
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses supervisor for clean handoffs.
+
+---
+
+### What is State Persistence Strategies? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Persistence` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    | Checkpointer | Use Case |
+    |--------------|----------|
+    | MemorySaver | Development |
+    | SqliteSaver | Single-node production |
+    | PostgresSaver | Multi-node production |
+    | RedisSaver | High-performance |
+    
+    **Critical for:** HITL, long-running tasks, crash recovery.
+
+    !!! tip "Interviewer's Insight"
+        Chooses checkpointer based on requirements.
+
+---
+
+### How to Handle State Size Limits? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Scale` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **State can grow large over iterations**
+    
+    **Solutions:**
+    - Prune old messages
+    - Summarize history
+    - Use external storage for large objects
+    - Store references, not data
+    
+    ```python
+    def prune_messages(state):
+        if len(state["messages"]) > 50:
+            return {"messages": state["messages"][-20:]}
+        return {}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Implements state cleanup for production.
+
+---
+
+### What is Parallel Node Execution? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Performance` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Nodes with same dependencies run in parallel**
+    
+    ```python
+    # A → B, A → C runs B and C in parallel
+    workflow.add_edge("A", "B")
+    workflow.add_edge("A", "C")
+    workflow.add_edge("B", "D")
+    workflow.add_edge("C", "D")
+    # B and C run concurrently
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Structures graphs to maximize parallelism.
+
+---
+
+### How to Implement Timeout Handling? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Reliability` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    import asyncio
+    
+    async def invoke_with_timeout(graph, inputs, config, timeout=300):
+        try:
+            return await asyncio.wait_for(
+                graph.ainvoke(inputs, config),
+                timeout=timeout
+            )
+        except asyncio.TimeoutError:
+            return {"error": "Timeout exceeded"}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Always sets timeouts for production.
+
+---
+
+### What is Event-Driven Agents? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Architecture` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Agents triggered by external events**
+    
+    ```python
+    async def event_handler(event):
+        thread = {"configurable": {"thread_id": event.user_id}}
+        
+        # Resume or start new conversation
+        await graph.ainvoke(
+            {"message": event.content},
+            config=thread
+        )
+    
+    # Connect to event bus (Kafka, Redis Streams, etc.)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Integrates with event-driven architectures.
+
+---
+
+### How to Version Graph Schemas? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `MLOps` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Handle schema changes with persisted state**
+    
+    ```python
+    from typing import Optional
+    
+    class StateV2(TypedDict):
+        messages: list
+        new_field: Optional[str]  # New in v2
+    
+    def migrate_state(old_state):
+        return {**old_state, "new_field": None}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Plans for schema evolution.
+
+---
+
+### What is Multi-Tenant Agents? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Production` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Same graph, different users/organizations**
+    
+    ```python
+    def invoke_for_tenant(tenant_id, user_id, input):
+        config = {
+            "configurable": {
+                "thread_id": f"{tenant_id}:{user_id}"
+            }
+        }
+        return graph.invoke(input, config=config)
+    ```
+    
+    **Isolation via:** thread IDs, separate checkpointers.
+
+    !!! tip "Interviewer's Insight"
+        Uses namespaced thread IDs for isolation.
+
+---
+
+### How to Implement Logging and Metrics? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Observability` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from langsmith import traceable
+    
+    @traceable
+    def agent_node(state):
+        # Automatically traced
+        return {"result": process(state)}
+    
+    # Or use callbacks
+    from langchain.callbacks import LangChainTracer
+    
+    tracer = LangChainTracer(project_name="my-project")
+    graph.invoke(input, config={"callbacks": [tracer]})
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses LangSmith for production observability.
+
+---
+
+### What is Agent Composition? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Architecture` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Combine multiple specialized agents**
+    
+    ```python
+    # Compose graphs
+    research_graph = build_research_graph()
+    writing_graph = build_writing_graph()
+    
+    main_graph = StateGraph(State)
+    main_graph.add_node("research", research_graph)
+    main_graph.add_node("write", writing_graph)
+    main_graph.add_edge("research", "write")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Composes specialized agents for complex tasks.
+
+---
+
+### How to Handle Concurrent Modifications? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Concurrency` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Multiple updates to same thread**
+    
+    ```python
+    # Use optimistic concurrency
+    state = graph.get_state(thread)
+    
+    # Check version before update
+    if state.config["configurable"].get("checkpoint_id"):
+        # Include checkpoint_id to prevent conflicts
+        pass
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Handles concurrent access with checkpoints.
+
+---
+
+### What is Tool Selection Strategy? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Agents` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **How agent chooses which tool to use**
+    
+    **Strategies:**
+    - LLM-based selection (default)
+    - Semantic routing (embeddings)
+    - Rule-based (keyword matching)
+    - Hybrid approaches
+
+    !!! tip "Interviewer's Insight"
+        Knows when to override LLM tool selection.
+
+---
+
+### How to Implement Agent Memory? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Memory` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Short-term vs Long-term memory**
+    
+    ```python
+    class State(TypedDict):
+        # Short-term: in state
+        messages: list
+        
+        # Long-term: external store
+        user_preferences: dict  # Loaded from DB
+        
+    def load_memory(state):
+        prefs = db.get(f"user:{state['user_id']}")
+        return {"user_preferences": prefs}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Separates short-term and long-term memory.
+
+---
+
+### What is Error Recovery Patterns? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Reliability` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Strategies for failed operations:**
+    
+    1. **Retry:** Same operation
+    2. **Fallback:** Alternative approach
+    3. **Human escalation:** Ask for help
+    4. **Rollback:** Undo and restart
+    
+    ```python
+    def should_recover(state):
+        if state["retry_count"] < 3:
+            return "retry"
+        return "human_escalate"
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Implements multiple recovery strategies.
+
+---
+
+### How to Implement Rate Limiting for Agents? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Production` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from ratelimit import limits, sleep_and_retry
+    
+    @sleep_and_retry
+    @limits(calls=10, period=60)
+    def call_llm(prompt):
+        return llm.invoke(prompt)
+    
+    # Or use semaphore
+    semaphore = asyncio.Semaphore(5)
+    
+    async def limited_invoke(input):
+        async with semaphore:
+            return await graph.ainvoke(input)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Implements rate limits for API protection.
+
+---
+
+### What is Agent Evaluation? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Testing` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Metrics:**
+    - Task completion rate
+    - Tool selection accuracy
+    - Step efficiency
+    - Cost per task
+    
+    ```python
+    def evaluate_agent(test_cases):
+        results = []
+        for case in test_cases:
+            output = graph.invoke(case["input"])
+            results.append({
+                "correct": output == case["expected"],
+                "steps": count_steps(output)
+            })
+        return results
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Evaluates both correctness and efficiency.
+
+---
+
+### How to Handle Multi-Modal Agents? - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Multi-Modal` | **Asked by:** Google, OpenAI
+
+??? success "View Answer"
+
+    **Agents that process text, images, audio**
+    
+    ```python
+    class State(TypedDict):
+        messages: list  # Can include image/audio content
+        images: list[bytes]
+        
+    def vision_node(state):
+        images = state["images"]
+        response = vision_llm.invoke([
+            HumanMessage(content=[
+                {"type": "text", "text": "Describe:"},
+                {"type": "image_url", "image_url": images[0]}
+            ])
+        ])
+        return {"messages": [response]}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Designs state schemas for multi-modal data.
+
+---
+
+### What is Agent Workflow Patterns? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Patterns` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    | Pattern | Description |
+    |---------|-------------|
+    | Sequential | A → B → C |
+    | Parallel | A → [B, C] → D |
+    | Conditional | A → (if X then B else C) |
+    | Loop | A → B → A (until done) |
+    | Supervisor | Central coordinator |
+    | Hierarchical | Manager → Workers |
+
+    !!! tip "Interviewer's Insight"
+        Chooses pattern based on task structure.
+
+---
+
+### How to Monitor Agent Health? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Operations` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Metrics to track:**
+    
+    - Latency (p50, p95, p99)
+    - Error rate
+    - Tool failure rate
+    - Token usage
+    - Active threads
+    
+    **Tools:** Prometheus, Datadog, LangSmith.
+
+    !!! tip "Interviewer's Insight"
+        Monitors agent health proactively.
+
+---
+
+### What is Graceful Degradation? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Reliability` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Handle failures without total failure**
+    
+    ```python
+    def agent_with_degradation(state):
+        try:
+            return full_capability_response(state)
+        except LLMError:
+            return limited_response(state)
+        except ToolError:
+            return {"messages": ["Tool unavailable, trying alternative..."]}
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Designs for partial failures.
+
+---
+
+### How to Implement Agent Security? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Security` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Security layers:**
+    
+    1. **Input validation:** Sanitize user input
+    2. **Tool permissions:** Allow-list per user
+    3. **Output filtering:** Check for sensitive data
+    4. **Audit logging:** Track all actions
+    
+    ```python
+    def secure_tool_node(state):
+        if not user_has_permission(state["user"], state["tool"]):
+            raise PermissionError("Not authorized")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Implements defense in depth.
+
+---
+
+### What is Agent Configuration Management? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Config` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Externalize agent configuration**
+    
+    ```python
+    @dataclass
+    class AgentConfig:
+        max_iterations: int = 10
+        temperature: float = 0.7
+        tools_enabled: list = field(default_factory=list)
+    
+    config = AgentConfig.from_env()  # Or from config file
+    graph = build_graph(config)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Externalizes config for flexibility.
+
+---
+
+### How to Build Production-Ready Agents? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Production` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    **Checklist:**
+    
+    - [ ] Persistent checkpointing
+    - [ ] Error handling and retries
+    - [ ] Rate limiting
+    - [ ] Timeout handling
+    - [ ] Logging and monitoring
+    - [ ] Security measures
+    - [ ] Testing suite
+    - [ ] Documentation
+
+    !!! tip "Interviewer's Insight"
+        Uses production checklist systematically.
+
+---
+
+## Quick Reference: 100 LangGraph Questions
+
 | Sno | Question Title | Practice Links | Companies Asking | Difficulty | Topics |
 |-----|----------------|----------------|------------------|------------|--------|
 | 1 | What is LangGraph and how does it differ from LangChain? | [LangGraph Docs](https://python.langchain.com/docs/langgraph) | Google, Amazon, Meta, OpenAI | Easy | Basics |

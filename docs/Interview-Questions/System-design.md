@@ -14,6 +14,595 @@ This document provides a curated list of system design questions tailored for Da
 
 ---
 
+## Premium Interview Questions
+
+### Design a Recommendation System - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `ML Systems`, `Recommendations` | **Asked by:** Google, Amazon, Netflix, Meta
+
+??? success "View Answer"
+
+    **Architecture:**
+    
+    ```
+    [User Activity] → [Feature Store] → [Candidate Gen] → [Ranking] → [Re-ranking] → [Results]
+    ```
+    
+    **Key Components:**
+    
+    1. **Candidate Generation:** Approximate nearest neighbors (ANN)
+    2. **Ranking Model:** Two-tower, LTR, or neural ranker
+    3. **Feature Store:** Low-latency feature serving
+    4. **A/B Testing:** Online evaluation
+    
+    **Metrics:** CTR, conversion, long-term engagement, diversity.
+
+    !!! tip "Interviewer's Insight"
+        Discusses two-stage architecture and cold-start handling.
+
+---
+
+### Design a Real-Time Fraud Detection System - Amazon, PayPal Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Real-Time`, `Anomaly Detection` | **Asked by:** Amazon, PayPal, Stripe
+
+??? success "View Answer"
+
+    **Requirements:**
+    - < 100ms latency
+    - Handle millions of transactions/day
+    
+    **Architecture:**
+    
+    ```
+    [Transaction] → [Kafka] → [Feature Engineering] → [Model Inference] → [Decision]
+                                      ↓
+                              [Feature Store]
+    ```
+    
+    **Key Decisions:**
+    - Real-time features (last 5 min velocity)
+    - Batch features (historical patterns)
+    - Ensemble of rules + ML
+    - Human-in-the-loop for edge cases
+
+    !!! tip "Interviewer's Insight"
+        Balances precision/recall based on business cost.
+
+---
+
+### Design an ML Feature Store - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `MLOps`, `Infrastructure` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Core Capabilities:**
+    
+    | Capability | Purpose |
+    |------------|---------|
+    | Feature Registry | Metadata, lineage |
+    | Online Store | Low-latency serving (Redis) |
+    | Offline Store | Training data (S3/BigQuery) |
+    | Point-in-time Join | Prevent data leakage |
+    
+    ```python
+    # Feature definition
+    @feature
+    def user_purchase_count_7d(user_id: str) -> int:
+        return db.query(f"SELECT COUNT(*) FROM purchases WHERE...")
+    ```
+    
+    **Tools:** Feast, Tecton, Vertex AI Feature Store.
+
+    !!! tip "Interviewer's Insight"
+        Knows point-in-time correctness for training.
+
+---
+
+### Design a Model Serving System - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Deployment`, `Serving` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Architecture:**
+    
+    ```
+    [Load Balancer] → [Model Servers] → [Model Cache]
+                            ↓
+                      [GPU Cluster]
+    ```
+    
+    **Key Considerations:**
+    
+    | Aspect | Solution |
+    |--------|----------|
+    | Latency | Batching, caching |
+    | Scalability | Kubernetes, auto-scaling |
+    | A/B Testing | Traffic splitting |
+    | Monitoring | Prometheus, Grafana |
+    
+    **Model formats:** ONNX, TensorRT, TorchScript.
+
+    !!! tip "Interviewer's Insight"
+        Discusses batching strategies and GPU utilization.
+
+---
+
+### Design a Model Monitoring System - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `MLOps`, `Monitoring` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **What to Monitor:**
+    
+    | Type | Metrics |
+    |------|---------|
+    | Data Quality | Missing values, schema drift |
+    | Data Drift | PSI, KL divergence |
+    | Model Performance | Accuracy, latency, throughput |
+    | Business Metrics | Revenue impact, user engagement |
+    
+    **Alert Thresholds:**
+    - PSI > 0.2: Significant drift
+    - Latency p99 > SLA: Performance issue
+    - Accuracy drop > 5%: Model degradation
+
+    !!! tip "Interviewer's Insight"
+        Monitors both technical and business metrics.
+
+---
+
+### Design a Distributed Training System - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Deep Learning`, `Scale` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Strategies:**
+    
+    | Strategy | Use Case |
+    |----------|----------|
+    | Data Parallel | Same model, different data |
+    | Model Parallel | Large models (split layers) |
+    | Pipeline Parallel | Very large models |
+    
+    ```python
+    # PyTorch DistributedDataParallel
+    model = DDP(model, device_ids=[local_rank])
+    
+    # Gradient synchronization
+    # All-reduce across workers
+    ```
+    
+    **Optimizations:** Gradient compression, async SGD, ZeRO.
+
+    !!! tip "Interviewer's Insight"
+        Knows when to use each parallelism strategy.
+
+---
+
+### Design an A/B Testing Platform - Netflix, Airbnb Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Experimentation` | **Asked by:** Netflix, Airbnb, Uber
+
+??? success "View Answer"
+
+    **Components:**
+    
+    1. **Assignment Service:** Consistent hashing
+    2. **Event Logging:** Kafka → DataWarehouse
+    3. **Stats Engine:** Automated analysis
+    4. **Dashboard:** Results, SRM checks
+    
+    **Scale:** Netflix runs 100s of concurrent experiments.
+    
+    **Key Features:**
+    - Experiment isolation
+    - Automatic SRM detection
+    - Variance reduction (CUPED)
+
+    !!! tip "Interviewer's Insight"
+        Handles interaction effects between experiments.
+
+---
+
+### Design a Data Pipeline for ML - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Data Engineering` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Architecture:**
+    
+    ```
+    [Sources] → [Ingestion] → [Processing] → [Feature Store] → [Training]
+        ↓
+    [Data Lake] → [Quality Checks] → [Versioning]
+    ```
+    
+    **Tools:**
+    - Orchestration: Airflow, Prefect
+    - Processing: Spark, Dask
+    - Storage: S3, BigQuery
+    - Versioning: DVC, Delta Lake
+
+    !!! tip "Interviewer's Insight"
+        Includes data quality checks and lineage tracking.
+
+---
+
+### Design a Model Registry - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `MLOps` | **Asked by:** Google, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **Capabilities:**
+    
+    | Feature | Purpose |
+    |---------|---------|
+    | Model Versioning | Track all versions |
+    | Metadata | Metrics, hyperparameters |
+    | Stage Management | Dev → Staging → Prod |
+    | Lineage | Data and code provenance |
+    
+    **Tools:** MLflow, Weights & Biases, SageMaker.
+
+    !!! tip "Interviewer's Insight"
+        Uses model registry for reproducibility.
+
+---
+
+### Design a Low-Latency Inference Service - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Performance` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Optimization Strategies:**
+    
+    1. **Model:** Quantization, distillation, pruning
+    2. **Serving:** Batching, caching
+    3. **Infrastructure:** GPU, Triton, TensorRT
+    
+    **Latency Budget:**
+    ```
+    Total: 50ms
+    - Network: 5ms
+    - Feature Lookup: 10ms
+    - Inference: 30ms
+    - Post-processing: 5ms
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Breaks down latency budget by component.
+
+---
+
+### Design a Search System - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Search`, `Information Retrieval` | **Asked by:** Google, Amazon, LinkedIn
+
+??? success "View Answer"
+
+    **Architecture:**
+    ```
+    [Query] → [Query Understanding] → [Retrieval] → [Ranking] → [Results]
+                    ↓                       ↓
+            [Spell Check]          [Inverted Index]
+    ```
+    
+    **Components:**
+    - Query parsing, spell correction
+    - Inverted index (Elasticsearch, Solr)
+    - Two-stage ranking (BM25 → neural)
+    - Personalization layer
+
+    !!! tip "Interviewer's Insight"
+        Discusses query understanding and learning-to-rank.
+
+---
+
+### Design a Data Warehouse - Amazon, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Data Engineering` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Schema Design:**
+    - Star schema (fact + dimension tables)
+    - Slowly changing dimensions (SCD Type 1/2)
+    
+    **Technology Stack:**
+    - Storage: S3, GCS
+    - Processing: Spark, DBT
+    - Query: BigQuery, Snowflake, Redshift
+    
+    **Partitioning:** By date for time-series data.
+
+    !!! tip "Interviewer's Insight"
+        Knows star vs snowflake schema and partitioning.
+
+---
+
+### Design a Stream Processing System - Uber, Netflix Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Streaming` | **Asked by:** Uber, Netflix, LinkedIn
+
+??? success "View Answer"
+
+    ```
+    [Events] → [Kafka] → [Flink/Spark] → [Feature Store] → [Model]
+                                ↓
+                         [Aggregations]
+    ```
+    
+    **Key Concepts:**
+    - Windowing (tumbling, sliding, session)
+    - Watermarks for late data
+    - Exactly-once semantics
+    - State management
+
+    !!! tip "Interviewer's Insight"
+        Handles late data and stateful processing.
+
+---
+
+### Design an ML Labeling Pipeline - All Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Data Quality` | **Asked by:** All Companies
+
+??? success "View Answer"
+
+    **Components:**
+    1. **Label UI:** Annotation interface
+    2. **Quality assurance:** Multiple annotators, consensus
+    3. **Active learning:** Prioritize uncertain samples
+    4. **Version control:** Track label changes
+    
+    **Tools:** Label Studio, Scale AI, Labelbox.
+
+    !!! tip "Interviewer's Insight"
+        Includes quality control and active learning.
+
+---
+
+### Design a Neural Network Optimizer - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Deep Learning` | **Asked by:** Google, Meta, OpenAI
+
+??? success "View Answer"
+
+    **Hyperparameter Search:**
+    - Grid search → Random search → Bayesian
+    - Neural Architecture Search (NAS)
+    
+    **Infrastructure:**
+    - Ray Tune, Optuna
+    - Distributed trials
+    - Early stopping
+    - Checkpoint management
+
+    !!! tip "Interviewer's Insight"
+        Uses Bayesian optimization for efficiency.
+
+---
+
+### Design a Model Retraining System - All Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `MLOps` | **Asked by:** All Companies
+
+??? success "View Answer"
+
+    **Triggers:**
+    - Scheduled (daily/weekly)
+    - Drift-based (data/concept drift)
+    - Performance-based (accuracy drop)
+    
+    **Pipeline:**
+    ```
+    [Trigger] → [Data] → [Train] → [Validate] → [Deploy]
+                                        ↓
+                              [Shadow Mode/Canary]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses drift detection for smart retraining.
+
+---
+
+### Design a Vector Search System - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Embeddings`, `Search` | **Asked by:** Google, Meta, OpenAI
+
+??? success "View Answer"
+
+    **ANN (Approximate Nearest Neighbor) Options:**
+    
+    | Algorithm | Pros | Cons |
+    |-----------|------|------|
+    | HNSW | Fast, good recall | Memory |
+    | IVF | Scalable | Slower |
+    | PQ | Memory efficient | Lower recall |
+    
+    **Systems:** Faiss, Pinecone, Weaviate, Milvus.
+
+    !!! tip "Interviewer's Insight"
+        Knows HNSW vs IVF tradeoffs.
+
+---
+
+### Design an Embedding Service - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Embeddings` | **Asked by:** Google, Meta, OpenAI
+
+??? success "View Answer"
+
+    **Requirements:**
+    - Low latency (< 50ms)
+    - High throughput
+    - Batching for efficiency
+    
+    **Architecture:**
+    ```
+    [Request] → [Batch Collector] → [GPU Inference] → [Cache]
+    ```
+    
+    **Optimization:** Model quantization, TensorRT.
+
+    !!! tip "Interviewer's Insight"
+        Uses batching and caching for efficiency.
+
+---
+
+### Design a Content Moderation System - Meta, YouTube Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Trust & Safety` | **Asked by:** Meta, YouTube, TikTok
+
+??? success "View Answer"
+
+    **Multi-stage Pipeline:**
+    1. **Fast filters:** Hashes, blocklists
+    2. **ML classifiers:** Text, image, video
+    3. **Human review:** Edge cases
+    4. **Appeals:** User feedback loop
+    
+    **Metrics:** Precision (avoid false positives), latency.
+
+    !!! tip "Interviewer's Insight"
+        Balances automation with human review.
+
+---
+
+### Design a Notification System - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `System Design` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Components:**
+    - Event ingestion (Kafka)
+    - User preferences store
+    - Rate limiting
+    - Multi-channel delivery (push, email, SMS)
+    
+    **ML Integration:** Optimal send time, relevance scoring.
+
+    !!! tip "Interviewer's Insight"
+        Uses ML for send time optimization.
+
+---
+
+### Design a Cache Invalidation Strategy - All Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Caching` | **Asked by:** All Companies
+
+??? success "View Answer"
+
+    **Strategies:**
+    
+    | Strategy | Use Case |
+    |----------|----------|
+    | TTL | Time-based expiry |
+    | Write-through | Consistent, slower writes |
+    | Write-behind | Fast writes, eventual consistency |
+    | Event-based | Data change triggers |
+    
+    **ML Context:** Model version changes, feature updates.
+
+    !!! tip "Interviewer's Insight"
+        Chooses strategy based on consistency needs.
+
+---
+
+### Design a Feature Flag System - Netflix, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `DevOps` | **Asked by:** Netflix, Meta, Uber
+
+??? success "View Answer"
+
+    **Capabilities:**
+    - User targeting (percentage, segments)
+    - Kill switches
+    - Experiment integration
+    - Audit logging
+    
+    **ML Use Cases:** Model rollouts, shadow testing.
+
+    !!! tip "Interviewer's Insight"
+        Integrates with experiment platform.
+
+---
+
+### Design a Rate Limiter - All Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `System Design` | **Asked by:** All Companies
+
+??? success "View Answer"
+
+    **Algorithms:**
+    - Token bucket
+    - Sliding window
+    - Fixed window counter
+    
+    **ML API Context:**
+    - Per-user limits
+    - Tiered pricing
+    - Burst handling
+
+    !!! tip "Interviewer's Insight"
+        Uses sliding window for smooth limiting.
+
+---
+
+### Design a Batch Prediction System - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Inference` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Architecture:**
+    ```
+    [Scheduler] → [Data Fetch] → [Batch Inference] → [Store Results]
+    ```
+    
+    **Considerations:**
+    - Parallelization
+    - Checkpointing
+    - Error handling
+    - Result storage (BigQuery, S3)
+
+    !!! tip "Interviewer's Insight"
+        Designs for resumability and monitoring.
+
+---
+
+### Design a CI/CD Pipeline for ML - All Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `MLOps` | **Asked by:** All Companies
+
+??? success "View Answer"
+
+    **Stages:**
+    1. Code/data validation
+    2. Unit tests + integration tests
+    3. Model training
+    4. Evaluation against holdout
+    5. Shadow deployment
+    6. Canary rollout
+    
+    **Tools:** GitHub Actions, MLflow, Kubeflow.
+
+    !!! tip "Interviewer's Insight"
+        Includes model evaluation in pipeline.
+
+---
+
+## Quick Reference: 30 System Design Questions
+
 | Sno | Question Title                                                                                      | Practice Links                                                                                                                                   | Companies Asking                          | Difficulty | Topics                                    |
 |-----|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|------------|-------------------------------------------|
 | 1   | Design an End-to-End Machine Learning Pipeline                                                      | [Towards Data Science](https://towardsdatascience.com/designing-end-to-end-machine-learning-pipelines-3d2a5eabc123)                                | Google, Amazon, Facebook                  | Medium     | ML Pipeline, MLOps                        |

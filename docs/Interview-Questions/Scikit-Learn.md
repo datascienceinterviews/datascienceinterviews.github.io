@@ -14,6 +14,1163 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
+## Premium Interview Questions
+
+### Explain the Scikit-Learn Estimator API - Google, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `API Design`, `Core Concepts` | **Asked by:** Google, Amazon, Meta, Netflix
+
+??? success "View Answer"
+
+    **The Estimator Interface:**
+    
+    Scikit-Learn uses a consistent API across all algorithms:
+    
+    ```python
+    from sklearn.ensemble import RandomForestClassifier
+    
+    model = RandomForestClassifier(n_estimators=100)
+    model.fit(X_train, y_train)      # Learn from data
+    predictions = model.predict(X_test)  # Make predictions
+    accuracy = model.score(X_test, y_test)  # Evaluate
+    ```
+    
+    **Three Types:** Estimator (`fit()`), Predictor (`fit()`, `predict()`), Transformer (`fit()`, `transform()`).
+    
+    Learned attributes end with underscore: `model.feature_importances_`, `model.coef_`.
+
+    !!! tip "Interviewer's Insight"
+        Knows fit/predict/transform pattern and underscore convention for learned attributes.
+
+---
+
+### How to Create an Sklearn Pipeline? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Pipeline`, `Best Practices` | **Asked by:** Google, Amazon, Meta, Netflix
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.ensemble import RandomForestClassifier
+    
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('classifier', RandomForestClassifier())
+    ])
+    pipeline.fit(X_train, y_train)
+    predictions = pipeline.predict(X_test)
+    ```
+    
+    **Benefits:** Prevents data leakage, simplifies code, easy to deploy.
+
+    !!! tip "Interviewer's Insight"
+        Uses Pipeline to prevent data leakage and knows ColumnTransformer for mixed types.
+
+---
+
+### Explain Cross-Validation Strategies - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Model Evaluation` | **Asked by:** Google, Amazon, Meta, Netflix
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import KFold, StratifiedKFold, GroupKFold, TimeSeriesSplit
+    
+    # KFold: General, StratifiedKFold: Imbalanced, GroupKFold: Grouped data, TimeSeriesSplit: Time series
+    scores = cross_val_score(model, X, y, cv=StratifiedKFold(5), scoring='f1')
+    ```
+    
+    **Choose based on:** Imbalanced classes → StratifiedKFold, Groups → GroupKFold, Time series → TimeSeriesSplit.
+
+    !!! tip "Interviewer's Insight"
+        Chooses appropriate CV for data type and knows data leakage risks.
+
+---
+
+### How to Handle Class Imbalance? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Imbalanced Data` | **Asked by:** Google, Amazon, Meta, Netflix
+
+??? success "View Answer"
+
+    ```python
+    # Class weights
+    model = RandomForestClassifier(class_weight='balanced')
+    
+    # SMOTE (from imblearn)
+    from imblearn.over_sampling import SMOTE
+    X_resampled, y_resampled = SMOTE().fit_resample(X, y)
+    ```
+    
+    **Metrics:** Use precision, recall, F1, ROC-AUC instead of accuracy.
+
+    !!! tip "Interviewer's Insight"
+        Uses class_weight parameter, knows SMOTE, uses appropriate metrics.
+
+---
+
+### Explain GridSearchCV vs RandomizedSearchCV - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Hyperparameter Tuning` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+    
+    # GridSearchCV: Exhaustive (slow)
+    grid = GridSearchCV(model, param_grid, cv=5, n_jobs=-1)
+    
+    # RandomizedSearchCV: Sampled (faster for large spaces)
+    random = RandomizedSearchCV(model, param_dist, n_iter=50, cv=5)
+    ```
+    
+    Grid for small spaces, Random for large continuous spaces.
+
+    !!! tip "Interviewer's Insight"
+        Uses RandomizedSearchCV for large spaces and scipy distributions.
+
+---
+
+### How to Create a Custom Transformer? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Custom Transformers` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.base import BaseEstimator, TransformerMixin
+    
+    class LogTransformer(BaseEstimator, TransformerMixin):
+        def fit(self, X, y=None):
+            return self
+        def transform(self, X):
+            return np.log1p(X)
+    ```
+    
+    Inherit from BaseEstimator and TransformerMixin. Return `self` in `fit()`.
+
+    !!! tip "Interviewer's Insight"
+        Inherits from correct base classes and implements get_feature_names_out.
+
+---
+
+### Explain Feature Scaling Methods - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Preprocessing` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    | Scaler | Formula | Use Case |
+    |--------|---------|----------|
+    | StandardScaler | $(x - \mu) / \sigma$ | Most algorithms |
+    | MinMaxScaler | $(x - min) / (max - min)$ | Neural networks |
+    | RobustScaler | Uses median/IQR | Data with outliers |
+    
+    **Important:** Fit on train, transform test to avoid data leakage.
+
+    !!! tip "Interviewer's Insight"
+        Knows data leakage prevention and chooses appropriate scaler.
+
+---
+
+### How to Evaluate Classification Models? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Metrics` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.metrics import classification_report, roc_auc_score
+    
+    print(classification_report(y_test, predictions))
+    roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+    ```
+    
+    | Metric | Use When |
+    |--------|----------|
+    | Precision | Minimize false positives |
+    | Recall | Minimize false negatives |
+    | F1 | Balance precision/recall |
+
+    !!! tip "Interviewer's Insight"
+        Chooses metrics based on business context.
+
+---
+
+### Explain Ridge vs Lasso vs ElasticNet - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Regularization` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    | Method | Penalty | Effect |
+    |--------|---------|--------|
+    | Ridge (L2) | $\sum w^2$ | Shrinks weights |
+    | Lasso (L1) | $\sum |w|$ | Feature selection (sparse) |
+    | ElasticNet | Both | Combines benefits |
+    
+    Use RidgeCV/LassoCV for automatic alpha selection.
+
+    !!! tip "Interviewer's Insight"
+        Explains L1 sparsity property and uses CV versions.
+
+---
+
+### How to Implement Feature Selection? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Feature Selection` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.feature_selection import SelectKBest, RFE, SelectFromModel
+    
+    # Filter: SelectKBest(k=10)
+    # Wrapper: RFE(model, n_features_to_select=10)
+    # Embedded: SelectFromModel(RandomForestClassifier())
+    ```
+    
+    Filter is fast, Wrapper is thorough but slow, Embedded uses model importance.
+
+    !!! tip "Interviewer's Insight"
+        Knows filter/wrapper/embedded distinction and computational tradeoffs.
+
+---
+
+### How to Save and Load Models? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Deployment` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    import joblib
+    
+    # Save
+    joblib.dump(pipeline, 'model.joblib')
+    
+    # Load
+    loaded_model = joblib.load('model.joblib')
+    ```
+    
+    Use joblib for efficiency. Save version info with model for compatibility.
+
+    !!! tip "Interviewer's Insight"
+        Uses joblib, saves metadata, knows security concerns with pickle.
+
+---
+
+### Explain Random Forest Feature Importance - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Interpretability` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    # Built-in (MDI) - biased to high-cardinality
+    importances = model.feature_importances_
+    
+    # Permutation (more reliable)
+    from sklearn.inspection import permutation_importance
+    result = permutation_importance(model, X_test, y_test, n_repeats=10)
+    ```
+    
+    Permutation importance is unbiased and computed on test data.
+
+    !!! tip "Interviewer's Insight"
+        Knows MDI bias and uses permutation importance for reliability.
+
+---
+
+### How to Use VotingClassifier? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Ensemble` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.ensemble import VotingClassifier
+    
+    voting = VotingClassifier([
+        ('rf', RandomForestClassifier()),
+        ('lr', LogisticRegression()),
+        ('svc', SVC(probability=True))
+    ], voting='soft')  # 'hard' for majority vote
+    ```
+    
+    Soft voting averages probabilities, hard voting uses majority.
+
+    !!! tip "Interviewer's Insight"
+        Knows soft vs hard voting and stacking vs voting differences.
+
+---
+
+### How to Detect Overfitting? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Model Selection` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import learning_curve
+    
+    train_sizes, train_scores, val_scores = learning_curve(model, X, y, cv=5)
+    # High train, low val = overfit
+    # Low train, low val = underfit
+    ```
+    
+    Solutions: More data, regularization, simpler model, cross-validation.
+
+    !!! tip "Interviewer's Insight"
+        Uses learning curves and knows multiple mitigation strategies.
+
+---
+
+### How to Handle Missing Values? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Imputation` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.impute import SimpleImputer, KNNImputer
+    
+    # SimpleImputer: mean, median, most_frequent, constant
+    imputer = SimpleImputer(strategy='median', add_indicator=True)
+    
+    # KNNImputer: uses nearest neighbors
+    imputer = KNNImputer(n_neighbors=5)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses appropriate strategy and add_indicator for missingness patterns.
+
+---
+
+### How to Debug a Failing Model? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Debugging` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Checklist:**
+    1. Check data quality (nulls, shapes, distributions)
+    2. Check for data leakage
+    3. Compare to baseline (DummyClassifier)
+    4. Analyze learning curves
+    5. Error analysis on misclassified samples
+    
+    ```python
+    from sklearn.dummy import DummyClassifier
+    dummy = DummyClassifier(strategy='most_frequent')
+    dummy.fit(X_train, y_train)
+    print(f"Baseline: {dummy.score(X_test, y_test)}")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses systematic approach and compares to dummy baseline.
+
+---
+
+### Explain probability calibration - Google, Netflix Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Calibration` | **Asked by:** Google, Netflix, Stripe
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+    
+    # Calibrate model
+    calibrated = CalibratedClassifierCV(model, method='sigmoid', cv=5)
+    
+    # Check calibration
+    prob_true, prob_pred = calibration_curve(y_test, probs, n_bins=10)
+    ```
+    
+    Naive Bayes and SVM typically need calibration. Logistic Regression is usually calibrated.
+
+    !!! tip "Interviewer's Insight"
+        Knows which models need calibration and uses calibration curves.
+
+---
+
+### How to use ColumnTransformer? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Preprocessing` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.compose import ColumnTransformer
+    
+    preprocessor = ColumnTransformer([
+        ('num', StandardScaler(), ['age', 'income']),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), ['city'])
+    ], remainder='passthrough')
+    ```
+    
+    Handles different preprocessing for different column types.
+
+    !!! tip "Interviewer's Insight"
+        Uses handle_unknown='ignore' and remainder parameter correctly.
+
+---
+
+### How to implement multi-label classification? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Multi-Label` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.multioutput import MultiOutputClassifier
+    from sklearn.preprocessing import MultiLabelBinarizer
+    
+    # Binarize labels
+    mlb = MultiLabelBinarizer()
+    y_binary = mlb.fit_transform(y_multilabel)
+    
+    # Wrapper classifier
+    multi = MultiOutputClassifier(RandomForestClassifier())
+    multi.fit(X, y_binary)
+    ```
+    
+    Metrics: hamming_loss, f1_score(average='samples')
+
+    !!! tip "Interviewer's Insight"
+        Distinguishes multi-label from multi-class and uses appropriate metrics.
+
+---
+
+### How to use make_scorer? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Custom Metrics` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.metrics import make_scorer, fbeta_score
+    
+    # Custom scorer
+    f2_scorer = make_scorer(fbeta_score, beta=2)
+    
+    # Business metric
+    def profit_metric(y_true, y_pred):
+        return (y_true == y_pred).sum() * 100
+    
+    profit_scorer = make_scorer(profit_metric, greater_is_better=True)
+    
+    # Use in GridSearchCV
+    GridSearchCV(model, params, scoring=profit_scorer)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Creates business-specific metrics and handles greater_is_better.
+
+---
+
+### How to perform polynomial regression? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Regression` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.preprocessing import PolynomialFeatures
+    from sklearn.linear_model import LinearRegression
+    
+    poly = PolynomialFeatures(degree=2, include_bias=False)
+    X_poly = poly.fit_transform(X)
+    
+    # Pipeline
+    poly_pipeline = Pipeline([
+        ('poly', PolynomialFeatures(degree=2)),
+        ('reg', LinearRegression())
+    ])
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses PolynomialFeatures in pipeline and knows include_bias parameter.
+
+---
+
+### How to compute learning curves? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Diagnostics` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import learning_curve
+    import numpy as np
+    
+    train_sizes, train_scores, val_scores = learning_curve(
+        model, X, y, 
+        train_sizes=np.linspace(0.1, 1.0, 10),
+        cv=5, scoring='accuracy'
+    )
+    
+    # Plot train and val means to diagnose over/underfitting
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses learning curves for bias-variance diagnosis.
+
+---
+
+### How to use SMOTE for imbalanced data? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Imbalanced Data` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from imblearn.over_sampling import SMOTE
+    from imblearn.pipeline import Pipeline as ImbPipeline
+    
+    # Resample
+    smote = SMOTE(random_state=42)
+    X_res, y_res = smote.fit_resample(X, y)
+    
+    # Pipeline (use imblearn Pipeline!)
+    pipeline = ImbPipeline([
+        ('smote', SMOTE()),
+        ('classifier', RandomForestClassifier())
+    ])
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses imblearn Pipeline and applies SMOTE only on training data.
+
+---
+
+### How to perform stratified sampling? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Data Splitting` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import train_test_split
+    
+    # Stratified split (maintains class proportions)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, stratify=y, random_state=42
+    )
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses stratify parameter for imbalanced classification.
+
+---
+
+### How to tune hyperparameters with Optuna/HalvingGridSearch? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Hyperparameter Tuning` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.experimental import enable_halving_search_cv
+    from sklearn.model_selection import HalvingGridSearchCV
+    
+    # Successive halving (faster)
+    halving = HalvingGridSearchCV(model, param_grid, cv=5, factor=2)
+    
+    # Optuna integration
+    import optuna
+    def objective(trial):
+        params = {'n_estimators': trial.suggest_int('n_estimators', 50, 500)}
+        model = RandomForestClassifier(**params)
+        return cross_val_score(model, X, y, cv=5).mean()
+    
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=100)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows HalvingGridSearchCV and Optuna for efficient search.
+---
+
+### How to implement SVM classification? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `SVM`, `Classification` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.svm import SVC, LinearSVC
+    
+    # RBF kernel (non-linear)
+    svc = SVC(kernel='rbf', C=1.0, gamma='scale')
+    
+    # Linear (faster for large datasets)
+    linear_svc = LinearSVC(C=1.0, max_iter=1000)
+    
+    # For probabilities (slower)
+    svc_proba = SVC(probability=True)
+    ```
+    
+    **Kernels:** linear, poly, rbf, sigmoid. Use rbf for most problems.
+
+    !!! tip "Interviewer's Insight"
+        Uses LinearSVC for large datasets and knows kernel selection.
+
+---
+
+### How to implement K-Means clustering? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Clustering` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+    
+    kmeans = KMeans(n_clusters=5, init='k-means++', n_init=10, random_state=42)
+    labels = kmeans.fit_predict(X)
+    
+    # Evaluate
+    inertia = kmeans.inertia_  # Within-cluster sum of squares
+    silhouette = silhouette_score(X, labels)  # [-1, 1]
+    ```
+    
+    Use elbow method (inertia) or silhouette to choose k.
+
+    !!! tip "Interviewer's Insight"
+        Uses k-means++ initialization and knows evaluation metrics.
+
+---
+
+### How to implement PCA? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Dimensionality Reduction` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.decomposition import PCA
+    
+    # Reduce to n components
+    pca = PCA(n_components=50)
+    X_reduced = pca.fit_transform(X)
+    
+    # Keep 95% variance
+    pca = PCA(n_components=0.95)
+    
+    # Explained variance
+    print(pca.explained_variance_ratio_.cumsum())
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses variance ratio for component selection and knows when to use PCA.
+
+---
+
+### How to implement Gradient Boosting? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Ensemble` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.ensemble import GradientBoostingClassifier, HistGradientBoostingClassifier
+    
+    # Standard (slower)
+    gb = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3)
+    
+    # Histogram-based (faster, handles missing values)
+    hgb = HistGradientBoostingClassifier()  # Native NA handling
+    ```
+    
+    For large data, use HistGradientBoosting or XGBoost/LightGBM.
+
+    !!! tip "Interviewer's Insight"
+        Knows HistGradientBoosting advantages and when to use external libraries.
+
+---
+
+### How to implement Naive Bayes? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Classification` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
+    
+    # GaussianNB: continuous features (assumes normal distribution)
+    gnb = GaussianNB()
+    
+    # MultinomialNB: text/count data
+    mnb = MultinomialNB()
+    
+    # BernoulliNB: binary features
+    bnb = BernoulliNB()
+    ```
+    
+    Fast, good baseline, works well for text classification.
+
+    !!! tip "Interviewer's Insight"
+        Chooses appropriate variant for data type.
+
+---
+
+### How to implement DBSCAN clustering? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Clustering` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.cluster import DBSCAN
+    
+    dbscan = DBSCAN(eps=0.5, min_samples=5)
+    labels = dbscan.fit_predict(X)
+    
+    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise = (labels == -1).sum()
+    ```
+    
+    **Advantages:** Finds arbitrary shaped clusters, handles noise (-1 labels).
+
+    !!! tip "Interviewer's Insight"
+        Knows DBSCAN doesn't need k, handles outliers, and tunes eps.
+
+---
+
+### How to implement t-SNE? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Visualization` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.manifold import TSNE
+    
+    # Reduce to 2D for visualization
+    tsne = TSNE(n_components=2, perplexity=30, random_state=42)
+    X_embedded = tsne.fit_transform(X)
+    
+    # Note: fit_transform only, no separate transform!
+    ```
+    
+    **Caution:** Slow, only for visualization, non-deterministic, no out-of-sample.
+
+    !!! tip "Interviewer's Insight"
+        Knows t-SNE limitations and uses UMAP for speed/quality.
+
+---
+
+### How to implement KNN? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Classification`, `Regression` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+    
+    knn = KNeighborsClassifier(n_neighbors=5, weights='distance', metric='euclidean')
+    knn.fit(X_train, y_train)
+    
+    # For large datasets, use ball_tree or kd_tree
+    knn = KNeighborsClassifier(algorithm='ball_tree')
+    ```
+    
+    Scale features first! KNN is sensitive to feature scales.
+
+    !!! tip "Interviewer's Insight"
+        Scales features and knows algorithm options for large data.
+
+---
+
+### How to implement Isolation Forest? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Anomaly Detection` | **Asked by:** Google, Amazon, Netflix
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.ensemble import IsolationForest
+    
+    iso = IsolationForest(contamination=0.1, random_state=42)
+    predictions = iso.fit_predict(X)  # -1 for anomalies, 1 for normal
+    
+    # Anomaly scores
+    scores = iso.decision_function(X)  # Lower = more anomalous
+    ```
+    
+    **Advantages:** No need for labels, works on high-dimensional data.
+
+    !!! tip "Interviewer's Insight"
+        Uses contamination parameter and understands isolation concept.
+
+---
+
+### How to implement Label Propagation? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Semi-Supervised` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.semi_supervised import LabelPropagation, LabelSpreading
+    
+    # -1 indicates unlabeled samples
+    y_train = np.array([0, 1, 1, -1, -1, -1, 0, -1])
+    
+    lp = LabelPropagation()
+    lp.fit(X_train, y_train)
+    predicted_labels = lp.transduction_
+    ```
+    
+    Uses graph-based approach to propagate labels to unlabeled samples.
+
+    !!! tip "Interviewer's Insight"
+        Knows semi-supervised learning use case (few labels, many unlabeled).
+
+---
+
+### How to implement One-Class SVM? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Anomaly Detection` | **Asked by:** Google, Amazon, Netflix
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.svm import OneClassSVM
+    
+    # Train on normal data only
+    ocsvm = OneClassSVM(kernel='rbf', nu=0.1)
+    ocsvm.fit(X_normal)
+    
+    # Predict
+    predictions = ocsvm.predict(X_test)  # -1 for anomalies
+    ```
+    
+    **nu:** Upper bound on fraction of outliers.
+
+    !!! tip "Interviewer's Insight"
+        Uses for novelty detection (trained on normal only).
+
+---
+
+### How to implement target encoding? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Feature Engineering` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.preprocessing import TargetEncoder
+    
+    # Encode categorical with target mean
+    encoder = TargetEncoder(smooth='auto')
+    X_encoded = encoder.fit_transform(X[['category']], y)
+    
+    # Cross-fit to prevent leakage
+    encoder = TargetEncoder(cv=5)
+    ```
+    
+    **Caution:** Can cause leakage if not cross-fitted properly.
+
+    !!! tip "Interviewer's Insight"
+        Uses cross-validation to prevent target leakage.
+
+---
+
+### How to compute partial dependence plots? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Interpretability` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.inspection import PartialDependenceDisplay, partial_dependence
+    
+    # Compute
+    features = [0, 1, (0, 1)]  # Feature indices
+    pdp = PartialDependenceDisplay.from_estimator(model, X, features)
+    
+    # Or get raw values
+    results = partial_dependence(model, X, features=[0])
+    ```
+    
+    Shows marginal effect of feature on prediction.
+
+    !!! tip "Interviewer's Insight"
+        Uses for model explanation and understanding feature effects.
+
+---
+
+### How to implement stratified group split? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Cross-Validation` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import StratifiedGroupKFold
+    
+    # Stratified by y, no group leakage
+    sgkf = StratifiedGroupKFold(n_splits=5)
+    for train_idx, test_idx in sgkf.split(X, y, groups):
+        X_train, X_test = X[train_idx], X[test_idx]
+    ```
+    
+    Use when you have groups AND imbalanced classes.
+
+    !!! tip "Interviewer's Insight"
+        Knows when to combine stratification with grouping.
+
+---
+
+### How to implement validation curves? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Diagnostics` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import validation_curve
+    
+    param_range = [1, 5, 10, 50, 100]
+    train_scores, val_scores = validation_curve(
+        model, X, y,
+        param_name='n_estimators',
+        param_range=param_range,
+        cv=5
+    )
+    ```
+    
+    Shows how one hyperparameter affects train/val performance.
+
+    !!! tip "Interviewer's Insight"
+        Uses to check overfitting vs hyperparameter value.
+
+---
+
+### How to implement decision boundary visualization? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Visualization` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.inspection import DecisionBoundaryDisplay
+    
+    # For 2D data
+    DecisionBoundaryDisplay.from_estimator(
+        model, X[:, :2], ax=ax,
+        response_method='predict',
+        cmap=plt.cm.RdYlBu
+    )
+    plt.scatter(X[:, 0], X[:, 1], c=y, edgecolor='black')
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses for model explanation in 2D feature space.
+
+---
+
+### How to implement neural network classifier? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Neural Networks` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.neural_network import MLPClassifier
+    
+    mlp = MLPClassifier(
+        hidden_layer_sizes=(100, 50),
+        activation='relu',
+        solver='adam',
+        max_iter=500,
+        early_stopping=True
+    )
+    ```
+    
+    For serious deep learning, use PyTorch/TensorFlow instead.
+
+    !!! tip "Interviewer's Insight"
+        Knows sklearn MLP limitations vs deep learning frameworks.
+
+---
+
+### How to implement threshold tuning? - Google, Netflix Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Optimization` | **Asked by:** Google, Netflix, Stripe
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.metrics import precision_recall_curve
+    
+    # Get probabilities
+    probas = model.predict_proba(X_test)[:, 1]
+    
+    # Find optimal threshold for F1
+    precisions, recalls, thresholds = precision_recall_curve(y_test, probas)
+    f1_scores = 2 * (precisions * recalls) / (precisions + recalls)
+    optimal_idx = np.argmax(f1_scores)
+    optimal_threshold = thresholds[optimal_idx]
+    
+    # Apply threshold
+    predictions = (probas >= optimal_threshold).astype(int)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows default 0.5 threshold is often suboptimal.
+
+---
+
+### How to implement cost-sensitive classification? - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Imbalanced Data` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    # Using sample_weight
+    weights = np.where(y == 1, 10, 1)  # Weight positive class more
+    model.fit(X, y, sample_weight=weights)
+    
+    # Using class_weight
+    model = LogisticRegression(class_weight={0: 1, 1: 10})
+    
+    # Custom business loss
+    def business_cost(y_true, y_pred):
+        fp_cost = 10
+        fn_cost = 100
+        fp = ((y_pred == 1) & (y_true == 0)).sum()
+        fn = ((y_pred == 0) & (y_true == 1)).sum()
+        return fp * fp_cost + fn * fn_cost
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses sample_weight for business-specific costs.
+
+---
+
+### How to implement LeaveOneOut CV? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Cross-Validation` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import LeaveOneOut, cross_val_score
+    
+    loo = LeaveOneOut()
+    scores = cross_val_score(model, X, y, cv=loo)
+    
+    # Computationally expensive! n folds for n samples
+    # Use for small datasets only
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows LOO is for small datasets and its variance characteristics.
+
+---
+
+### How to implement confusion matrix visualization? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Visualization` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+    
+    cm = confusion_matrix(y_test, predictions)
+    disp = ConfusionMatrixDisplay(cm, display_labels=model.classes_)
+    disp.plot(cmap='Blues')
+    
+    # Or directly
+    ConfusionMatrixDisplay.from_predictions(y_test, predictions)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses visualization for clear communication of results.
+
+---
+
+### How to implement precision-recall curves? - Google, Netflix Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Evaluation` | **Asked by:** Google, Netflix
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.metrics import PrecisionRecallDisplay
+    
+    # From estimator
+    PrecisionRecallDisplay.from_estimator(model, X_test, y_test)
+    
+    # From predictions
+    PrecisionRecallDisplay.from_predictions(y_test, probas)
+    
+    # Average Precision
+    from sklearn.metrics import average_precision_score
+    ap = average_precision_score(y_test, probas)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses PR curves for imbalanced data instead of ROC.
+
+---
+
+### How to implement model calibration check? - Google, Netflix Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Calibration` | **Asked by:** Google, Netflix
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.calibration import CalibrationDisplay
+    
+    # Compare calibration of multiple models
+    fig, ax = plt.subplots()
+    CalibrationDisplay.from_estimator(model1, X_test, y_test, ax=ax, name='RF')
+    CalibrationDisplay.from_estimator(model2, X_test, y_test, ax=ax, name='LR')
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Compares calibration across models for probability quality.
+
+---
+
+### How to implement cross_validate for multiple metrics? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Evaluation` | **Asked by:** Google, Amazon
+
+??? success "View Answer"
+
+    ```python
+    from sklearn.model_selection import cross_validate
+    
+    scoring = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']
+    results = cross_validate(model, X, y, cv=5, scoring=scoring, return_train_score=True)
+    
+    for metric in scoring:
+        print(f"{metric}: {results[f'test_{metric}'].mean():.3f}")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Evaluates multiple metrics in one call efficiently.
+
+---
+
+## Quick Reference: 100+ Interview Questions
+
 | Sno | Question Title | Practice Links | Companies Asking | Difficulty | Topics |
 |-----|----------------|----------------|------------------|------------|--------|
 | 1 | What is Scikit-Learn and why is it popular? | [Scikit-Learn Docs](https://scikit-learn.org/stable/getting_started.html) | Google, Amazon, Meta, Netflix | Easy | Basics, Introduction |

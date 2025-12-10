@@ -15,6 +15,1156 @@ This document provides a curated list of 100 NLP interview questions commonly as
 
 ---
 
+## Premium Interview Questions
+
+### Explain the Transformer Architecture - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Deep Learning`, `Transformers` | **Asked by:** Google, OpenAI, Meta, Amazon
+
+??? success "View Answer"
+
+    **Core Components:**
+    
+    1. **Self-Attention:** Weighs importance of each token
+    2. **Multi-Head Attention:** Parallel attention for different relationships
+    3. **Positional Encoding:** Adds position information
+    4. **Feed-Forward Networks:** Per-position transformations
+    
+    $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+    
+    **Key Innovation:** Parallelizable (unlike RNNs), captures long-range dependencies.
+
+    !!! tip "Interviewer's Insight"
+        Knows why $\sqrt{d_k}$ scaling matters and can explain attention mechanism.
+
+---
+
+### What is BERT and How Does It Work? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Language Models` | **Asked by:** Google, Meta, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **BERT = Bidirectional Encoder Representations from Transformers**
+    
+    **Pre-training Objectives:**
+    1. **MLM (Masked Language Modeling):** Predict masked tokens (15%)
+    2. **NSP (Next Sentence Prediction):** Binary classification
+    
+    ```python
+    from transformers import BertTokenizer, BertModel
+    
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    model = BertModel.from_pretrained('bert-base-uncased')
+    
+    inputs = tokenizer("Hello world", return_tensors="pt")
+    outputs = model(**inputs)
+    embeddings = outputs.last_hidden_state  # [batch, seq_len, 768]
+    ```
+    
+    **Use [CLS] token** for classification, **token embeddings** for sequence labeling.
+
+    !!! tip "Interviewer's Insight"
+        Knows MLM masking strategy and [CLS]/[SEP] token purposes.
+
+---
+
+### Explain Word Embeddings (Word2Vec, GloVe) - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Embeddings` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Word2Vec:**
+    - **CBOW:** Predict word from context
+    - **Skip-gram:** Predict context from word
+    
+    **GloVe:** Global vectors from co-occurrence matrix.
+    
+    ```python
+    from gensim.models import Word2Vec, KeyedVectors
+    
+    # Train Word2Vec
+    model = Word2Vec(sentences, vector_size=100, window=5)
+    
+    # Load pre-trained GloVe
+    glove = KeyedVectors.load_word2vec_format('glove.txt')
+    
+    # Analogies: king - man + woman ≈ queen
+    model.wv.most_similar(positive=['king', 'woman'], negative=['man'])
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Understands training objectives and analogy property.
+
+---
+
+### What is TF-IDF? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Feature Extraction` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    $$\text{TF-IDF}(t, d) = \text{TF}(t, d) \times \log\left(\frac{N}{\text{DF}(t)}\right)$$
+    
+    - **TF:** Term frequency in document
+    - **IDF:** Inverse document frequency (rarity across corpus)
+    
+    ```python
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    
+    vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1, 2))
+    X = vectorizer.fit_transform(documents)
+    ```
+    
+    **Limitation:** Doesn't capture semantics (unlike embeddings).
+
+    !!! tip "Interviewer's Insight"
+        Knows when to use TF-IDF vs embeddings.
+
+---
+
+### What is the Attention Mechanism? - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Deep Learning` | **Asked by:** Google, OpenAI, Meta
+
+??? success "View Answer"
+
+    **Purpose:** Allow model to focus on relevant parts of input.
+    
+    **Types:**
+    - **Self-attention:** Query, Key, Value from same sequence
+    - **Cross-attention:** Query from decoder, K/V from encoder
+    
+    **Scaled Dot-Product:**
+    ```python
+    import torch.nn.functional as F
+    
+    def attention(Q, K, V, mask=None):
+        d_k = Q.size(-1)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / np.sqrt(d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, -1e9)
+        weights = F.softmax(scores, dim=-1)
+        return torch.matmul(weights, V)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Can implement attention from scratch and explain masking.
+
+---
+
+### Explain Named Entity Recognition (NER) - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Applications` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **NER = Identify and classify named entities (person, org, location, etc.)**
+    
+    **Approaches:**
+    1. **Rule-based:** Regex, gazetteers
+    2. **ML:** CRF, HMM
+    3. **Deep Learning:** BiLSTM-CRF, BERT-based
+    
+    ```python
+    from transformers import pipeline
+    
+    ner = pipeline("ner", model="dslim/bert-base-NER")
+    results = ner("Apple was founded by Steve Jobs in California")
+    # [{'entity': 'B-ORG', 'word': 'Apple'}, ...]
+    ```
+    
+    **BIO Tagging:** B-PERSON, I-PERSON, O
+
+    !!! tip "Interviewer's Insight"
+        Knows BIO tagging scheme and CRF layer purpose.
+
+---
+
+### What is Tokenization? Compare Methods - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Preprocessing` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    | Method | Description | Example |
+    |--------|-------------|---------|
+    | Whitespace | Split by spaces | Simple but limited |
+    | WordPiece | Subword (BERT) | "playing" → "play" + "##ing" |
+    | BPE | Byte-Pair Encoding (GPT) | Merges frequent pairs |
+    | SentencePiece | Language-agnostic (T5) | Works without pre-tokenization |
+    
+    ```python
+    from transformers import AutoTokenizer
+    
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    tokens = tokenizer.tokenize("unbelievable")  # ['un', '##bel', '##iev', '##able']
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows subword tokenization handles OOV words.
+
+---
+
+### Explain Sentiment Analysis Approaches - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Applications` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Levels:**
+    - Document-level: Overall sentiment
+    - Sentence-level: Per-sentence
+    - Aspect-based: Sentiment per aspect ("food good, service bad")
+    
+    **Approaches:**
+    1. **Lexicon-based:** VADER, TextBlob
+    2. **Traditional ML:** SVM + TF-IDF
+    3. **Deep Learning:** BERT fine-tuned
+    
+    ```python
+    from transformers import pipeline
+    
+    classifier = pipeline("sentiment-analysis")
+    result = classifier("I love this product!")
+    # [{'label': 'POSITIVE', 'score': 0.999}]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Considers aspect-based sentiment for nuanced analysis.
+
+---
+
+### What is GPT? How Does It Differ from BERT? - OpenAI, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Language Models` | **Asked by:** OpenAI, Google, Meta
+
+??? success "View Answer"
+
+    | Aspect | BERT | GPT |
+    |--------|------|-----|
+    | Architecture | Encoder-only | Decoder-only |
+    | Attention | Bidirectional | Causal (left-to-right) |
+    | Pre-training | MLM + NSP | Next token prediction |
+    | Best for | Classification, NER | Generation, few-shot |
+    
+    **GPT Training:**
+    $$P(w_1, ..., w_n) = \prod_{i=1}^n P(w_i | w_1, ..., w_{i-1})$$
+    
+    **GPT advantages:** Generative, few-shot learning, emergent abilities.
+
+    !!! tip "Interviewer's Insight"
+        Knows architectural differences and when to use each.
+
+---
+
+### Explain Text Summarization - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Applications` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Types:**
+    - **Extractive:** Select important sentences
+    - **Abstractive:** Generate new sentences
+    
+    **Extractive approach:**
+    ```python
+    from sumy.summarizers.lex_rank import LexRankSummarizer
+    ```
+    
+    **Abstractive with T5:**
+    ```python
+    from transformers import pipeline
+    
+    summarizer = pipeline("summarization", model="t5-base")
+    summary = summarizer(long_text, max_length=100)
+    ```
+    
+    **Metrics:** ROUGE-1, ROUGE-2, ROUGE-L, BERTScore
+
+    !!! tip "Interviewer's Insight"
+        Knows ROUGE metrics and extractive vs abstractive tradeoffs.
+
+---
+
+### What is Perplexity? - Google, OpenAI Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Evaluation` | **Asked by:** Google, OpenAI, Meta
+
+??? success "View Answer"
+
+    **Perplexity = Exponentiated average negative log-likelihood**
+    
+    $$PPL = \exp\left(-\frac{1}{N}\sum_{i=1}^N \log P(w_i | w_{<i})\right)$$
+    
+    **Interpretation:** Lower is better; average branching factor.
+    
+    **GPT-2:** ~35 on WebText
+    **GPT-3:** ~20-25
+    
+    **Caveat:** A model can have low perplexity but generate repetitive text.
+
+    !!! tip "Interviewer's Insight"
+        Knows perplexity limitations and doesn't rely solely on it.
+
+---
+
+### Explain Sequence-to-Sequence Models - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Deep Learning` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Encoder-Decoder architecture for sequence transformation:**
+    
+    - Machine translation
+    - Summarization
+    - Question answering
+    
+    ```
+    Input → [Encoder] → Context → [Decoder] → Output
+    ```
+    
+    **Attention improvement:** Decoder attends to all encoder states.
+    
+    **Modern:** Transformer-based (T5, BART, mT5)
+
+    !!! tip "Interviewer's Insight"
+        Knows attention solved the bottleneck problem.
+
+---
+
+### What is Fine-Tuning vs Prompt Engineering? - Google, OpenAI Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `LLMs` | **Asked by:** Google, OpenAI, Meta
+
+??? success "View Answer"
+
+    | Approach | When to Use | Pros | Cons |
+    |----------|-------------|------|------|
+    | Prompt Engineering | Few examples, no training | Fast, cheap | Limited customization |
+    | Fine-Tuning | Specific task, many examples | Best performance | Expensive, needs data |
+    | RAG | Need current/private data | Grounded | Retrieval latency |
+    
+    **Prompt Engineering Techniques:**
+    - Few-shot examples
+    - Chain-of-Thought
+    - System prompts
+
+    !!! tip "Interviewer's Insight"
+        Chooses approach based on data availability and requirements.
+
+---
+
+### What is RAG (Retrieval-Augmented Generation)? - Google, OpenAI Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `RAG` | **Asked by:** Google, OpenAI, Meta, Amazon
+
+??? success "View Answer"
+
+    **RAG = Retrieve relevant context, then generate**
+    
+    ```
+    Query → [Retriever] → Context → [LLM + Context] → Answer
+    ```
+    
+    **Benefits:**
+    - Reduces hallucination
+    - Uses up-to-date information
+    - Enables citations
+    
+    **Components:** Document chunking, embeddings, vector store, retriever.
+
+    !!! tip "Interviewer's Insight"
+        Knows chunking strategies and evaluation metrics.
+
+---
+
+### Explain Positional Encoding - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Transformers` | **Asked by:** Google, OpenAI, Meta
+
+??? success "View Answer"
+
+    **Purpose:** Transformers have no recurrence, need position info.
+    
+    **Sinusoidal Encoding:**
+    $$PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d})$$
+    $$PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d})$$
+    
+    **Modern:** Learned positional embeddings, RoPE, ALiBi.
+
+    !!! tip "Interviewer's Insight"
+        Knows RoPE for extended context lengths.
+
+---
+
+### What is Topic Modeling (LDA)? - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Unsupervised` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **LDA = Latent Dirichlet Allocation**
+    
+    Discovers topics as distributions over words.
+    
+    ```python
+    from sklearn.decomposition import LatentDirichletAllocation
+    
+    lda = LatentDirichletAllocation(n_components=10)
+    topics = lda.fit_transform(tfidf_matrix)
+    ```
+    
+    **Modern alternatives:** BERTopic, Top2Vec.
+
+    !!! tip "Interviewer's Insight"
+        Uses BERTopic for better semantic topics.
+
+---
+
+### What is Question Answering? - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Applications` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Types:**
+    - **Extractive:** Span from context
+    - **Abstractive:** Generated answer
+    - **Open-domain:** No given context
+    
+    ```python
+    from transformers import pipeline
+    
+    qa = pipeline("question-answering")
+    result = qa(question="...", context="...")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows extractive vs abstractive tradeoffs.
+
+---
+
+### What is Text Classification? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Classification` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Common Tasks:**
+    - Spam detection
+    - Sentiment analysis
+    - Intent classification
+    - Topic categorization
+    
+    **Approaches:** TF-IDF + SVM, BERT fine-tuning, SetFit (few-shot).
+
+    !!! tip "Interviewer's Insight"
+        Uses appropriate complexity for data size.
+
+---
+
+### What is Zero-Shot Classification? - OpenAI, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Transfer Learning` | **Asked by:** OpenAI, Google, Meta
+
+??? success "View Answer"
+
+    **No task-specific training data needed**
+    
+    ```python
+    from transformers import pipeline
+    
+    classifier = pipeline("zero-shot-classification")
+    result = classifier(
+        "I love playing tennis",
+        candidate_labels=["sports", "cooking", "travel"]
+    )
+    ```
+    
+    **Models:** BART-MNLI, DeBERTa-MNLI.
+
+    !!! tip "Interviewer's Insight"
+        Knows NLI-based zero-shot classification.
+
+---
+
+### What is Machine Translation? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Translation` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Evolution:**
+    - Rule-based → Statistical → Neural (Seq2Seq + Attention)
+    - Modern: Transformers (mT5, NLLB)
+    
+    **Metrics:** BLEU, chrF, COMET (neural).
+    
+    **Challenges:** Low-resource languages, domain adaptation.
+
+    !!! tip "Interviewer's Insight"
+        Knows BLEU limitations and neural metrics.
+
+---
+
+### What is Dependency Parsing? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Linguistic` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Analyzes grammatical structure**
+    
+    ```python
+    import spacy
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp("The quick brown fox jumps")
+    
+    for token in doc:
+        print(token.text, token.dep_, token.head.text)
+    ```
+    
+    **Applications:** Information extraction, relation extraction.
+
+    !!! tip "Interviewer's Insight"
+        Uses for structured information extraction.
+
+---
+
+### What is Word Sense Disambiguation? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Semantics` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Determining which sense of a word is used**
+    
+    Example: "bank" → financial institution or river bank?
+    
+    **Approaches:**
+    - Knowledge-based (WordNet)
+    - Supervised learning
+    - Contextual embeddings (BERT naturally handles this)
+
+    !!! tip "Interviewer's Insight"
+        Notes BERT embeddings are context-dependent.
+
+---
+
+### What is Coreference Resolution? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Discourse` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Linking mentions to same entity**
+    
+    "John went to the store. He bought milk." → He = John
+    
+    ```python
+    import spacy
+    import neuralcoref
+    
+    nlp = spacy.load("en_core_web_sm")
+    neuralcoref.add_to_pipe(nlp)
+    doc = nlp("John bought milk. He likes it.")
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Important for document understanding.
+
+---
+
+### What are LLM Hallucinations? - OpenAI, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Reliability` | **Asked by:** OpenAI, Google, Anthropic
+
+??? success "View Answer"
+
+    **LLM generates plausible but factually incorrect text**
+    
+    **Mitigation:**
+    - RAG (grounding)
+    - Citations/sources
+    - Confidence scoring
+    - Self-verification
+    - Human-in-the-loop
+
+    !!! tip "Interviewer's Insight"
+        Uses multiple strategies for production reliability.
+
+---
+
+### What is Chain-of-Thought Prompting? - OpenAI, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Prompting` | **Asked by:** OpenAI, Google, Anthropic
+
+??? success "View Answer"
+
+    **Asking LLM to show reasoning steps**
+    
+    ```
+    Q: If I have 5 apples and give away 2, how many left?
+    
+    Let's think step by step:
+    1. Start with 5 apples
+    2. Give away 2
+    3. 5 - 2 = 3
+    
+    Answer: 3 apples
+    ```
+    
+    Improves reasoning accuracy significantly.
+
+    !!! tip "Interviewer's Insight"
+        Uses for complex reasoning tasks.
+
+---
+
+### What is In-Context Learning? - OpenAI, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `LLMs` | **Asked by:** OpenAI, Google, Anthropic
+
+??? success "View Answer"
+
+    **Learning from examples in prompt (no weight updates)**
+    
+    ```
+    Translate English to French:
+    "Hello" -> "Bonjour"
+    "Goodbye" -> "Au revoir"
+    "Thank you" -> ?
+    ```
+    
+    **Types:** Zero-shot, one-shot, few-shot.
+
+    !!! tip "Interviewer's Insight"
+        Knows few-shot example selection matters.
+
+---
+
+### What is Instruction Tuning? - OpenAI, Anthropic Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Fine-Tuning` | **Asked by:** OpenAI, Anthropic, Google
+
+??? success "View Answer"
+
+    **Fine-tuning on instruction-following examples**
+    
+    Training data format:
+    ```
+    {"instruction": "Summarize the text", 
+     "input": "Long text...", 
+     "output": "Summary..."}
+    ```
+    
+    **Models:** FLAN, InstructGPT, Alpaca.
+
+    !!! tip "Interviewer's Insight"
+        Knows difference from base model training.
+
+---
+
+### What is RLHF? - OpenAI, Anthropic Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Alignment` | **Asked by:** OpenAI, Anthropic, Google
+
+??? success "View Answer"
+
+    **RLHF = Reinforcement Learning from Human Feedback**
+    
+    **Steps:**
+    1. Collect human preferences
+    2. Train reward model
+    3. Fine-tune LLM with PPO
+    
+    **Purpose:** Align LLM to be helpful, harmless, honest.
+
+    !!! tip "Interviewer's Insight"
+        Knows RLHF alternatives: DPO, Constitutional AI.
+
+---
+
+### What are Embeddings? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Embeddings` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Dense vector representations capturing semantics**
+    
+    ```python
+    from sentence_transformers import SentenceTransformer
+    
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embedding = model.encode("Hello world")  # 384-dim vector
+    ```
+    
+    **Use cases:** Semantic search, clustering, RAG.
+
+    !!! tip "Interviewer's Insight"
+        Chooses embedding model for specific task.
+
+---
+
+### What is BPE Tokenization? - OpenAI, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Tokenization` | **Asked by:** OpenAI, Google, Meta
+
+??? success "View Answer"
+
+    **BPE = Byte Pair Encoding**
+    
+    Iteratively merges most frequent character pairs.
+    
+    **Benefits:**
+    - Handles OOV words
+    - Subword units
+    - Language-agnostic
+    
+    **Used by:** GPT, LLaMA (via tiktoken or SentencePiece)
+
+    !!! tip "Interviewer's Insight"
+        Knows vocabulary size affects model capacity.
+
+---
+
+### What is BLEU Score? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Evaluation` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **BLEU = Bilingual Evaluation Understudy**
+    
+    Measures n-gram overlap with reference.
+    
+    ```python
+    from nltk.translate.bleu_score import sentence_bleu
+    
+    reference = [['the', 'cat', 'sat', 'on', 'mat']]
+    candidate = ['the', 'cat', 'is', 'on', 'mat']
+    bleu = sentence_bleu(reference, candidate)
+    ```
+    
+    **Limitations:** Doesn't capture meaning, paraphrases.
+
+    !!! tip "Interviewer's Insight"
+        Knows BLEU limitations, uses BERTScore too.
+
+---
+
+### What is Semantic Search? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Search` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Search by meaning, not keywords**
+    
+    ```python
+    # Encode query and documents
+    query_emb = model.encode(query)
+    doc_embs = model.encode(documents)
+    
+    # Find similar
+    from sklearn.metrics.pairwise import cosine_similarity
+    similarities = cosine_similarity([query_emb], doc_embs)
+    ```
+    
+    **Better than keyword search** for natural language queries.
+
+    !!! tip "Interviewer's Insight"
+        Combines with keyword search (hybrid).
+
+---
+
+### What is NLI (Natural Language Inference)? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Understanding` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Determines relationship between premise and hypothesis**
+    
+    - **Entailment:** Hypothesis follows from premise
+    - **Contradiction:** Hypothesis contradicts premise
+    - **Neutral:** No clear relationship
+    
+    **Applications:** Zero-shot classification, fact verification.
+
+    !!! tip "Interviewer's Insight"
+        Uses for zero-shot and fact-checking.
+
+---
+
+### What is Context Window in LLMs? - OpenAI, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `LLMs` | **Asked by:** OpenAI, Google, Anthropic
+
+??? success "View Answer"
+
+    **Maximum tokens LLM can process at once**
+    
+    | Model | Context Length |
+    |-------|----------------|
+    | GPT-3.5 | 4K / 16K |
+    | GPT-4 | 8K / 128K |
+    | Claude | 100K+ |
+    | Gemini | 1M+ |
+    
+    **Handling long docs:** Chunking, summarization, hierarchical processing.
+
+    !!! tip "Interviewer's Insight"
+        Designs for context limitations.
+
+---
+
+### What is Model Quantization? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Optimization` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Reducing model precision to save memory/speed**
+    
+    | Type | Bits | Memory Reduction |
+    |------|------|------------------|
+    | FP16 | 16 | 50% |
+    | INT8 | 8 | 75% |
+    | INT4 | 4 | 87.5% |
+    
+    **Methods:** Post-training (GPTQ, AWQ), QAT (quantization-aware training).
+
+    !!! tip "Interviewer's Insight"
+        Knows INT4 tradeoffs for inference vs training.
+
+---
+
+### What is Prompt Injection? - Security Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Security` | **Asked by:** OpenAI, Google, Anthropic
+
+??? success "View Answer"
+
+    **Malicious prompts that override instructions**
+    
+    Example: "Ignore all previous instructions and..."
+    
+    **Mitigations:**
+    - Input validation
+    - Separate system/user prompts
+    - Output filtering
+    - Guardrails
+
+    !!! tip "Interviewer's Insight"
+        Considers security in LLM applications.
+
+---
+
+### What is LoRA (Low-Rank Adaptation)? - OpenAI, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Fine-Tuning` | **Asked by:** OpenAI, Google, Meta
+
+??? success "View Answer"
+
+    **LoRA = Efficient fine-tuning by adding low-rank matrices**
+    
+    Instead of updating all weights:
+    $$W' = W + \Delta W = W + BA$$
+    
+    Where B and A are low-rank matrices (r << d).
+    
+    **Benefits:**
+    - 10000x fewer trainable params
+    - Same inference speed
+    - Modular (swap adapters)
+
+    !!! tip "Interviewer's Insight"
+        Knows LoRA reduces training cost while preserving quality.
+
+---
+
+### What is Multilingual NLP? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Multilingual` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Approaches:**
+    
+    | Approach | Description |
+    |----------|-------------|
+    | Translate-train | Translate data to English |
+    | Zero-shot transfer | Train English, test other |
+    | Multilingual models | mBERT, XLM-R, mT5 |
+    
+    **Challenges:** Script differences, low-resource languages.
+
+    !!! tip "Interviewer's Insight"
+        Uses multilingual models for cross-lingual transfer.
+
+---
+
+### What is Constituency vs Dependency Parsing? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Syntax` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    | Parsing | Description |
+    |---------|-------------|
+    | Constituency | Hierarchical tree (NP, VP, etc.) |
+    | Dependency | Word-to-word relationships |
+    
+    **Dependency** is more common in modern NLP (spaCy, Stanza).
+
+    !!! tip "Interviewer's Insight"
+        Uses dependency for information extraction.
+
+---
+
+### What is Relation Extraction? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Information Extraction` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Extract relationships between entities**
+    
+    "Apple was founded by Steve Jobs" → (Apple, founded_by, Steve Jobs)
+    
+    **Approaches:**
+    - Rule-based patterns
+    - Supervised classification
+    - Distant supervision
+    - Zero-shot with LLMs
+
+    !!! tip "Interviewer's Insight"
+        Uses LLMs for flexible relation extraction.
+
+---
+
+### What is F1 Score for NER? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Evaluation` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Entity-level F1 (exact match)**
+    
+    - Entity must match exactly (text + type)
+    - Partial matches count as wrong
+    
+    ```python
+    from seqeval.metrics import f1_score, classification_report
+    
+    f1 = f1_score(y_true, y_pred)
+    print(classification_report(y_true, y_pred))
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses seqeval for proper NER evaluation.
+
+---
+
+### What is Knowledge Distillation? - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Model Compression` | **Asked by:** Google, OpenAI, Meta
+
+??? success "View Answer"
+
+    **Train smaller "student" to mimic larger "teacher"**
+    
+    $$L = \alpha L_{CE}(y, p_s) + (1-\alpha) L_{KL}(p_t, p_s)$$
+    
+    Where $p_t$ = teacher logits, $p_s$ = student logits.
+    
+    **Examples:** DistilBERT (40% smaller, 97% performance).
+
+    !!! tip "Interviewer's Insight"
+        Uses soft labels from teacher for better training.
+
+---
+
+### What is Entity Linking? - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Knowledge Graphs` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Link named entities to knowledge base (Wikipedia, Wikidata)**
+    
+    "Apple" → Q312 (company) or Q89 (fruit)?
+    
+    **Steps:**
+    1. Candidate generation
+    2. Context-based disambiguation
+    3. NIL detection (entity not in KB)
+
+    !!! tip "Interviewer's Insight"
+        Considers context for disambiguation.
+
+---
+
+### What is Semantic Role Labeling? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Semantics` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Who did what to whom?**
+    
+    "John gave Mary a book"
+    - Agent: John
+    - Recipient: Mary
+    - Theme: book
+    - Verb: gave
+
+    !!! tip "Interviewer's Insight"
+        Uses for structured information extraction.
+
+---
+
+### What is Text Augmentation? - Most Tech Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Data Augmentation` | **Asked by:** Most Tech Companies
+
+??? success "View Answer"
+
+    **Increase training data diversity**
+    
+    | Method | Description |
+    |--------|-------------|
+    | Synonym replacement | Replace words with synonyms |
+    | Back-translation | Translate and back |
+    | Random insertion/deletion | Random word changes |
+    | EDA | Easy Data Augmentation |
+
+    !!! tip "Interviewer's Insight"
+        Uses back-translation for quality augmentation.
+
+---
+
+### What is ROUGE Score? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Evaluation` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **ROUGE = Recall-Oriented Understudy for Gisting Evaluation**
+    
+    | Metric | Description |
+    |--------|-------------|
+    | ROUGE-1 | Unigram overlap |
+    | ROUGE-2 | Bigram overlap |
+    | ROUGE-L | Longest common subsequence |
+    
+    ```python
+    from rouge_score import rouge_scorer
+    scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'])
+    scores = scorer.score(reference, candidate)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses multiple ROUGE variants for complete picture.
+
+---
+
+### What is Sentence Similarity? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Similarity` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    from sentence_transformers import SentenceTransformer, util
+    
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    
+    emb1 = model.encode("How are you?")
+    emb2 = model.encode("How do you do?")
+    
+    similarity = util.cos_sim(emb1, emb2)  # ~0.8
+    ```
+    
+    **Use cases:** Duplicate detection, semantic search.
+
+    !!! tip "Interviewer's Insight"
+        Uses sentence-transformers for quality embeddings.
+
+---
+
+### What is Gradient Checkpointing? - Google, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Training` | **Asked by:** Google, OpenAI, Meta
+
+??? success "View Answer"
+
+    **Trade compute for memory during training**
+    
+    - Don't store all activations
+    - Recompute during backward pass
+    - ~2x slower, but much less memory
+    
+    ```python
+    model.gradient_checkpointing_enable()
+    ```
+    
+    Essential for training large models on limited GPU.
+
+    !!! tip "Interviewer's Insight"
+        Uses for large model training on consumer GPUs.
+
+---
+
+### What is Text Generation Strategies? - OpenAI, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Generation` | **Asked by:** OpenAI, Google, Meta
+
+??? success "View Answer"
+
+    | Strategy | Description |
+    |----------|-------------|
+    | Greedy | Pick highest probability |
+    | Beam search | Track top-k sequences |
+    | Sampling | Random from distribution |
+    | Top-k | Sample from top k tokens |
+    | Top-p (nucleus) | Sample from top p probability mass |
+    
+    **Temperature:** Lower = more focused, higher = more random.
+
+    !!! tip "Interviewer's Insight"
+        Uses top-p sampling with temperature tuning.
+
+---
+
+### What is Hallucination Detection? - OpenAI, Anthropic Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Reliability` | **Asked by:** OpenAI, Anthropic, Google
+
+??? success "View Answer"
+
+    **Methods:**
+    
+    1. **Entailment-based:** Check if output entails sources
+    2. **Self-consistency:** Multiple samples, check agreement
+    3. **Confidence scoring:** Low confidence = likely hallucination
+    4. **Human evaluation:** Gold standard
+    
+    **Tools:** SelfCheckGPT, TrueTeacher.
+
+    !!! tip "Interviewer's Insight"
+        Uses multiple methods for production reliability.
+
+---
+
+## Quick Reference: 100 NLP Interview Questions
+
 | Sno | Question Title | Practice Links | Companies Asking | Difficulty | Topics |
 |-----|----------------|----------------|------------------|------------|--------|
 | 1 | What is Natural Language Processing? | [Analytics Vidhya NLP Basics](https://www.analyticsvidhya.com/blog/2020/07/nlp-basics/) | Google, Facebook, Amazon | Easy | NLP Basics |
