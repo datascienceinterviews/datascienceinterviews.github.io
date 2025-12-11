@@ -79,6 +79,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const card = document.getElementById('flashcard');
     const topicsDropdown = document.getElementById('topics-dropdown');
 
+    // Create backdrop for mobile
+    const backdrop = document.createElement('div');
+    backdrop.className = 'dropdown-backdrop';
+    document.body.appendChild(backdrop);
+
 
 
     // --- Styles Injection (Programmatic to keep it self-contained or use extra.css) ---
@@ -101,21 +106,239 @@ document.addEventListener('DOMContentLoaded', function () {
             right: 0;
             background: var(--md-default-bg-color, white);
             border: 1px solid var(--md-default-fg-color--lightest, #ddd);
-            padding: 1rem;
-            border-radius: 4px;
+            padding: 0;
+            border-radius: 8px;
             z-index: 10;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            max-height: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            max-height: 400px;
             overflow-y: auto;
-            min-width: 200px;
+            min-width: 280px;
+            margin-top: 0.5rem;
         }
         .topics-dropdown.hidden { display: none; }
-        .topic-checkbox {
-            display: block;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
+
+        .topics-dropdown-header {
+            position: sticky;
+            top: 0;
+            background: var(--md-primary-fg-color, #7c4dff);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            z-index: 1;
         }
-        
+
+        .dropdown-close-btn {
+            display: none; /* Hidden on desktop */
+        }
+
+        .topics-dropdown-content {
+            padding: 0.75rem;
+        }
+
+        .topic-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.35rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .topic-checkbox:hover {
+            background: var(--md-primary-fg-color--light, rgba(124, 77, 255, 0.08));
+            border-color: var(--md-primary-fg-color--light, rgba(124, 77, 255, 0.2));
+        }
+
+        .topic-checkbox input[type="checkbox"] {
+            margin: 0;
+            margin-right: 0.65rem;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--md-primary-fg-color, #7c4dff);
+        }
+
+        .topic-checkbox-label {
+            flex: 1;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .topic-count {
+            font-size: 0.8rem;
+            color: var(--md-default-fg-color--light);
+            background: var(--md-code-bg-color, #f5f5f5);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .select-all-link {
+            display: block;
+            text-align: center;
+            padding: 0.6rem;
+            margin: 0.5rem;
+            background: var(--md-default-fg-color--lightest, #f5f5f5);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--md-primary-fg-color, #7c4dff);
+            text-decoration: none;
+            transition: all 0.15s ease-in-out;
+            border: 1px solid transparent;
+        }
+
+        .select-all-link:hover {
+            background: var(--md-primary-fg-color, #7c4dff);
+            color: white;
+            border-color: var(--md-primary-fg-color, #7c4dff);
+            box-shadow: 0 2px 8px rgba(124, 77, 255, 0.3);
+        }
+
+        .select-all-link:active {
+            transform: scale(0.98);
+        }
+
+        [data-md-color-scheme="slate"] .topics-dropdown {
+            background: var(--md-default-bg-color);
+            border-color: var(--md-default-fg-color--lightest);
+        }
+
+        [data-md-color-scheme="slate"] .topic-count {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--md-default-fg-color--light);
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .topics-dropdown {
+                position: fixed;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                max-height: 70vh;
+                min-width: 100%;
+                width: 100%;
+                border-radius: 16px 16px 0 0;
+                margin-top: 0;
+                animation: slideUp 0.3s ease-out;
+                background: var(--md-default-bg-color, white) !important;
+            }
+
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                }
+                to {
+                    transform: translateY(0);
+                }
+            }
+
+            .topics-dropdown-header {
+                border-radius: 16px 16px 0 0;
+                padding: 1rem;
+                font-size: 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .dropdown-close-btn {
+                display: flex !important; /* Show on mobile */
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                font-size: 1.2rem;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                padding: 0;
+                line-height: 1;
+            }
+
+            .dropdown-close-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: scale(1.1);
+            }
+
+            .topics-dropdown-content {
+                padding: 1rem;
+                background: var(--md-default-bg-color, white);
+            }
+
+            .topic-checkbox {
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .topic-checkbox input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+            }
+
+            .topic-checkbox-label {
+                font-size: 1rem;
+            }
+
+            .topic-count {
+                font-size: 0.85rem;
+                padding: 4px 10px;
+            }
+
+            .select-all-link {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Backdrop overlay for mobile */
+        .dropdown-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9;
+        }
+
+        @media (max-width: 768px) {
+            .dropdown-backdrop.active {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .flashcard-container {
+                padding: 0 0.5rem;
+            }
+
+            .action-buttons-row {
+                flex-direction: column;
+                gap: 0.75rem !important;
+            }
+
+            .action-buttons-row > * {
+                width: 100%;
+            }
+
+            #toggle-topics-btn, #shuffle-btn {
+                width: 100%;
+            }
+        }
+
         /* Card Flip Animation */
         .card-scene {
             perspective: 1000px;
@@ -240,6 +463,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Logic ---
 
+    // Helper function to format topic names with proper capitalization
+    function formatTopicName(topic) {
+        // Remove redundant text
+        let cleaned = topic
+            .replace(/interview questions?/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        // Special cases for acronyms and specific terms
+        const specialCases = {
+            'nlp': 'NLP',
+            'natural language processing': 'NLP',
+            'sql': 'SQL',
+            'ab testing': 'A/B Testing',
+            'a/b testing': 'A/B Testing',
+            'dsa': 'DSA',
+            'data structures & algorithms': 'DSA',
+            'data structures and algorithms': 'DSA',
+            'numpy': 'NumPy',
+            'pandas': 'Pandas',
+            'scikit learn': 'Scikit-Learn',
+            'scikit-learn': 'Scikit-Learn',
+            'langchain': 'LangChain',
+            'langgraph': 'LangGraph',
+            'sklearn': 'Scikit-Learn',
+            'machine learning': 'ML',
+            'system design': 'System Design',
+            'probability': 'Probability'
+        };
+
+        const lowerCleaned = cleaned.toLowerCase();
+        if (specialCases[lowerCleaned]) {
+            return specialCases[lowerCleaned];
+        }
+
+        // Title case for other topics
+        return cleaned.split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+    }
+
     async function init() {
         try {
             // Try connection to root assets (assuming page is at /flashcards/)
@@ -257,8 +521,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 allQuestions = await resp.json();
             }
 
-            // Extract Topics
-            const topics = [...new Set(allQuestions.map(q => q.topic))].sort();
+            // Extract Topics and sort by popularity (question count)
+            const topicCounts = {};
+            allQuestions.forEach(q => {
+                topicCounts[q.topic] = (topicCounts[q.topic] || 0) + 1;
+            });
+            const topics = [...new Set(allQuestions.map(q => q.topic))].sort((a, b) => {
+                // Sort by count (descending), then alphabetically
+                const countDiff = topicCounts[b] - topicCounts[a];
+                return countDiff !== 0 ? countDiff : a.localeCompare(b);
+            });
 
             // Load saved preferences or default all to true
             const savedTopics = JSON.parse(localStorage.getItem('flashcard-topics') || '{}');
@@ -280,7 +552,12 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('prev-btn').addEventListener('click', () => prevCard());
             document.getElementById('toggle-topics-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
-                topicsDropdown.classList.toggle('hidden');
+                const isHidden = topicsDropdown.classList.toggle('hidden');
+                if (!isHidden) {
+                    backdrop.classList.add('active');
+                } else {
+                    backdrop.classList.remove('active');
+                }
             });
             document.getElementById('shuffle-btn').addEventListener('click', () => {
                 shuffleArray(filteredQuestions);
@@ -290,11 +567,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderCard();
             });
 
-            // Close dropdown if clicking outside
+            // Close dropdown if clicking outside or on backdrop
             document.addEventListener('click', (e) => {
                 if (!topicsDropdown.contains(e.target) && e.target.id !== 'toggle-topics-btn') {
                     topicsDropdown.classList.add('hidden');
+                    backdrop.classList.remove('active');
                 }
+            });
+
+            // Close dropdown when clicking backdrop
+            backdrop.addEventListener('click', () => {
+                topicsDropdown.classList.add('hidden');
+                backdrop.classList.remove('active');
             });
 
         } catch (e) {
@@ -305,12 +589,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderTopicsDropdown(topics) {
         topicsDropdown.innerHTML = '';
+
+        // Calculate question counts per topic
+        const topicCounts = {};
+        allQuestions.forEach(q => {
+            topicCounts[q.topic] = (topicCounts[q.topic] || 0) + 1;
+        });
+
+        // Calculate total selected questions
+        const selectedCount = topics.filter(t => selectedTopics[t])
+            .reduce((sum, t) => sum + (topicCounts[t] || 0), 0);
+        const totalCount = allQuestions.length;
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'topics-dropdown-header';
+
+        const headerText = document.createElement('span');
+        headerText.textContent = `Filter Topics (${selectedCount}/${totalCount} questions)`;
+        header.appendChild(headerText);
+
+        // Close button (visible on mobile)
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'dropdown-close-btn';
+        closeBtn.innerHTML = '×';
+        closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            topicsDropdown.classList.add('hidden');
+            backdrop.classList.remove('active');
+        };
+        header.appendChild(closeBtn);
+
+        topicsDropdown.appendChild(header);
+
+        // Content wrapper
+        const content = document.createElement('div');
+        content.className = 'topics-dropdown-content';
+
+        // Select All / None link
         const selectAllLink = document.createElement('a');
         selectAllLink.href = "#";
+        selectAllLink.className = 'select-all-link';
         selectAllLink.textContent = "Select All / None";
-        selectAllLink.style.display = "block";
-        selectAllLink.style.marginBottom = "0.5rem";
-        selectAllLink.style.fontSize = "0.8rem";
         selectAllLink.onclick = (e) => {
             e.preventDefault();
             const allSelected = topics.every(t => selectedTopics[t]);
@@ -318,23 +638,38 @@ document.addEventListener('DOMContentLoaded', function () {
             renderTopicsDropdown(topics); // Re-render checkboxes
             applyFilter();
         };
-        topicsDropdown.appendChild(selectAllLink);
+        content.appendChild(selectAllLink);
 
+        // Topic checkboxes
         topics.forEach(t => {
             const label = document.createElement('label');
             label.className = 'topic-checkbox';
+
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.checked = selectedTopics[t];
             cb.onchange = (e) => {
                 selectedTopics[t] = e.target.checked;
                 localStorage.setItem('flashcard-topics', JSON.stringify(selectedTopics));
+                renderTopicsDropdown(topics); // Update header count
                 applyFilter();
             };
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'topic-checkbox-label';
+            textSpan.textContent = formatTopicName(t);
+
+            const countSpan = document.createElement('span');
+            countSpan.className = 'topic-count';
+            countSpan.textContent = topicCounts[t] || 0;
+
             label.appendChild(cb);
-            label.appendChild(document.createTextNode(` ${t}`));
-            topicsDropdown.appendChild(label);
+            label.appendChild(textSpan);
+            label.appendChild(countSpan);
+            content.appendChild(label);
         });
+
+        topicsDropdown.appendChild(content);
     }
 
     function applyFilter() {
@@ -363,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Front
-        document.getElementById('card-topic').textContent = q.topic;
+        document.getElementById('card-topic').textContent = formatTopicName(q.topic);
         document.getElementById('card-difficulty').textContent = q.difficulty.replace(/\*\*|🔴|🟡|🟢/g, '').trim(); // Strip formatting if raw markdown leaked
 
         // Remove existing glow classes
