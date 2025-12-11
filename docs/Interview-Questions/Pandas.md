@@ -16,66 +16,6 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ## Premium Interview Questions
 
-### What is Pandas and Why is it Essential for Data Science? - Google, Amazon Interview Question
-
-**Difficulty:** 🟢 Easy | **Tags:** `Basics`, `Introduction`, `Data Science` | **Asked by:** Google, Amazon, Meta
-
-??? success "View Answer"
-
-    **Pandas Overview:**
-    
-    Python library for data manipulation and analysis. Built on NumPy.
-    
-    **Core Data Structures:**
-    
-    | Structure | Description | Use Case |
-    |-----------|-------------|----------|
-    | Series | 1D labeled array | Single column |
-    | DataFrame | 2D labeled table | Tabular data |
-    | Index | Row/column labels | Fast lookups |
-    
-    **Why Pandas?**
-    
-    ```python
-    import pandas as pd
-    
-    # Read any format
-    df = pd.read_csv('data.csv')
-    df = pd.read_excel('data.xlsx')
-    df = pd.read_json('data.json')
-    df = pd.read_parquet('data.parquet')
-    
-    # Quick exploration
-    df.head()           # First 5 rows
-    df.info()           # Data types, memory
-    df.describe()       # Statistics
-    
-    # Powerful operations
-    df.groupby('category').agg({'sales': 'sum'})
-    df.merge(other_df, on='key')
-    df.pivot_table(values='sales', index='date', columns='product')
-    ```
-    
-    **Key Features:**
-    
-    - Handles missing data (NaN)
-    - Label-based slicing and indexing
-    - GroupBy for split-apply-combine
-    - Time series functionality
-    - Vectorized operations
-
-    !!! tip "Interviewer's Insight"
-        **What they're testing:** Basic understanding of data tools.
-        
-        **Strong answer signals:**
-        
-        - Knows Series vs DataFrame
-        - Mentions NumPy foundation
-        - Discusses real use cases
-        - Aware of alternatives (Polars, Dask)
-
----
-
 ### Explain loc vs iloc - Key Difference - Google, Amazon, Meta Interview Question
 
 **Difficulty:** 🟢 Easy | **Tags:** `Indexing`, `Selection`, `Core` | **Asked by:** Google, Amazon, Meta, Apple, Netflix

@@ -160,6 +160,7 @@ Not only this, the platform will also serve as one point destination for all you
         * [Cheat-Sheets/Sk-learn](Cheat-Sheets/Sk-learn)
         * [Cheat-Sheets/SQL](Cheat-Sheets/SQL)
         * [Cheat-Sheets/tensorflow](Cheat-Sheets/tensorflow)
+        * [Interview-Questions/Flashcards](flashcards.md)
         * [Interview-Questions/DSA](Interview-Questions/data-structures-algorithms.md)
         * [Interview-Questions/System-Design](Interview-Questions/System-design.md)
         * [Interview-Questions/Natural-Language-Processing](Interview-Questions/Natural-Language-Processing.md)
@@ -173,6 +174,7 @@ Not only this, the platform will also serve as one point destination for all you
         * [Interview-Questions/Scikit-Learn](Interview-Questions/Scikit-Learn.md)
         * [Interview-Questions/LangChain](Interview-Questions/LangChain.md)
         * [Interview-Questions/LangGraph](Interview-Questions/LangGraph.md)
+        * [Interview-Questions/Interview-Question-Resources](Interview-Questions/Interview-Question-Resources.md)
         * [Machine-Learning/ARIMA](Machine-Learning/ARIMA.md)
         * [Machine-Learning/Activation-Functions](Machine-Learning/Activation%20functions.md)
         * [Machine-Learning/Collaborative-Filtering](Machine-Learning/Collaborative%20Filtering.md)
@@ -193,6 +195,8 @@ Not only this, the platform will also serve as one point destination for all you
         * [Machine-Learning/Support-Vector-Machines](Machine-Learning/Support%20Vector%20Machines.md)
         * [Machine-Learning/Unbalanced-Skewed-Data](Machine-Learning/Unbalanced,%20Skewed%20data.md)
         * [Machine-Learning/kNN](Machine-Learning/kNN.md)
+        * [Online-Material/Online-Study-Material](Online-Material/Online-Material-for-Learning.md)
+        * [Online-Material/Popular-Blogs](Online-Material/popular-resources.md)
 
 
     === ":person_running: Under Development"

@@ -2812,6 +2812,2126 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
+### Sliding Window Maximum - Monotonic Deque - Amazon, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Sliding Window`, `Deque`, `Array` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Using Monotonic Deque:**
+
+    ```python
+    from collections import deque
+
+    def max_sliding_window(nums, k):
+        """Find max in each sliding window of size k"""
+        result = []
+        dq = deque()  # Store indices, maintain decreasing order
+
+        for i in range(len(nums)):
+            # Remove indices outside window
+            while dq and dq[0] < i - k + 1:
+                dq.popleft()
+
+            # Remove smaller elements (won't be max)
+            while dq and nums[dq[-1]] < nums[i]:
+                dq.pop()
+
+            dq.append(i)
+
+            # Add to result after first window
+            if i >= k - 1:
+                result.append(nums[dq[0]])
+
+        return result
+
+    # Example
+    nums = [1, 3, -1, -3, 5, 3, 6, 7]
+    k = 3
+    print(max_sliding_window(nums, k))  # [3, 3, 5, 5, 6, 7]
+    ```
+
+    **Time:** O(n), **Space:** O(k)
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Monotonic queue, sliding window optimization.
+
+        **Strong answer signals:**
+
+        - Uses deque for O(n) solution
+        - Explains why elements can be removed
+        - Compares with heap approach O(n log k)
+        - Handles edge cases (k=1, k=n)
+
+---
+
+### Union-Find with Path Compression - Meta, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Union-Find`, `Graph`, `Disjoint Set` | **Asked by:** Meta, Google, Amazon
+
+??? success "View Answer"
+
+    **Implementation:**
+
+    ```python
+    class UnionFind:
+        def __init__(self, n):
+            self.parent = list(range(n))
+            self.rank = [1] * n
+            self.components = n
+
+        def find(self, x):
+            """Find with path compression"""
+            if self.parent[x] != x:
+                self.parent[x] = self.find(self.parent[x])
+            return self.parent[x]
+
+        def union(self, x, y):
+            """Union by rank"""
+            root_x, root_y = self.find(x), self.find(y)
+
+            if root_x == root_y:
+                return False
+
+            # Attach smaller tree to larger
+            if self.rank[root_x] < self.rank[root_y]:
+                self.parent[root_x] = root_y
+            elif self.rank[root_x] > self.rank[root_y]:
+                self.parent[root_y] = root_x
+            else:
+                self.parent[root_y] = root_x
+                self.rank[root_x] += 1
+
+            self.components -= 1
+            return True
+
+        def connected(self, x, y):
+            return self.find(x) == self.find(y)
+
+    # Example: Number of Connected Components
+    def count_components(n, edges):
+        uf = UnionFind(n)
+        for a, b in edges:
+            uf.union(a, b)
+        return uf.components
+    ```
+
+    **Time:** O(α(n)) amortized per operation
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Understanding of path compression and union by rank.
+
+        **Strong answer signals:**
+
+        - Implements both optimizations
+        - Explains inverse Ackermann complexity
+        - Applies to problems (cycle detection, MST, connected components)
+        - Discusses weighted union-find variants
+
+---
+
+### Minimum Spanning Tree - Kruskal's Algorithm - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Graph`, `MST`, `Greedy`, `Union-Find` | **Asked by:** Google, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **Kruskal's Algorithm:**
+
+    ```python
+    def kruskal_mst(n, edges):
+        """Find MST using Kruskal's - O(E log E)"""
+        # Sort edges by weight
+        edges.sort(key=lambda x: x[2])
+
+        uf = UnionFind(n)
+        mst_edges = []
+        total_weight = 0
+
+        for u, v, weight in edges:
+            if uf.union(u, v):
+                mst_edges.append((u, v, weight))
+                total_weight += weight
+
+                if len(mst_edges) == n - 1:
+                    break
+
+        return total_weight, mst_edges
+
+    # Example
+    n = 4
+    edges = [(0, 1, 10), (0, 2, 6), (0, 3, 5),
+             (1, 3, 15), (2, 3, 4)]
+    weight, mst = kruskal_mst(n, edges)
+    print(f"MST weight: {weight}")  # 19
+    ```
+
+    **Prim's Algorithm (Alternative):**
+
+    ```python
+    import heapq
+
+    def prim_mst(n, edges):
+        """MST using Prim's - O(E log V)"""
+        # Build adjacency list
+        graph = [[] for _ in range(n)]
+        for u, v, w in edges:
+            graph[u].append((v, w))
+            graph[v].append((u, w))
+
+        visited = [False] * n
+        heap = [(0, 0)]  # (weight, node)
+        total = 0
+
+        while heap:
+            w, u = heapq.heappop(heap)
+            if visited[u]:
+                continue
+
+            visited[u] = True
+            total += w
+
+            for v, weight in graph[u]:
+                if not visited[v]:
+                    heapq.heappush(heap, (weight, v))
+
+        return total
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** MST algorithms, graph theory.
+
+        **Strong answer signals:**
+
+        - Knows both Kruskal's and Prim's
+        - Uses Union-Find for cycle detection
+        - Discusses time complexity tradeoffs
+        - Extends to min-cost network problems
+
+---
+
+### Segment Tree for Range Queries - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Segment Tree`, `Data Structures` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Segment Tree Implementation:**
+
+    ```python
+    class SegmentTree:
+        def __init__(self, nums):
+            n = len(nums)
+            self.n = n
+            self.tree = [0] * (4 * n)
+            self._build(nums, 0, 0, n - 1)
+
+        def _build(self, nums, node, start, end):
+            if start == end:
+                self.tree[node] = nums[start]
+            else:
+                mid = (start + end) // 2
+                left = 2 * node + 1
+                right = 2 * node + 2
+
+                self._build(nums, left, start, mid)
+                self._build(nums, right, mid + 1, end)
+                self.tree[node] = self.tree[left] + self.tree[right]
+
+        def update(self, idx, val):
+            """Update element at index idx to val"""
+            self._update(0, 0, self.n - 1, idx, val)
+
+        def _update(self, node, start, end, idx, val):
+            if start == end:
+                self.tree[node] = val
+            else:
+                mid = (start + end) // 2
+                left, right = 2 * node + 1, 2 * node + 2
+
+                if idx <= mid:
+                    self._update(left, start, mid, idx, val)
+                else:
+                    self._update(right, mid + 1, end, idx, val)
+
+                self.tree[node] = self.tree[left] + self.tree[right]
+
+        def query(self, l, r):
+            """Query sum in range [l, r]"""
+            return self._query(0, 0, self.n - 1, l, r)
+
+        def _query(self, node, start, end, l, r):
+            if r < start or l > end:
+                return 0
+            if l <= start and end <= r:
+                return self.tree[node]
+
+            mid = (start + end) // 2
+            left_sum = self._query(2 * node + 1, start, mid, l, r)
+            right_sum = self._query(2 * node + 2, mid + 1, end, l, r)
+            return left_sum + right_sum
+
+    # Example
+    nums = [1, 3, 5, 7, 9, 11]
+    st = SegmentTree(nums)
+    print(st.query(1, 3))  # 15 (3+5+7)
+    st.update(1, 10)
+    print(st.query(1, 3))  # 22 (10+5+7)
+    ```
+
+    **Time:** Build O(n), Query/Update O(log n)
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Advanced data structures, tree concepts.
+
+        **Strong answer signals:**
+
+        - Understands lazy propagation for range updates
+        - Compares with Fenwick tree (BIT)
+        - Extends to min/max queries, GCD queries
+        - Discusses when to use vs simpler alternatives
+
+---
+
+### Trie with Prefix Matching - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Trie`, `String`, `Prefix` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Trie Implementation:**
+
+    ```python
+    class TrieNode:
+        def __init__(self):
+            self.children = {}
+            self.is_end = False
+            self.word = None  # Store full word
+
+    class Trie:
+        def __init__(self):
+            self.root = TrieNode()
+
+        def insert(self, word):
+            """Insert word into trie"""
+            node = self.root
+            for char in word:
+                if char not in node.children:
+                    node.children[char] = TrieNode()
+                node = node.children[char]
+            node.is_end = True
+            node.word = word
+
+        def search(self, word):
+            """Check if word exists"""
+            node = self.root
+            for char in word:
+                if char not in node.children:
+                    return False
+                node = node.children[char]
+            return node.is_end
+
+        def starts_with(self, prefix):
+            """Check if prefix exists"""
+            node = self.root
+            for char in prefix:
+                if char not in node.children:
+                    return False
+                node = node.children[char]
+            return True
+
+        def find_words_with_prefix(self, prefix):
+            """Find all words starting with prefix"""
+            node = self.root
+            for char in prefix:
+                if char not in node.children:
+                    return []
+                node = node.children[char]
+
+            result = []
+            self._dfs(node, result)
+            return result
+
+        def _dfs(self, node, result):
+            if node.is_end:
+                result.append(node.word)
+            for child in node.children.values():
+                self._dfs(child, result)
+
+    # Example
+    trie = Trie()
+    words = ["apple", "app", "apricot", "banana"]
+    for w in words:
+        trie.insert(w)
+
+    print(trie.search("app"))  # True
+    print(trie.find_words_with_prefix("ap"))  # ['apple', 'app', 'apricot']
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** String indexing, prefix operations.
+
+        **Strong answer signals:**
+
+        - Space-efficient implementation
+        - Autocomplete use case
+        - Discusses compressed trie (radix tree)
+        - Knows time complexity: O(m) where m = word length
+
+---
+
+### Longest Palindromic Substring - Expand Around Center - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `String`, `Two Pointers`, `DP` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Expand Around Center:**
+
+    ```python
+    def longest_palindrome(s):
+        """Find longest palindromic substring - O(n²)"""
+        if not s:
+            return ""
+
+        def expand(left, right):
+            """Expand around center and return length"""
+            while left >= 0 and right < len(s) and s[left] == s[right]:
+                left -= 1
+                right += 1
+            return right - left - 1
+
+        start, max_len = 0, 0
+
+        for i in range(len(s)):
+            # Odd length palindromes (single center)
+            len1 = expand(i, i)
+            # Even length palindromes (two centers)
+            len2 = expand(i, i + 1)
+
+            curr_len = max(len1, len2)
+            if curr_len > max_len:
+                max_len = curr_len
+                start = i - (curr_len - 1) // 2
+
+        return s[start:start + max_len]
+
+    print(longest_palindrome("babad"))  # "bab" or "aba"
+    ```
+
+    **DP Approach:**
+
+    ```python
+    def longest_palindrome_dp(s):
+        n = len(s)
+        dp = [[False] * n for _ in range(n)]
+        start, max_len = 0, 1
+
+        # All single chars are palindromes
+        for i in range(n):
+            dp[i][i] = True
+
+        # Check length 2
+        for i in range(n - 1):
+            if s[i] == s[i + 1]:
+                dp[i][i + 1] = True
+                start, max_len = i, 2
+
+        # Check length 3 to n
+        for length in range(3, n + 1):
+            for i in range(n - length + 1):
+                j = i + length - 1
+                if s[i] == s[j] and dp[i + 1][j - 1]:
+                    dp[i][j] = True
+                    start, max_len = i, length
+
+        return s[start:start + max_len]
+    ```
+
+    **Manacher's Algorithm O(n):** (mention for bonus points)
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** String manipulation, optimization.
+
+        **Strong answer signals:**
+
+        - Starts with expand around center
+        - Mentions DP approach
+        - Knows Manacher's algorithm exists
+        - Handles both odd and even length palindromes
+
+---
+
+### Merge Intervals - Amazon, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Array`, `Sorting`, `Intervals` | **Asked by:** Amazon, Meta, Google
+
+??? success "View Answer"
+
+    **Solution:**
+
+    ```python
+    def merge_intervals(intervals):
+        """Merge overlapping intervals"""
+        if not intervals:
+            return []
+
+        # Sort by start time
+        intervals.sort(key=lambda x: x[0])
+        merged = [intervals[0]]
+
+        for curr in intervals[1:]:
+            last = merged[-1]
+
+            if curr[0] <= last[1]:  # Overlap
+                # Merge by updating end
+                merged[-1] = [last[0], max(last[1], curr[1])]
+            else:
+                merged.append(curr)
+
+        return merged
+
+    # Example
+    intervals = [[1, 3], [2, 6], [8, 10], [15, 18]]
+    print(merge_intervals(intervals))  # [[1, 6], [8, 10], [15, 18]]
+    ```
+
+    **Variants:**
+
+    | Variant | Solution |
+    |---------|----------|
+    | Insert interval | Find insertion point, merge overlaps |
+    | Remove covered | Remove if contained in another |
+    | Count overlaps | Sweep line algorithm |
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Interval manipulation, edge cases.
+
+        **Strong answer signals:**
+
+        - Sorts by start time
+        - Handles all overlap cases
+        - O(n log n) time complexity
+        - Extends to insert interval, meeting rooms
+
+---
+
+### Top K Frequent Elements - Bucket Sort - Meta, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Array`, `Hash Table`, `Bucket Sort`, `Heap` | **Asked by:** Meta, Amazon, Google
+
+??? success "View Answer"
+
+    **Bucket Sort O(n):**
+
+    ```python
+    def top_k_frequent(nums, k):
+        """Find k most frequent elements - O(n)"""
+        from collections import Counter
+
+        # Count frequencies
+        freq = Counter(nums)
+
+        # Bucket sort: index = frequency
+        buckets = [[] for _ in range(len(nums) + 1)]
+        for num, count in freq.items():
+            buckets[count].append(num)
+
+        # Collect top k from highest frequency
+        result = []
+        for i in range(len(buckets) - 1, 0, -1):
+            result.extend(buckets[i])
+            if len(result) >= k:
+                return result[:k]
+
+        return result
+
+    print(top_k_frequent([1, 1, 1, 2, 2, 3], 2))  # [1, 2]
+    ```
+
+    **Heap Approach O(n log k):**
+
+    ```python
+    import heapq
+
+    def top_k_frequent_heap(nums, k):
+        freq = Counter(nums)
+        # Min heap of size k
+        return heapq.nlargest(k, freq.keys(), key=freq.get)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Optimization, multiple approaches.
+
+        **Strong answer signals:**
+
+        - Knows bucket sort for O(n)
+        - Compares with heap O(n log k)
+        - Mentions quickselect alternative
+        - Handles ties correctly
+
+---
+
+### Longest Increasing Subsequence - DP + Binary Search - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `DP`, `Binary Search`, `Array` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **DP O(n²):**
+
+    ```python
+    def length_of_LIS(nums):
+        """Longest Increasing Subsequence"""
+        if not nums:
+            return 0
+
+        n = len(nums)
+        dp = [1] * n
+
+        for i in range(1, n):
+            for j in range(i):
+                if nums[j] < nums[i]:
+                    dp[i] = max(dp[i], dp[j] + 1)
+
+        return max(dp)
+    ```
+
+    **Optimized with Binary Search O(n log n):**
+
+    ```python
+    import bisect
+
+    def length_of_LIS_optimized(nums):
+        """LIS with binary search - O(n log n)"""
+        tails = []  # tails[i] = smallest ending value of LIS of length i+1
+
+        for num in nums:
+            pos = bisect.bisect_left(tails, num)
+
+            if pos == len(tails):
+                tails.append(num)
+            else:
+                tails[pos] = num
+
+        return len(tails)
+
+    # Example
+    nums = [10, 9, 2, 5, 3, 7, 101, 18]
+    print(length_of_LIS_optimized(nums))  # 4: [2, 3, 7, 101]
+    ```
+
+    **Reconstructing LIS:**
+
+    ```python
+    def find_LIS(nums):
+        n = len(nums)
+        tails = []
+        parent = [-1] * n
+        indices = []
+
+        for i, num in enumerate(nums):
+            pos = bisect.bisect_left(tails, num)
+
+            if pos == len(tails):
+                tails.append(num)
+                indices.append(i)
+            else:
+                tails[pos] = num
+                indices[pos] = i
+
+            if pos > 0:
+                parent[i] = indices[pos - 1]
+
+        # Reconstruct
+        lis = []
+        curr = indices[-1]
+        while curr != -1:
+            lis.append(nums[curr])
+            curr = parent[curr]
+
+        return lis[::-1]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** DP optimization, binary search.
+
+        **Strong answer signals:**
+
+        - Starts with O(n²) DP
+        - Optimizes to O(n log n) with binary search
+        - Can reconstruct actual subsequence
+        - Knows patience sorting connection
+
+---
+
+### Word Break - DP with Trie - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `DP`, `String`, `Trie` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **DP Solution:**
+
+    ```python
+    def word_break(s, word_dict):
+        """Check if string can be segmented into words"""
+        word_set = set(word_dict)
+        n = len(s)
+        dp = [False] * (n + 1)
+        dp[0] = True
+
+        for i in range(1, n + 1):
+            for j in range(i):
+                if dp[j] and s[j:i] in word_set:
+                    dp[i] = True
+                    break
+
+        return dp[n]
+
+    # Example
+    s = "leetcode"
+    word_dict = ["leet", "code"]
+    print(word_break(s, word_dict))  # True
+    ```
+
+    **Optimized with Trie:**
+
+    ```python
+    def word_break_trie(s, word_dict):
+        # Build Trie
+        trie = Trie()
+        for word in word_dict:
+            trie.insert(word)
+
+        n = len(s)
+        dp = [False] * (n + 1)
+        dp[0] = True
+
+        for i in range(n):
+            if not dp[i]:
+                continue
+
+            # Check all words starting at position i
+            node = trie.root
+            for j in range(i, n):
+                if s[j] not in node.children:
+                    break
+                node = node.children[s[j]]
+                if node.is_end:
+                    dp[j + 1] = True
+
+        return dp[n]
+    ```
+
+    **Return All Possible Sentences:**
+
+    ```python
+    def word_break_ii(s, word_dict):
+        """Return all possible sentences"""
+        word_set = set(word_dict)
+        memo = {}
+
+        def backtrack(start):
+            if start in memo:
+                return memo[start]
+
+            if start == len(s):
+                return [[]]
+
+            result = []
+            for end in range(start + 1, len(s) + 1):
+                word = s[start:end]
+                if word in word_set:
+                    for rest in backtrack(end):
+                        result.append([word] + rest)
+
+            memo[start] = result
+            return result
+
+        return [' '.join(words) for words in backtrack(0)]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** DP, string manipulation, backtracking.
+
+        **Strong answer signals:**
+
+        - DP solution O(n² × m) where m = average word length
+        - Trie optimization for many words
+        - Extends to Word Break II (return all solutions)
+        - Discusses memoization
+
+---
+
+### Coin Change - Unbounded Knapsack DP - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `DP`, `Knapsack`, `Greedy` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **DP Solution:**
+
+    ```python
+    def coin_change(coins, amount):
+        """Minimum coins to make amount"""
+        dp = [float('inf')] * (amount + 1)
+        dp[0] = 0
+
+        for coin in coins:
+            for x in range(coin, amount + 1):
+                dp[x] = min(dp[x], dp[x - coin] + 1)
+
+        return dp[amount] if dp[amount] != float('inf') else -1
+
+    # Example
+    coins = [1, 2, 5]
+    amount = 11
+    print(coin_change(coins, amount))  # 3 (5+5+1)
+    ```
+
+    **Count Number of Ways:**
+
+    ```python
+    def coin_change_ways(coins, amount):
+        """Number of ways to make amount"""
+        dp = [0] * (amount + 1)
+        dp[0] = 1
+
+        for coin in coins:
+            for x in range(coin, amount + 1):
+                dp[x] += dp[x - coin]
+
+        return dp[amount]
+    ```
+
+    **Space Optimized:**
+
+    ```python
+    def coin_change_optimized(coins, amount):
+        # Use set to avoid duplicates
+        dp = {0}  # Possible amounts
+
+        for _ in range(amount):
+            new_dp = set()
+            for amt in dp:
+                for coin in coins:
+                    if amt + coin <= amount:
+                        new_dp.add(amt + coin)
+            dp = new_dp
+
+            if amount in dp:
+                return True
+
+        return False
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Unbounded knapsack, DP variants.
+
+        **Strong answer signals:**
+
+        - Correct loop order (coins outer or inner affects result)
+        - Knows difference: min coins vs count ways
+        - Space optimization possible
+        - Extends to coin change with limited coins
+
+---
+
+### Decode Ways - DP with Constraints - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `DP`, `String` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **DP Solution:**
+
+    ```python
+    def num_decodings(s):
+        """Count ways to decode string (1=A, 2=B, ..., 26=Z)"""
+        if not s or s[0] == '0':
+            return 0
+
+        n = len(s)
+        dp = [0] * (n + 1)
+        dp[0] = 1  # Empty string
+        dp[1] = 1  # First character
+
+        for i in range(2, n + 1):
+            # Single digit
+            if s[i-1] != '0':
+                dp[i] += dp[i-1]
+
+            # Two digits
+            two_digit = int(s[i-2:i])
+            if 10 <= two_digit <= 26:
+                dp[i] += dp[i-2]
+
+        return dp[n]
+
+    # Example
+    print(num_decodings("226"))  # 3: 2,2,6 or 22,6 or 2,26
+    print(num_decodings("06"))   # 0: invalid
+    ```
+
+    **Space Optimized O(1):**
+
+    ```python
+    def num_decodings_optimized(s):
+        if not s or s[0] == '0':
+            return 0
+
+        prev2, prev1 = 1, 1
+
+        for i in range(1, len(s)):
+            curr = 0
+
+            if s[i] != '0':
+                curr = prev1
+
+            two_digit = int(s[i-1:i+1])
+            if 10 <= two_digit <= 26:
+                curr += prev2
+
+            prev2, prev1 = prev1, curr
+
+        return prev1
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** DP with constraints, edge cases.
+
+        **Strong answer signals:**
+
+        - Handles leading zeros
+        - Checks valid ranges (1-26)
+        - Space optimization to O(1)
+        - Extends to Decode Ways II (with wildcards)
+
+---
+
+### Regular Expression Matching - DP - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `DP`, `String`, `Recursion` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **DP Solution:**
+
+    ```python
+    def is_match(s, p):
+        """Regex matching with '.' and '*'"""
+        m, n = len(s), len(p)
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+
+        # Handle patterns like a*, a*b*, etc.
+        for j in range(2, n + 1):
+            if p[j-1] == '*':
+                dp[0][j] = dp[0][j-2]
+
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if p[j-1] == '*':
+                    # Zero occurrences or one+ occurrences
+                    dp[i][j] = dp[i][j-2] or \
+                               (dp[i-1][j] and (s[i-1] == p[j-2] or p[j-2] == '.'))
+                elif p[j-1] == '.' or s[i-1] == p[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+
+        return dp[m][n]
+
+    # Examples
+    print(is_match("aa", "a"))       # False
+    print(is_match("aa", "a*"))      # True
+    print(is_match("ab", ".*"))      # True
+    print(is_match("aab", "c*a*b"))  # True
+    ```
+
+    **Recursive with Memoization:**
+
+    ```python
+    def is_match_recursive(s, p):
+        memo = {}
+
+        def dp(i, j):
+            if (i, j) in memo:
+                return memo[(i, j)]
+
+            if j == len(p):
+                return i == len(s)
+
+            first_match = i < len(s) and (p[j] == s[i] or p[j] == '.')
+
+            if j + 1 < len(p) and p[j + 1] == '*':
+                result = dp(i, j + 2) or (first_match and dp(i + 1, j))
+            else:
+                result = first_match and dp(i + 1, j + 1)
+
+            memo[(i, j)] = result
+            return result
+
+        return dp(0, 0)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Complex DP, state management.
+
+        **Strong answer signals:**
+
+        - Handles '*' matching zero or more
+        - Edge cases: empty strings, multiple '*'
+        - Both DP and recursive + memo solutions
+        - Compares with wildcard matching (simpler)
+
+---
+
+### Edit Distance - Levenshtein Distance - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `DP`, `String` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **DP Solution:**
+
+    ```python
+    def min_distance(word1, word2):
+        """Minimum edits to transform word1 to word2"""
+        m, n = len(word1), len(word2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+        # Base cases
+        for i in range(m + 1):
+            dp[i][0] = i  # Delete all
+        for j in range(n + 1):
+            dp[0][j] = j  # Insert all
+
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if word1[i-1] == word2[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+                else:
+                    dp[i][j] = 1 + min(
+                        dp[i-1][j],      # Delete
+                        dp[i][j-1],      # Insert
+                        dp[i-1][j-1]     # Replace
+                    )
+
+        return dp[m][n]
+
+    # Example
+    print(min_distance("horse", "ros"))  # 3
+    # horse -> rorse (replace h->r)
+    # rorse -> rose (delete r)
+    # rose -> ros (delete e)
+    ```
+
+    **Space Optimized:**
+
+    ```python
+    def min_distance_optimized(word1, word2):
+        m, n = len(word1), len(word2)
+        prev = list(range(n + 1))
+
+        for i in range(1, m + 1):
+            curr = [i]
+            for j in range(1, n + 1):
+                if word1[i-1] == word2[j-1]:
+                    curr.append(prev[j-1])
+                else:
+                    curr.append(1 + min(prev[j], curr[j-1], prev[j-1]))
+            prev = curr
+
+        return prev[n]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Classic DP, space optimization.
+
+        **Strong answer signals:**
+
+        - Explains 3 operations (insert, delete, replace)
+        - Correct DP transitions
+        - Space optimization from O(mn) to O(n)
+        - Reconstructs actual edit sequence
+
+---
+
+### Trapping Rain Water - Two Pointers - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Array`, `Two Pointers`, `Stack` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Two Pointers O(n) O(1):**
+
+    ```python
+    def trap(height):
+        """Calculate trapped rainwater"""
+        if not height:
+            return 0
+
+        left, right = 0, len(height) - 1
+        left_max, right_max = 0, 0
+        water = 0
+
+        while left < right:
+            if height[left] < height[right]:
+                if height[left] >= left_max:
+                    left_max = height[left]
+                else:
+                    water += left_max - height[left]
+                left += 1
+            else:
+                if height[right] >= right_max:
+                    right_max = height[right]
+                else:
+                    water += right_max - height[right]
+                right -= 1
+
+        return water
+
+    # Example
+    height = [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+    print(trap(height))  # 6
+    ```
+
+    **Stack Approach:**
+
+    ```python
+    def trap_stack(height):
+        stack = []
+        water = 0
+
+        for i in range(len(height)):
+            while stack and height[i] > height[stack[-1]]:
+                top = stack.pop()
+
+                if not stack:
+                    break
+
+                distance = i - stack[-1] - 1
+                bounded_height = min(height[i], height[stack[-1]]) - height[top]
+                water += distance * bounded_height
+
+            stack.append(i)
+
+        return water
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Two pointers, visualization.
+
+        **Strong answer signals:**
+
+        - Two pointer O(n) O(1) solution
+        - Explains why each pointer moves
+        - Mentions stack approach as alternative
+        - Extends to 2D version (pour water)
+
+---
+
+### Serialize and Deserialize Binary Tree - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Tree`, `DFS`, `BFS`, `Design` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **DFS Preorder:**
+
+    ```python
+    class Codec:
+        def serialize(self, root):
+            """Serialize tree to string"""
+            if not root:
+                return "null"
+
+            left = self.serialize(root.left)
+            right = self.serialize(root.right)
+
+            return f"{root.val},{left},{right}"
+
+        def deserialize(self, data):
+            """Deserialize string to tree"""
+            def dfs():
+                val = next(vals)
+                if val == "null":
+                    return None
+
+                node = TreeNode(int(val))
+                node.left = dfs()
+                node.right = dfs()
+                return node
+
+            vals = iter(data.split(','))
+            return dfs()
+
+    # Example
+    root = TreeNode(1)
+    root.left = TreeNode(2)
+    root.right = TreeNode(3)
+    root.right.left = TreeNode(4)
+    root.right.right = TreeNode(5)
+
+    codec = Codec()
+    serialized = codec.serialize(root)
+    print(serialized)  # "1,2,null,null,3,4,null,null,5,null,null"
+    deserialized = codec.deserialize(serialized)
+    ```
+
+    **BFS Level Order:**
+
+    ```python
+    from collections import deque
+
+    def serialize_bfs(root):
+        if not root:
+            return ""
+
+        result = []
+        queue = deque([root])
+
+        while queue:
+            node = queue.popleft()
+            if node:
+                result.append(str(node.val))
+                queue.append(node.left)
+                queue.append(node.right)
+            else:
+                result.append("null")
+
+        return ",".join(result)
+
+    def deserialize_bfs(data):
+        if not data:
+            return None
+
+        vals = data.split(',')
+        root = TreeNode(int(vals[0]))
+        queue = deque([root])
+        i = 1
+
+        while queue:
+            node = queue.popleft()
+
+            if vals[i] != "null":
+                node.left = TreeNode(int(vals[i]))
+                queue.append(node.left)
+            i += 1
+
+            if vals[i] != "null":
+                node.right = TreeNode(int(vals[i]))
+                queue.append(node.right)
+            i += 1
+
+        return root
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Tree traversal, string manipulation.
+
+        **Strong answer signals:**
+
+        - Both DFS and BFS approaches
+        - Handles null nodes correctly
+        - Space-efficient encoding
+        - Extends to BST (can optimize further)
+
+---
+
+### Meeting Rooms II - Minimum Conference Rooms - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Array`, `Heap`, `Sorting`, `Greedy` | **Asked by:** Google, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **Heap Solution:**
+
+    ```python
+    import heapq
+
+    def min_meeting_rooms(intervals):
+        """Minimum rooms needed for all meetings"""
+        if not intervals:
+            return 0
+
+        # Sort by start time
+        intervals.sort(key=lambda x: x[0])
+
+        # Min heap of end times
+        heap = []
+        heapq.heappush(heap, intervals[0][1])
+
+        for start, end in intervals[1:]:
+            # If earliest ending meeting is done, reuse room
+            if start >= heap[0]:
+                heapq.heappop(heap)
+
+            heapq.heappush(heap, end)
+
+        return len(heap)
+
+    # Example
+    intervals = [[0, 30], [5, 10], [15, 20]]
+    print(min_meeting_rooms(intervals))  # 2
+    ```
+
+    **Chronological Ordering:**
+
+    ```python
+    def min_meeting_rooms_sweep(intervals):
+        """Using sweep line algorithm"""
+        starts = sorted([i[0] for i in intervals])
+        ends = sorted([i[1] for i in intervals])
+
+        rooms = 0
+        max_rooms = 0
+        s, e = 0, 0
+
+        while s < len(starts):
+            if starts[s] < ends[e]:
+                rooms += 1
+                max_rooms = max(max_rooms, rooms)
+                s += 1
+            else:
+                rooms -= 1
+                e += 1
+
+        return max_rooms
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Interval scheduling, greedy algorithms.
+
+        **Strong answer signals:**
+
+        - Min heap O(n log n) solution
+        - Sweep line alternative
+        - Extends to: can attend all meetings (single room)
+        - Explains why sorting by start time works
+
+---
+
+### Find Median from Data Stream - Two Heaps - Meta, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Heap`, `Design`, `Data Structures` | **Asked by:** Meta, Amazon, Google
+
+??? success "View Answer"
+
+    **Two Heaps Approach:**
+
+    ```python
+    import heapq
+
+    class MedianFinder:
+        def __init__(self):
+            self.small = []  # Max heap (invert values)
+            self.large = []  # Min heap
+
+        def addNum(self, num):
+            """Add number maintaining median"""
+            # Add to max heap (small)
+            heapq.heappush(self.small, -num)
+
+            # Balance: ensure max of small <= min of large
+            if self.small and self.large and (-self.small[0] > self.large[0]):
+                val = -heapq.heappop(self.small)
+                heapq.heappush(self.large, val)
+
+            # Balance sizes: small can have at most 1 more than large
+            if len(self.small) > len(self.large) + 1:
+                val = -heapq.heappop(self.small)
+                heapq.heappush(self.large, val)
+            elif len(self.large) > len(self.small):
+                val = heapq.heappop(self.large)
+                heapq.heappush(self.small, -val)
+
+        def findMedian(self):
+            """Return current median"""
+            if len(self.small) > len(self.large):
+                return -self.small[0]
+            return (-self.small[0] + self.large[0]) / 2.0
+
+    # Example
+    mf = MedianFinder()
+    mf.addNum(1)
+    mf.addNum(2)
+    print(mf.findMedian())  # 1.5
+    mf.addNum(3)
+    print(mf.findMedian())  # 2.0
+    ```
+
+    **Time Complexity:**
+    - addNum: O(log n)
+    - findMedian: O(1)
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Advanced data structures, design.
+
+        **Strong answer signals:**
+
+        - Two heap approach
+        - Maintains invariants correctly
+        - O(log n) add, O(1) find
+        - Discusses alternatives (BST, segment tree)
+
+---
+
+### Largest Rectangle in Histogram - Monotonic Stack - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Stack`, `Array` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Monotonic Stack:**
+
+    ```python
+    def largest_rectangle_area(heights):
+        """Find largest rectangle in histogram"""
+        stack = []
+        max_area = 0
+        heights = heights + [0]  # Add sentinel
+
+        for i, h in enumerate(heights):
+            while stack and heights[stack[-1]] > h:
+                height_idx = stack.pop()
+                height = heights[height_idx]
+                width = i if not stack else i - stack[-1] - 1
+                max_area = max(max_area, height * width)
+
+            stack.append(i)
+
+        return max_area
+
+    # Example
+    heights = [2, 1, 5, 6, 2, 3]
+    print(largest_rectangle_area(heights))  # 10 (5*2)
+    ```
+
+    **Cleaner Version:**
+
+    ```python
+    def largest_rectangle_cleaner(heights):
+        stack = [-1]
+        max_area = 0
+
+        for i in range(len(heights)):
+            while stack[-1] != -1 and heights[stack[-1]] >= heights[i]:
+                h = heights[stack.pop()]
+                w = i - stack[-1] - 1
+                max_area = max(max_area, h * w)
+            stack.append(i)
+
+        while stack[-1] != -1:
+            h = heights[stack.pop()]
+            w = len(heights) - stack[-1] - 1
+            max_area = max(max_area, h * w)
+
+        return max_area
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Monotonic stack, histogram problems.
+
+        **Strong answer signals:**
+
+        - Uses monotonic increasing stack
+        - O(n) time, O(n) space
+        - Explains width calculation
+        - Extends to maximal rectangle in matrix
+
+---
+
+### Maximal Rectangle in Binary Matrix - DP + Histogram - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `DP`, `Stack`, `Matrix` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Using Largest Rectangle in Histogram:**
+
+    ```python
+    def maximal_rectangle(matrix):
+        """Find largest rectangle of 1s in binary matrix"""
+        if not matrix:
+            return 0
+
+        rows, cols = len(matrix), len(matrix[0])
+        heights = [0] * cols
+        max_area = 0
+
+        for i in range(rows):
+            for j in range(cols):
+                # Update histogram heights
+                if matrix[i][j] == '1':
+                    heights[j] += 1
+                else:
+                    heights[j] = 0
+
+            # Find max rectangle in current histogram
+            max_area = max(max_area, largest_rectangle_area(heights))
+
+        return max_area
+
+    def largest_rectangle_area(heights):
+        """Helper from previous problem"""
+        stack = []
+        max_area = 0
+        heights = heights + [0]
+
+        for i, h in enumerate(heights):
+            while stack and heights[stack[-1]] > h:
+                height_idx = stack.pop()
+                height = heights[height_idx]
+                width = i if not stack else i - stack[-1] - 1
+                max_area = max(max_area, height * width)
+            stack.append(i)
+
+        return max_area
+
+    # Example
+    matrix = [
+        ["1", "0", "1", "0", "0"],
+        ["1", "0", "1", "1", "1"],
+        ["1", "1", "1", "1", "1"],
+        ["1", "0", "0", "1", "0"]
+    ]
+    print(maximal_rectangle(matrix))  # 6
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Combining algorithms, 2D problems.
+
+        **Strong answer signals:**
+
+        - Reduces to histogram problem
+        - Builds histogram row by row
+        - O(rows × cols) complexity
+        - Clean code reuse
+
+---
+
+### Word Ladder - BFS Shortest Path - Amazon, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `BFS`, `Graph`, `String` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Bidirectional BFS:**
+
+    ```python
+    from collections import deque
+
+    def ladder_length(begin_word, end_word, word_list):
+        """Find shortest transformation sequence length"""
+        word_set = set(word_list)
+        if end_word not in word_set:
+            return 0
+
+        # Bidirectional BFS
+        begin_set = {begin_word}
+        end_set = {end_word}
+        visited = set()
+        length = 1
+
+        while begin_set and end_set:
+            # Always expand smaller set
+            if len(begin_set) > len(end_set):
+                begin_set, end_set = end_set, begin_set
+
+            next_set = set()
+            for word in begin_set:
+                for i in range(len(word)):
+                    for c in 'abcdefghijklmnopqrstuvwxyz':
+                        new_word = word[:i] + c + word[i+1:]
+
+                        if new_word in end_set:
+                            return length + 1
+
+                        if new_word in word_set and new_word not in visited:
+                            next_set.add(new_word)
+                            visited.add(new_word)
+
+            begin_set = next_set
+            length += 1
+
+        return 0
+
+    # Example
+    begin = "hit"
+    end = "cog"
+    word_list = ["hot", "dot", "dog", "lot", "log", "cog"]
+    print(ladder_length(begin, end, word_list))  # 5: hit->hot->dot->dog->cog
+    ```
+
+    **Standard BFS:**
+
+    ```python
+    def ladder_length_bfs(begin_word, end_word, word_list):
+        word_set = set(word_list)
+        if end_word not in word_set:
+            return 0
+
+        queue = deque([(begin_word, 1)])
+
+        while queue:
+            word, length = queue.popleft()
+
+            if word == end_word:
+                return length
+
+            for i in range(len(word)):
+                for c in 'abcdefghijklmnopqrstuvwxyz':
+                    new_word = word[:i] + c + word[i+1:]
+
+                    if new_word in word_set:
+                        word_set.remove(new_word)
+                        queue.append((new_word, length + 1))
+
+        return 0
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** BFS, graph modeling, optimization.
+
+        **Strong answer signals:**
+
+        - Models as graph problem
+        - Bidirectional BFS for optimization
+        - Character-by-character transformation
+        - Word Ladder II: return all shortest paths
+
+---
+
+### Palindrome Partitioning - Backtracking + DP - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Backtracking`, `DP`, `String` | **Asked by:** Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Backtracking with Palindrome Check:**
+
+    ```python
+    def partition(s):
+        """Return all palindrome partitions"""
+        def is_palindrome(sub):
+            return sub == sub[::-1]
+
+        def backtrack(start, path):
+            if start == len(s):
+                result.append(path[:])
+                return
+
+            for end in range(start + 1, len(s) + 1):
+                substring = s[start:end]
+                if is_palindrome(substring):
+                    path.append(substring)
+                    backtrack(end, path)
+                    path.pop()
+
+        result = []
+        backtrack(0, [])
+        return result
+
+    # Example
+    print(partition("aab"))
+    # [['a', 'a', 'b'], ['aa', 'b']]
+    ```
+
+    **Optimized with DP Palindrome Check:**
+
+    ```python
+    def partition_optimized(s):
+        n = len(s)
+
+        # Precompute palindrome checks
+        is_pal = [[False] * n for _ in range(n)]
+        for i in range(n):
+            is_pal[i][i] = True
+
+        for length in range(2, n + 1):
+            for i in range(n - length + 1):
+                j = i + length - 1
+                if s[i] == s[j]:
+                    is_pal[i][j] = (length == 2) or is_pal[i+1][j-1]
+
+        def backtrack(start, path):
+            if start == n:
+                result.append(path[:])
+                return
+
+            for end in range(start, n):
+                if is_pal[start][end]:
+                    path.append(s[start:end+1])
+                    backtrack(end + 1, path)
+                    path.pop()
+
+        result = []
+        backtrack(0, [])
+        return result
+    ```
+
+    **Minimum Cuts (Variation):**
+
+    ```python
+    def min_cut(s):
+        """Minimum cuts to make all palindromes"""
+        n = len(s)
+        # dp[i] = min cuts for s[:i+1]
+        dp = list(range(n))
+
+        for i in range(n):
+            # Odd length palindromes
+            left = right = i
+            while left >= 0 and right < n and s[left] == s[right]:
+                dp[right] = min(dp[right], (dp[left-1] if left > 0 else 0) + 1)
+                left -= 1
+                right += 1
+
+            # Even length palindromes
+            left, right = i, i + 1
+            while left >= 0 and right < n and s[left] == s[right]:
+                dp[right] = min(dp[right], (dp[left-1] if left > 0 else 0) + 1)
+                left -= 1
+                right += 1
+
+        return dp[n-1] - 1
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Backtracking, DP optimization.
+
+        **Strong answer signals:**
+
+        - Backtracking with pruning
+        - Precomputes palindrome checks
+        - Extends to min cuts problem
+        - Discusses time complexity improvement
+
+---
+
+### N-Queens Problem - Backtracking - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Backtracking`, `Matrix` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Backtracking Solution:**
+
+    ```python
+    def solve_n_queens(n):
+        """Find all solutions to n-queens"""
+        def is_safe(row, col):
+            # Check column
+            for r in range(row):
+                if board[r] == col:
+                    return False
+
+            # Check diagonals
+            for r in range(row):
+                if abs(board[r] - col) == abs(r - row):
+                    return False
+
+            return True
+
+        def backtrack(row):
+            if row == n:
+                result.append(construct_board())
+                return
+
+            for col in range(n):
+                if is_safe(row, col):
+                    board[row] = col
+                    backtrack(row + 1)
+                    board[row] = -1
+
+        def construct_board():
+            return ['.' * board[i] + 'Q' + '.' * (n - board[i] - 1)
+                    for i in range(n)]
+
+        board = [-1] * n
+        result = []
+        backtrack(0)
+        return result
+
+    # Example
+    solutions = solve_n_queens(4)
+    for sol in solutions:
+        for row in sol:
+            print(row)
+        print()
+    ```
+
+    **Optimized with Sets:**
+
+    ```python
+    def solve_n_queens_optimized(n):
+        def backtrack(row):
+            if row == n:
+                result.append(board[:])
+                return
+
+            for col in range(n):
+                diag1 = row - col
+                diag2 = row + col
+
+                if col in cols or diag1 in diag1_set or diag2 in diag2_set:
+                    continue
+
+                board[row] = col
+                cols.add(col)
+                diag1_set.add(diag1)
+                diag2_set.add(diag2)
+
+                backtrack(row + 1)
+
+                cols.remove(col)
+                diag1_set.remove(diag1)
+                diag2_set.remove(diag2)
+
+        board = [-1] * n
+        cols = set()
+        diag1_set = set()
+        diag2_set = set()
+        result = []
+
+        backtrack(0)
+        return [['..' * board[i] + 'Q' + '.' * (n - board[i] - 1)
+                 for i in range(n)] for board in result]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Backtracking, constraint satisfaction.
+
+        **Strong answer signals:**
+
+        - Efficient conflict checking with sets
+        - Diagonal formula: row ± col
+        - Discusses symmetry reduction
+        - Total N-Queens count (just count, not construct)
+
+---
+
+### Shortest Path in Weighted Graph - Dijkstra's Algorithm - Amazon, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Graph`, `Dijkstra`, `Heap`, `Shortest Path` | **Asked by:** Amazon, Google, Microsoft
+
+??? success "View Answer"
+
+    **Dijkstra's Algorithm:**
+
+    ```python
+    import heapq
+
+    def dijkstra(graph, start):
+        """Find shortest paths from start to all nodes"""
+        distances = {node: float('inf') for node in graph}
+        distances[start] = 0
+
+        # Min heap: (distance, node)
+        heap = [(0, start)]
+        visited = set()
+
+        while heap:
+            curr_dist, curr_node = heapq.heappop(heap)
+
+            if curr_node in visited:
+                continue
+
+            visited.add(curr_node)
+
+            for neighbor, weight in graph[curr_node]:
+                distance = curr_dist + weight
+
+                if distance < distances[neighbor]:
+                    distances[neighbor] = distance
+                    heapq.heappush(heap, (distance, neighbor))
+
+        return distances
+
+    # Example
+    graph = {
+        'A': [('B', 4), ('C', 2)],
+        'B': [('C', 1), ('D', 5)],
+        'C': [('D', 8), ('E', 10)],
+        'D': [('E', 2)],
+        'E': []
+    }
+    print(dijkstra(graph, 'A'))
+    # {'A': 0, 'B': 4, 'C': 2, 'D': 9, 'E': 11}
+    ```
+
+    **With Path Reconstruction:**
+
+    ```python
+    def dijkstra_with_path(graph, start, end):
+        distances = {node: float('inf') for node in graph}
+        distances[start] = 0
+        parent = {node: None for node in graph}
+
+        heap = [(0, start)]
+        visited = set()
+
+        while heap:
+            curr_dist, curr_node = heapq.heappop(heap)
+
+            if curr_node == end:
+                break
+
+            if curr_node in visited:
+                continue
+
+            visited.add(curr_node)
+
+            for neighbor, weight in graph[curr_node]:
+                distance = curr_dist + weight
+
+                if distance < distances[neighbor]:
+                    distances[neighbor] = distance
+                    parent[neighbor] = curr_node
+                    heapq.heappush(heap, (distance, neighbor))
+
+        # Reconstruct path
+        path = []
+        curr = end
+        while curr is not None:
+            path.append(curr)
+            curr = parent[curr]
+        path.reverse()
+
+        return distances[end], path
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Graph algorithms, greedy approach.
+
+        **Strong answer signals:**
+
+        - Min heap for O((V + E) log V)
+        - Handles visited nodes correctly
+        - Path reconstruction
+        - Compares with Bellman-Ford (negative weights), A* (heuristic)
+
+---
+
+### Alien Dictionary - Topological Sort - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Graph`, `Topological Sort`, `BFS` | **Asked by:** Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **Topological Sort Solution:**
+
+    ```python
+    from collections import defaultdict, deque
+
+    def alien_order(words):
+        """Find alien alphabet order from sorted words"""
+        # Build graph
+        graph = defaultdict(set)
+        in_degree = {char: 0 for word in words for char in word}
+
+        # Compare adjacent words
+        for i in range(len(words) - 1):
+            w1, w2 = words[i], words[i + 1]
+            min_len = min(len(w1), len(w2))
+
+            # Find first different character
+            for j in range(min_len):
+                if w1[j] != w2[j]:
+                    if w2[j] not in graph[w1[j]]:
+                        graph[w1[j]].add(w2[j])
+                        in_degree[w2[j]] += 1
+                    break
+            else:
+                # w1 is prefix of w2, check validity
+                if len(w1) > len(w2):
+                    return ""  # Invalid
+
+        # Kahn's algorithm (BFS topological sort)
+        queue = deque([char for char in in_degree if in_degree[char] == 0])
+        result = []
+
+        while queue:
+            char = queue.popleft()
+            result.append(char)
+
+            for neighbor in graph[char]:
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+
+        # Check for cycle
+        if len(result) != len(in_degree):
+            return ""
+
+        return ''.join(result)
+
+    # Example
+    words = ["wrt", "wrf", "er", "ett", "rftt"]
+    print(alien_order(words))  # "wertf"
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Graph modeling, topological sort.
+
+        **Strong answer signals:**
+
+        - Builds graph from adjacent words
+        - Uses Kahn's algorithm for topo sort
+        - Detects cycles (invalid input)
+        - Edge case: prefix longer than following word
+
+---
+
+### Word Search II - Trie + DFS - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Trie`, `Backtracking`, `Matrix` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Trie + Backtracking:**
+
+    ```python
+    class TrieNode:
+        def __init__(self):
+            self.children = {}
+            self.word = None
+
+    def find_words(board, words):
+        """Find all words that exist in board"""
+        # Build Trie
+        root = TrieNode()
+        for word in words:
+            node = root
+            for char in word:
+                if char not in node.children:
+                    node.children[char] = TrieNode()
+                node = node.children[char]
+            node.word = word
+
+        rows, cols = len(board), len(board[0])
+        result = []
+
+        def dfs(r, c, node):
+            char = board[r][c]
+
+            if char not in node.children:
+                return
+
+            next_node = node.children[char]
+
+            # Found word
+            if next_node.word:
+                result.append(next_node.word)
+                next_node.word = None  # Avoid duplicates
+
+            # Mark visited
+            board[r][c] = '#'
+
+            # Explore neighbors
+            for dr, dc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < rows and 0 <= nc < cols and board[nr][nc] != '#':
+                    dfs(nr, nc, next_node)
+
+            # Backtrack
+            board[r][c] = char
+
+            # Prune trie
+            if not next_node.children:
+                del node.children[char]
+
+        for r in range(rows):
+            for c in range(cols):
+                if board[r][c] in root.children:
+                    dfs(r, c, root)
+
+        return result
+
+    # Example
+    board = [
+        ['o', 'a', 'a', 'n'],
+        ['e', 't', 'a', 'e'],
+        ['i', 'h', 'k', 'r'],
+        ['i', 'f', 'l', 'v']
+    ]
+    words = ["oath", "pea", "eat", "rain"]
+    print(find_words(board, words))  # ['oath', 'eat']
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Trie optimization, backtracking.
+
+        **Strong answer signals:**
+
+        - Uses Trie to avoid repeated work
+        - Prunes Trie as words are found
+        - O(m × n × 4^L) where L = max word length
+        - Much better than checking each word separately
+
+---
+
+### Maximum Profit in Job Scheduling - DP + Binary Search - Google, Amazon Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `DP`, `Binary Search`, `Sorting` | **Asked by:** Google, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **DP with Binary Search:**
+
+    ```python
+    import bisect
+
+    def job_scheduling(start_time, end_time, profit):
+        """Max profit from non-overlapping jobs"""
+        n = len(start_time)
+        jobs = sorted(zip(end_time, start_time, profit))
+
+        # dp[i] = max profit considering first i jobs
+        dp = [0] * (n + 1)
+
+        for i in range(1, n + 1):
+            end, start, p = jobs[i-1]
+
+            # Find latest non-overlapping job
+            k = bisect.bisect_right([jobs[j][0] for j in range(i-1)], start)
+
+            dp[i] = max(dp[i-1], dp[k] + p)
+
+        return dp[n]
+    ```
+
+    **Cleaner Implementation:**
+
+    ```python
+    def job_scheduling_clean(start_time, end_time, profit):
+        jobs = sorted(zip(end_time, start_time, profit))
+        ends = [j[0] for j in jobs]
+        dp = [(0, 0)]  # (end_time, max_profit)
+
+        for end, start, p in jobs:
+            idx = bisect.bisect_right(dp, (start, float('inf'))) - 1
+            profit_if_taken = dp[idx][1] + p
+
+            if profit_if_taken > dp[-1][1]:
+                dp.append((end, profit_if_taken))
+
+        return dp[-1][1]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** DP with optimization, binary search.
+
+        **Strong answer signals:**
+
+        - Sorts by end time
+        - Uses binary search for non-overlapping
+        - Knows weighted interval scheduling
+        - O(n log n) solution
+
+---
+
 ## Quick Reference: 100+ Interview Questions
 
 
