@@ -1289,68 +1289,83 @@ This is updated frequently but right now this is the most exhaustive list of typ
 ## Code Examples
 
 ### 1. Building a Custom Transformer
-```python
-from sklearn.base import BaseEstimator, TransformerMixin
 
-class OutlierRemover(BaseEstimator, TransformerMixin):
-    def __init__(self, factor=1.5):
-        self.factor = factor
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from sklearn.base import BaseEstimator, TransformerMixin
+
+    class OutlierRemover(BaseEstimator, TransformerMixin):
+        def __init__(self, factor=1.5):
+            self.factor = factor
         
-    def fit(self, X, y=None):
-        self.Q1 = X.quantile(0.25)
-        self.Q3 = X.quantile(0.75)
-        self.IQR = self.Q3 - self.Q1
-        return self
+        def fit(self, X, y=None):
+            self.Q1 = X.quantile(0.25)
+            self.Q3 = X.quantile(0.75)
+            self.IQR = self.Q3 - self.Q1
+            return self
     
-    def transform(self, X):
-        return X[~((X < (self.Q1 - self.factor * self.IQR)) | 
-                   (X > (self.Q3 + self.factor * self.IQR))).any(axis=1)]
-```
+        def transform(self, X):
+            return X[~((X < (self.Q1 - self.factor * self.IQR)) | 
+                       (X > (self.Q3 + self.factor * self.IQR))).any(axis=1)]
+    ```
 
 ### 2. Nested Cross-Validation
-```python
-from sklearn.model_selection import GridSearchCV, cross_val_score, KFold
-from sklearn.svm import SVC
-import numpy as np
 
-# Inner loop for hyperparameter tuning
-p_grid = {"C": [1, 10, 100], "gamma": [0.01, 0.1]}
-svm = SVC(kernel="rbf")
-inner_cv = KFold(n_splits=4, shuffle=True, random_state=1)
-clf = GridSearchCV(estimator=svm, param_grid=p_grid, cv=inner_cv)
+??? success "View Code Example"
 
-# Outer loop for model evaluation
-outer_cv = KFold(n_splits=4, shuffle=True, random_state=1)
-nested_score = cross_val_score(clf, X_iris, y_iris, cv=outer_cv)
 
-print(f"Nested CV Score: {nested_score.mean():.3f} +/- {nested_score.std():.3f}")
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from sklearn.model_selection import GridSearchCV, cross_val_score, KFold
+    from sklearn.svm import SVC
+    import numpy as np
+
+    # Inner loop for hyperparameter tuning
+    p_grid = {"C": [1, 10, 100], "gamma": [0.01, 0.1]}
+    svm = SVC(kernel="rbf")
+    inner_cv = KFold(n_splits=4, shuffle=True, random_state=1)
+    clf = GridSearchCV(estimator=svm, param_grid=p_grid, cv=inner_cv)
+
+    # Outer loop for model evaluation
+    outer_cv = KFold(n_splits=4, shuffle=True, random_state=1)
+    nested_score = cross_val_score(clf, X_iris, y_iris, cv=outer_cv)
+
+    print(f"Nested CV Score: {nested_score.mean():.3f} +/- {nested_score.std():.3f}")
+    ```
 
 ### 3. Pipeline with ColumnTransformer
-```python
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-numeric_features = ['age', 'fare']
-numeric_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler())])
+??? success "View Code Example"
 
-categorical_features = ['embarked', 'sex', 'pclass']
-categorical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
-    ('onehot', OneHotEncoder(handle_unknown='ignore'))])
 
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', numeric_transformer, numeric_features),
-        ('cat', categorical_transformer, categorical_features)])
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from sklearn.compose import ColumnTransformer
+    from sklearn.pipeline import Pipeline
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-clf = Pipeline(steps=[('preprocessor', preprocessor),
-                      ('classifier', LogisticRegression())])
-```
+    numeric_features = ['age', 'fare']
+    numeric_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())])
+
+    categorical_features = ['embarked', 'sex', 'pclass']
+    categorical_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)])
+
+    clf = Pipeline(steps=[('preprocessor', preprocessor),
+                          ('classifier', LogisticRegression())])
+    ```
 
 ---
 

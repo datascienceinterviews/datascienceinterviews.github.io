@@ -1334,73 +1334,88 @@ This document provides a curated list of A/B Testing and Experimentation intervi
 ## Code Examples
 
 ### 1. Power Analysis and Sample Size (Python)
-Calculating the required sample size before starting an experiment.
 
-```python
-from statsmodels.stats.power import TTestIndPower
-import numpy as np
+??? success "View Code Example"
 
-# Parameters
-effect_size = 0.1  # Cohen's d (Standardized difference)
-alpha = 0.05       # Significance level (5%)
-power = 0.8        # Power (80%)
 
-analysis = TTestIndPower()
-sample_size = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha)
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Calculating the required sample size before starting an experiment.
 
-print(f"Required sample size per group: {int(np.ceil(sample_size))}")
-```
+    ```python
+    from statsmodels.stats.power import TTestIndPower
+    import numpy as np
+
+    # Parameters
+    effect_size = 0.1  # Cohen's d (Standardized difference)
+    alpha = 0.05       # Significance level (5%)
+    power = 0.8        # Power (80%)
+
+    analysis = TTestIndPower()
+    sample_size = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha)
+
+    print(f"Required sample size per group: {int(np.ceil(sample_size))}")
+    ```
 
 ### 2. Bayesian A/B Test (Beta-Binomial)
-Updating beliefs about conversion rates.
 
-```python
-from scipy.stats import beta
+??? success "View Code Example"
 
-# Prior: Uniform distribution (Beta(1,1))
-alpha_prior = 1
-beta_prior = 1
 
-# Data: Group A
-conversions_A = 120
-failures_A = 880
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Updating beliefs about conversion rates.
 
-# Data: Group B
-conversions_B = 140
-failures_B = 860
+    ```python
+    from scipy.stats import beta
 
-# Posterior
-posterior_A = beta(alpha_prior + conversions_A, beta_prior + failures_A)
-posterior_B = beta(alpha_prior + conversions_B, beta_prior + failures_B)
+    # Prior: Uniform distribution (Beta(1,1))
+    alpha_prior = 1
+    beta_prior = 1
 
-# Probability B > A (Approximate via simulation)
-samples = 100000
-prob_b_better = (posterior_B.rvs(samples) > posterior_A.rvs(samples)).mean()
+    # Data: Group A
+    conversions_A = 120
+    failures_A = 880
 
-print(f"Probability B is better than A: {prob_b_better:.4f}")
-```
+    # Data: Group B
+    conversions_B = 140
+    failures_B = 860
+
+    # Posterior
+    posterior_A = beta(alpha_prior + conversions_A, beta_prior + failures_A)
+    posterior_B = beta(alpha_prior + conversions_B, beta_prior + failures_B)
+
+    # Probability B > A (Approximate via simulation)
+    samples = 100000
+    prob_b_better = (posterior_B.rvs(samples) > posterior_A.rvs(samples)).mean()
+
+    print(f"Probability B is better than A: {prob_b_better:.4f}")
+    ```
 
 ### 3. Bootstrap Confidence Interval
-Calculating CI for non-normal metrics (e.g., Revenue per User).
 
-```python
-import numpy as np
+??? success "View Code Example"
 
-data_control = np.random.lognormal(mean=2, sigma=1, size=1000)
-data_variant = np.random.lognormal(mean=2.1, sigma=1, size=1000)
 
-def bootstrap_mean_diff(data1, data2, n_bootstrap=1000):
-    diffs = []
-    for _ in range(n_bootstrap):
-        # Sample with replacement
-        sample1 = np.random.choice(data1, len(data1), replace=True)
-        sample2 = np.random.choice(data2, len(data2), replace=True)
-        diffs.append(sample2.mean() - sample1.mean())
-    return np.percentile(diffs, [2.5, 97.5])
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Calculating CI for non-normal metrics (e.g., Revenue per User).
 
-ci = bootstrap_mean_diff(data_control, data_variant)
-print(f"95% CI for difference: {ci}")
-```
+    ```python
+    import numpy as np
+
+    data_control = np.random.lognormal(mean=2, sigma=1, size=1000)
+    data_variant = np.random.lognormal(mean=2.1, sigma=1, size=1000)
+
+    def bootstrap_mean_diff(data1, data2, n_bootstrap=1000):
+        diffs = []
+        for _ in range(n_bootstrap):
+            # Sample with replacement
+            sample1 = np.random.choice(data1, len(data1), replace=True)
+            sample2 = np.random.choice(data2, len(data2), replace=True)
+            diffs.append(sample2.mean() - sample1.mean())
+        return np.percentile(diffs, [2.5, 97.5])
+
+    ci = bootstrap_mean_diff(data_control, data_variant)
+    print(f"95% CI for difference: {ci}")
+    ```
 
 ---
 

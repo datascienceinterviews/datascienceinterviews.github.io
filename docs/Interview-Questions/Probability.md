@@ -2318,7 +2318,7 @@ This document provides a curated list of common probability interview questions 
 
 ---
 
-### Average score on a dice role of at most 3 times
+### Average score on a dice role of at most 3 times - Jane Street, Hudson River Trading, Citadel Interview Question
 **Difficulty:** 🔴 Hard | **Tags:** `Probability`, `Expected Value`, `Game Theory` | **Asked by:** Jane Street, Hudson River Trading, Citadel
 
 ??? question "Full Question" 

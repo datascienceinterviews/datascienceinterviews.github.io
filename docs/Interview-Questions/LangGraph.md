@@ -1412,89 +1412,104 @@ This is updated frequently but right now this is the most exhaustive list of typ
 ## Code Examples
 
 ### 1. Basic StateGraph Definition
-```python
-from typing import TypedDict, Annotated, Sequence
-import operator
-from langchain_core.messages import BaseMessage
-from langgraph.graph import StateGraph, END
 
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], operator.add]
+??? success "View Code Example"
 
-def agent(state):
-    # Agent logic here
-    return {"messages": ["Agent response"]}
 
-workflow = StateGraph(AgentState)
-workflow.add_node("agent", agent)
-workflow.set_entry_point("agent")
-workflow.add_edge("agent", END)
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from typing import TypedDict, Annotated, Sequence
+    import operator
+    from langchain_core.messages import BaseMessage
+    from langgraph.graph import StateGraph, END
 
-app = workflow.compile()
-```
+    class AgentState(TypedDict):
+        messages: Annotated[Sequence[BaseMessage], operator.add]
+
+    def agent(state):
+        # Agent logic here
+        return {"messages": ["Agent response"]}
+
+    workflow = StateGraph(AgentState)
+    workflow.add_node("agent", agent)
+    workflow.set_entry_point("agent")
+    workflow.add_edge("agent", END)
+
+    app = workflow.compile()
+    ```
 
 ### 2. Multi-Agent Coordinator (Supervisor)
-```python
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
 
-members = ["researcher", "coder"]
-system_prompt = (
-    "You are a supervisor tasked with managing a conversation between the"
-    " following workers: {members}. Given the following user request,"
-    " respond with the worker to act next. Each worker will perform a"
-    " task and respond with their results and status. When finished,"
-    " respond with FINISH."
-)
-options = ["FINISH"] + members
-function_def = {
-    "name": "route",
-    "description": "Select the next role.",
-    "parameters": {
-        "title": "routeSchema",
-        "type": "object",
-        "properties": {
-            "next": {
-                "title": "Next",
-                "anyOf": [
-                    {"enum": options},
-                ],
-            }
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_openai import ChatOpenAI
+    from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
+
+    members = ["researcher", "coder"]
+    system_prompt = (
+        "You are a supervisor tasked with managing a conversation between the"
+        " following workers: {members}. Given the following user request,"
+        " respond with the worker to act next. Each worker will perform a"
+        " task and respond with their results and status. When finished,"
+        " respond with FINISH."
+    )
+    options = ["FINISH"] + members
+    function_def = {
+        "name": "route",
+        "description": "Select the next role.",
+        "parameters": {
+            "title": "routeSchema",
+            "type": "object",
+            "properties": {
+                "next": {
+                    "title": "Next",
+                    "anyOf": [
+                        {"enum": options},
+                    ],
+                }
+            },
+            "required": ["next"],
         },
-        "required": ["next"],
-    },
-}
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("user", "{messages}"),
-    ("system", "Given the conversation above, who should act next? or should we FINISH?"),
-])
+    }
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("user", "{messages}"),
+        ("system", "Given the conversation above, who should act next? or should we FINISH?"),
+    ])
 
-supervisor_chain = (
-    prompt
-    | ChatOpenAI(model="gpt-4-turbo").bind_functions(functions=[function_def], function_call="route")
-    | JsonOutputFunctionsParser()
-)
-```
+    supervisor_chain = (
+        prompt
+        | ChatOpenAI(model="gpt-4-turbo").bind_functions(functions=[function_def], function_call="route")
+        | JsonOutputFunctionsParser()
+    )
+    ```
 
 ### 3. Human-in-the-loop with Checkpointer
-```python
-from langgraph.checkpoint.memory import MemorySaver
 
-memory = MemorySaver()
-graph = workflow.compile(checkpointer=memory, interrupt_before=["human_review"])
+??? success "View Code Example"
 
-# Run until interruption
-thread = {"configurable": {"thread_id": "1"}}
-for event in graph.stream(inputs, thread):
-    pass
 
-# Review and continue
-full_state = graph.get_state(thread)
-# ... human reviews state ...
-graph.stream(None, thread) # Resume execution
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from langgraph.checkpoint.memory import MemorySaver
+
+    memory = MemorySaver()
+    graph = workflow.compile(checkpointer=memory, interrupt_before=["human_review"])
+
+    # Run until interruption
+    thread = {"configurable": {"thread_id": "1"}}
+    for event in graph.stream(inputs, thread):
+        pass
+
+    # Review and continue
+    full_state = graph.get_state(thread)
+    # ... human reviews state ...
+    graph.stream(None, thread) # Resume execution
+    ```
 
 ---
 

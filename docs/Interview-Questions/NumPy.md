@@ -2542,58 +2542,73 @@ This is updated frequently but right now this is the most exhaustive list of typ
 ## Code Examples
 
 ### 1. Advanced Broadcasting
-```python
-import numpy as np
 
-# Calculating distance matrix between two sets of points
-# A: (3, 2), B: (4, 2)
-A = np.array([[1,1], [2,2], [3,3]])
-B = np.array([[4,4], [5,5], [6,6], [7,7]])
+??? success "View Code Example"
 
-# Shape manipulation for broadcasting
-# shape (3,1,2) - shape (1,4,2) -> shape (3,4,2)
-diff = A[:, np.newaxis, :] - B[np.newaxis, :, :]
 
-# Summing squares along last axis: shape (3,4)
-dists = np.sum(diff**2, axis=-1)
-print(dists)
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import numpy as np
+
+    # Calculating distance matrix between two sets of points
+    # A: (3, 2), B: (4, 2)
+    A = np.array([[1,1], [2,2], [3,3]])
+    B = np.array([[4,4], [5,5], [6,6], [7,7]])
+
+    # Shape manipulation for broadcasting
+    # shape (3,1,2) - shape (1,4,2) -> shape (3,4,2)
+    diff = A[:, np.newaxis, :] - B[np.newaxis, :, :]
+
+    # Summing squares along last axis: shape (3,4)
+    dists = np.sum(diff**2, axis=-1)
+    print(dists)
+    ```
 
 ### 2. Efficient Sliding Window (Stride Tricks)
-```python
-import numpy as np
-from numpy.lib.stride_tricks import as_strided
 
-def sliding_window(arr, window_size):
-    """
-    Efficiently create sliding windows without copying data.
-    """
-    stride = arr.strides[0]
-    shape = (len(arr) - window_size + 1, window_size)
-    strides = (stride, stride)
-    return as_strided(arr, shape=shape, strides=strides)
+??? success "View Code Example"
 
-arr = np.arange(10)
-print(sliding_window(arr, 3))
-```
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import numpy as np
+    from numpy.lib.stride_tricks import as_strided
+
+    def sliding_window(arr, window_size):
+        """
+        Efficiently create sliding windows without copying data.
+        """
+        stride = arr.strides[0]
+        shape = (len(arr) - window_size + 1, window_size)
+        strides = (stride, stride)
+        return as_strided(arr, shape=shape, strides=strides)
+
+    arr = np.arange(10)
+    print(sliding_window(arr, 3))
+    ```
 
 ### 3. Einstein Summation
-```python
-import numpy as np
 
-A = np.random.rand(2, 3)
-B = np.random.rand(3, 4)
-C = np.random.rand(2, 4)
+??? success "View Code Example"
 
-# Matrix multiplication: A @ B
-res_matmul = np.einsum('ik,kj->ij', A, B)
 
-# Dot product of rows in A and C
-res_dot = np.einsum('ij,ij->i', A, C)
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import numpy as np
 
-print("Matmul shape:", res_matmul.shape)
-print("Row dot shape:", res_dot.shape)
-```
+    A = np.random.rand(2, 3)
+    B = np.random.rand(3, 4)
+    C = np.random.rand(2, 4)
+
+    # Matrix multiplication: A @ B
+    res_matmul = np.einsum('ik,kj->ij', A, B)
+
+    # Dot product of rows in A and C
+    res_dot = np.einsum('ij,ij->i', A, C)
+
+    print("Matmul shape:", res_matmul.shape)
+    print("Row dot shape:", res_dot.shape)
+    ```
 
 ---
 

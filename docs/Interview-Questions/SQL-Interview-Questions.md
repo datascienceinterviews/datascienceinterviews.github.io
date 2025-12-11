@@ -4502,81 +4502,106 @@ Master these frequently asked SQL questions with detailed explanations, query ex
 ## Code Examples
 
 ### 1. Nth Highest Salary using DENSE_RANK()
-Finding the Nth highest salary is a classic problem. `DENSE_RANK()` is preferred over `ROW_NUMBER()` or `RANK()` because it handles ties without skipping ranks.
 
-```sql
-WITH RankedSalaries AS (
-    SELECT 
-        salary,
-        DENSE_RANK() OVER (ORDER BY salary DESC) as rank_num
-    FROM employees
-)
-SELECT DISTINCT salary
-FROM RankedSalaries
-WHERE rank_num = :N;
-```
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Finding the Nth highest salary is a classic problem. `DENSE_RANK()` is preferred over `ROW_NUMBER()` or `RANK()` because it handles ties without skipping ranks.
+
+    ```sql
+    WITH RankedSalaries AS (
+        SELECT 
+            salary,
+            DENSE_RANK() OVER (ORDER BY salary DESC) as rank_num
+        FROM employees
+    )
+    SELECT DISTINCT salary
+    FROM RankedSalaries
+    WHERE rank_num = :N;
+    ```
 
 ### 2. Recursive CTE: Employee Hierarchy
-Finding all subordinates of a manager (or traversing a graph/tree structure).
 
-```sql
-WITH RECURSIVE Hierarchy AS (
-    -- Anchor member: Start with the top-level manager
-    SELECT employee_id, name, manager_id, 1 as level
-    FROM employees
-    WHERE manager_id IS NULL
+??? success "View Code Example"
 
-    UNION ALL
 
-    -- Recursive member: Join with the previous level
-    SELECT e.employee_id, e.name, e.manager_id, h.level + 1
-    FROM employees e
-    INNER JOIN Hierarchy h ON e.manager_id = h.employee_id
-)
-SELECT * FROM Hierarchy;
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Finding all subordinates of a manager (or traversing a graph/tree structure).
+
+    ```sql
+    WITH RECURSIVE Hierarchy AS (
+        -- Anchor member: Start with the top-level manager
+        SELECT employee_id, name, manager_id, 1 as level
+        FROM employees
+        WHERE manager_id IS NULL
+
+        UNION ALL
+
+        -- Recursive member: Join with the previous level
+        SELECT e.employee_id, e.name, e.manager_id, h.level + 1
+        FROM employees e
+        INNER JOIN Hierarchy h ON e.manager_id = h.employee_id
+    )
+    SELECT * FROM Hierarchy;
+    ```
 
 ### 3. Running Total and Moving Average
-Using Window Functions for time-series analysis.
 
-```sql
-SELECT 
-    date,
-    sales,
-    SUM(sales) OVER (ORDER BY date) as running_total,
-    AVG(sales) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as 7_day_moving_avg
-FROM daily_sales;
-```
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Using Window Functions for time-series analysis.
+
+    ```sql
+    SELECT 
+        date,
+        sales,
+        SUM(sales) OVER (ORDER BY date) as running_total,
+        AVG(sales) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as 7_day_moving_avg
+    FROM daily_sales;
+    ```
 
 ### 4. Pivot Data (`CASE WHEN` Aggregation)
-Transforming rows into columns (e.g., monthly sales side-by-side).
 
-```sql
-SELECT 
-    product_id,
-    SUM(CASE WHEN month = 'Jan' THEN sales ELSE 0 END) as Jan_Sales,
-    SUM(CASE WHEN month = 'Feb' THEN sales ELSE 0 END) as Feb_Sales,
-    SUM(CASE WHEN month = 'Mar' THEN sales ELSE 0 END) as Mar_Sales
-FROM monthly_sales
-GROUP BY product_id;
-```
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Transforming rows into columns (e.g., monthly sales side-by-side).
+
+    ```sql
+    SELECT 
+        product_id,
+        SUM(CASE WHEN month = 'Jan' THEN sales ELSE 0 END) as Jan_Sales,
+        SUM(CASE WHEN month = 'Feb' THEN sales ELSE 0 END) as Feb_Sales,
+        SUM(CASE WHEN month = 'Mar' THEN sales ELSE 0 END) as Mar_Sales
+    FROM monthly_sales
+    GROUP BY product_id;
+    ```
 
 ### 5. Gap Analysis (Identifying Missing Sequences)
-Finding gaps in sequential data (e.g., missing ID numbers).
 
-```sql
-WITH LaggedData AS (
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    Finding gaps in sequential data (e.g., missing ID numbers).
+
+    ```sql
+    WITH LaggedData AS (
+        SELECT 
+            id, 
+            LEAD(id) OVER (ORDER BY id) as next_id
+        FROM sequences
+    )
     SELECT 
-        id, 
-        LEAD(id) OVER (ORDER BY id) as next_id
-    FROM sequences
-)
-SELECT 
-    id + 1 as gap_start, 
-    next_id - 1 as gap_end
-FROM LaggedData
-WHERE next_id - id > 1;
-```
+        id + 1 as gap_start, 
+        next_id - 1 as gap_end
+    FROM LaggedData
+    WHERE next_id - id > 1;
+    ```
 
 ---
 

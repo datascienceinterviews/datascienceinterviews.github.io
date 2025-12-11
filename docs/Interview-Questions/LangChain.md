@@ -1473,79 +1473,94 @@ This is updated frequently but right now this is the most exhaustive list of typ
 ## Code Examples
 
 ### 1. Basic RAG Pipeline with LCEL
-```python
-from langchain_community.vectorstores import FAISS
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-vectorstore = FAISS.from_texts(["harrison worked at kensho"], embedding=OpenAIEmbeddings())
-retriever = vectorstore.as_retriever()
-template = """Answer the question based only on the following context:
-{context}
+??? success "View Code Example"
 
-Question: {question}
-"""
-prompt = ChatPromptTemplate.from_template(template)
-model = ChatOpenAI()
 
-retrieval_chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | prompt
-    | model
-    | StrOutputParser()
-)
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from langchain_community.vectorstores import FAISS
+    from langchain_core.output_parsers import StrOutputParser
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_core.runnables import RunnablePassthrough
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-retrieval_chain.invoke("where did harrison work?")
-```
+    vectorstore = FAISS.from_texts(["harrison worked at kensho"], embedding=OpenAIEmbeddings())
+    retriever = vectorstore.as_retriever()
+    template = """Answer the question based only on the following context:
+    {context}
+
+    Question: {question}
+    """
+    prompt = ChatPromptTemplate.from_template(template)
+    model = ChatOpenAI()
+
+    retrieval_chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | model
+        | StrOutputParser()
+    )
+
+    retrieval_chain.invoke("where did harrison work?")
+    ```
 
 ### 2. Custom Agent with Tool Use
-```python
-from langchain.agents import tool
-from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.prompts import ChatPromptTemplate
 
-@tool
-def multiply(first_int: int, second_int: int) -> int:
-    """Multiply two integers together."""
-    return first_int * second_int
+??? success "View Code Example"
 
-tools = [multiply]
-llm = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant"),
-    ("user", "{input}"),
-    ("placeholder", "{agent_scratchpad}"),
-])
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from langchain.agents import tool
+    from langchain_openai import ChatOpenAI
+    from langchain.agents import AgentExecutor, create_tool_calling_agent
+    from langchain_core.prompts import ChatPromptTemplate
 
-agent = create_tool_calling_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+    @tool
+    def multiply(first_int: int, second_int: int) -> int:
+        """Multiply two integers together."""
+        return first_int * second_int
 
-agent_executor.invoke({"input": "what is 5 times 8?"})
-```
+    tools = [multiply]
+    llm = ChatOpenAI(model="gpt-3.5-turbo-0125")
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant"),
+        ("user", "{input}"),
+        ("placeholder", "{agent_scratchpad}"),
+    ])
+
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+    agent_executor.invoke({"input": "what is 5 times 8?"})
+    ```
 
 ### 3. Structured Output Extraction
-```python
-from typing import List
-from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_openai import ChatOpenAI
 
-class Person(BaseModel):
-    name: str = Field(description="The name of the person")
-    age: int = Field(description="The age of the person")
+??? success "View Code Example"
 
-class People(BaseModel):
-    people: List[Person]
 
-llm = ChatOpenAI()
-structured_llm = llm.with_structured_output(People)
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    from typing import List
+    from langchain_core.pydantic_v1 import BaseModel, Field
+    from langchain_openai import ChatOpenAI
 
-text = "Alice is 30 years old and Bob is 25."
-structured_llm.invoke(text)
-```
+    class Person(BaseModel):
+        name: str = Field(description="The name of the person")
+        age: int = Field(description="The age of the person")
+
+    class People(BaseModel):
+        people: List[Person]
+
+    llm = ChatOpenAI()
+    structured_llm = llm.with_structured_output(People)
+
+    text = "Alice is 30 years old and Bob is 25."
+    structured_llm.invoke(text)
+    ```
 
 ---
 

@@ -2951,57 +2951,72 @@ This is updated frequently but right now this is the most exhaustive list of typ
 ## Code Examples
 
 ### 1. Memory Optimization
-```python
-import pandas as pd
-import numpy as np
 
-# Typical large dataframe creation
-df = pd.DataFrame({
-    'category': np.random.choice(['A', 'B', 'C'], size=1000000),
-    'value': np.random.randn(1000000)
-})
+??? success "View Code Example"
 
-# Memory usage before optimization
-print(df.memory_usage(deep=True).sum() / 1024**2, "MB")
 
-# Optimize by converting object to category
-df['category'] = df['category'].astype('category')
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import pandas as pd
+    import numpy as np
 
-# Memory usage after optimization
-print(df.memory_usage(deep=True).sum() / 1024**2, "MB")
-```
+    # Typical large dataframe creation
+    df = pd.DataFrame({
+        'category': np.random.choice(['A', 'B', 'C'], size=1000000),
+        'value': np.random.randn(1000000)
+    })
+
+    # Memory usage before optimization
+    print(df.memory_usage(deep=True).sum() / 1024**2, "MB")
+
+    # Optimize by converting object to category
+    df['category'] = df['category'].astype('category')
+
+    # Memory usage after optimization
+    print(df.memory_usage(deep=True).sum() / 1024**2, "MB")
+    ```
 
 ### 2. Method Chaining for Clean Code
-```python
-# Instead of multiple intermediate variables
-df = (
-    pd.read_csv('data.csv')
-    .query('status == "active"')
-    .assign(
-        year=lambda x: pd.to_datetime(x['date']).dt.year,
-        total_cost=lambda x: x['price'] * x['quantity']
+
+??? success "View Code Example"
+
+
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    # Instead of multiple intermediate variables
+    df = (
+        pd.read_csv('data.csv')
+        .query('status == "active"')
+        .assign(
+            year=lambda x: pd.to_datetime(x['date']).dt.year,
+            total_cost=lambda x: x['price'] * x['quantity']
+        )
+        .groupby(['year', 'region'])
+        .agg(total_revenue=('total_cost', 'sum'))
+        .reset_index()
+        .sort_values('total_revenue', ascending=False)
     )
-    .groupby(['year', 'region'])
-    .agg(total_revenue=('total_cost', 'sum'))
-    .reset_index()
-    .sort_values('total_revenue', ascending=False)
-)
-```
+    ```
 
 ### 3. Parallel Processing with Swifter
-```python
-import pandas as pd
-import swifter
 
-df = pd.DataFrame({'text': ['some text'] * 100000})
+??? success "View Code Example"
 
-def heavy_processing(text):
-    # Simulate heavy work
-    return text.upper()[::-1]
 
-# Automatic parallelization
-df['processed'] = df['text'].swifter.apply(heavy_processing)
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import pandas as pd
+    import swifter
+
+    df = pd.DataFrame({'text': ['some text'] * 100000})
+
+    def heavy_processing(text):
+        # Simulate heavy work
+        return text.upper()[::-1]
+
+    # Automatic parallelization
+    df['processed'] = df['text'].swifter.apply(heavy_processing)
+    ```
 
 ---
 

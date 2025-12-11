@@ -73,6 +73,8 @@ def on_post_build(config, **kwargs):
             # 1. Detect Question Header
             match_q = question_pattern.match(line)
             if match_q:
+                question_text = match_q.group(1).strip()
+
                 # Save previous question if exists
                 if current_question:
                     if answer_lines:
@@ -80,12 +82,12 @@ def on_post_build(config, **kwargs):
                         current_question['answer'] = md.convert(raw_answer) if md else raw_answer
                         if md: md.reset()
                     questions.append(current_question)
-                
+
                 # Start new question
                 current_question = {
                     "id": len(questions),
                     "topic": topic,
-                    "question": match_q.group(1).strip(),
+                    "question": question_text,
                     "difficulty": "Unknown",
                     "tags": [],
                     "companies": "Unknown",

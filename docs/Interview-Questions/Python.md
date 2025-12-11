@@ -4486,67 +4486,82 @@ This is updated frequently but right now this is the most exhaustive list of typ
 ## Code Examples
 
 ### 1. Decorator for Timing Functions
-```python
-import time
-import functools
 
-def timer_decorator(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.perf_counter()
-        result = func(*args, **kwargs)
-        end_time = time.perf_counter()
-        run_time = end_time - start_time
-        print(f"Finished {func.__name__!r} in {run_time:.4f} secs")
-        return result
-    return wrapper
+??? success "View Code Example"
 
-@timer_decorator
-def complex_calculation(n):
-    return sum(i**2 for i in range(n))
 
-complex_calculation(1000000)
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import time
+    import functools
+
+    def timer_decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            run_time = end_time - start_time
+            print(f"Finished {func.__name__!r} in {run_time:.4f} secs")
+            return result
+        return wrapper
+
+    @timer_decorator
+    def complex_calculation(n):
+        return sum(i**2 for i in range(n))
+
+    complex_calculation(1000000)
+    ```
 
 ### 2. Context Manager for Files
-```python
-class FileManager:
-    def __init__(self, filename, mode):
-        self.filename = filename
-        self.mode = mode
-        self.file = None
 
-    def __enter__(self):
-        self.file = open(self.filename, self.mode)
-        return self.file
+??? success "View Code Example"
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        if self.file:
-            self.file.close()
 
-# Usage
-# with FileManager('test.txt', 'w') as f:
-#     f.write('Hello, World!')
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    class FileManager:
+        def __init__(self, filename, mode):
+            self.filename = filename
+            self.mode = mode
+            self.file = None
+
+        def __enter__(self):
+            self.file = open(self.filename, self.mode)
+            return self.file
+
+        def __exit__(self, exc_type, exc_value, exc_traceback):
+            if self.file:
+                self.file.close()
+
+    # Usage
+    # with FileManager('test.txt', 'w') as f:
+    #     f.write('Hello, World!')
+    ```
 
 ### 3. Asynchronous Pattern
-```python
-import asyncio
 
-async def fetch_data(delay, id):
-    print(f"Fetching data {id}...")
-    await asyncio.sleep(delay)  # Simulate I/O op
-    print(f"Data {id} fetched")
-    return {"id": id, "data": "sample"}
+??? success "View Code Example"
 
-async def main():
-    # Run tasks concurrently
-    tasks = [fetch_data(1, 1), fetch_data(2, 2), fetch_data(1.5, 3)]
-    results = await asyncio.gather(*tasks)
-    print(results)
 
-# asyncio.run(main())
-```
+    **Difficulty:** 🟢 Easy | **Tags:** `Code Example` | **Asked by:** Code Pattern
+    ```python
+    import asyncio
+
+    async def fetch_data(delay, id):
+        print(f"Fetching data {id}...")
+        await asyncio.sleep(delay)  # Simulate I/O op
+        print(f"Data {id} fetched")
+        return {"id": id, "data": "sample"}
+
+    async def main():
+        # Run tasks concurrently
+        tasks = [fetch_data(1, 1), fetch_data(2, 2), fetch_data(1.5, 3)]
+        results = await asyncio.gather(*tasks)
+        print(results)
+
+    # asyncio.run(main())
+    ```
 
 ---
 
