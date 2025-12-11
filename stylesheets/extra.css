@@ -70,3 +70,22 @@
             mask-image: var(--md-admonition-icon--online-resources);
   }
 
+
+/* Glowing Flashcards Nav Item */
+.md-nav__link[href*="flashcards"] {
+    color: #7c4dff !important; /* Make it pop with primary accent color */
+    font-weight: bold;
+    animation: nav-pulse 2s infinite;
+}
+
+@keyframes nav-pulse {
+    0% {
+        text-shadow: 0 0 0 rgba(124, 77, 255, 0);
+    }
+    50% {
+        text-shadow: 0 0 10px rgba(124, 77, 255, 0.7);
+    }
+    100% {
+        text-shadow: 0 0 0 rgba(124, 77, 255, 0);
+    }
+}
