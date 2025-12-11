@@ -53,7 +53,7 @@ hide:
 
         Questions can be removed if they are no longer popular in interview circles and added as new question banks are released.
 
-        - <span class="pulse-text">[📚 Interview Question Resources](Interview-Questions/Interview-Question-Resources.md) - **Community-curated sources for all topics**</span>
+        - [📇 Flashcards](flashcards.md){: .glowing-link }
         - [DSA (Data Structures & Algorithms)](Interview-Questions/data-structures-algorithms.md)
         - [System Design](Interview-Questions/System-design.md)
         - [Natural Language Processing (NLP)](Interview-Questions/Natural-Language-Processing.md)
@@ -67,6 +67,7 @@ hide:
         - [Scikit-Learn](Interview-Questions/Scikit-Learn.md)
         - [LangChain](Interview-Questions/LangChain.md)
         - [LangGraph](Interview-Questions/LangGraph.md)
+        - [Interview Question Resources](Interview-Questions/Interview-Question-Resources.md) - **Community-curated sources for all topics**
 
 -   ??? cheat-sheet ":octicons-arrow-right-24: __Cheat Sheets__"
 

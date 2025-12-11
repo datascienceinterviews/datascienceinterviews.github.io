@@ -2396,6 +2396,8 @@ This document provides a curated list of common probability interview questions 
 
     Possibilities
 
+    | 1st role score | Probability | 2nd role score (Exp) | Probability/Note |
+    | :---: | :---: | :---: | :---: |
     | 1 | 1/6 | 4.25 | 1/6 |
     | 2 | 1/6 | 4.25 | 1/6 |
     | 3 | 1/6 | 4.25 | 1/6 |

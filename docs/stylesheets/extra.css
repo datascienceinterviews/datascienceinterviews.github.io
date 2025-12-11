@@ -1,72 +1,113 @@
 :root {
-    --md-admonition-icon--interview-questions: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M192 0c-41.8 0-77.4 26.7-90.5 64L64 64C28.7 64 0 92.7 0 128L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64l-37.5 0C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM105.8 229.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L216 328.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM160 416a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>')
-  }
-  .md-typeset .admonition.interview-questions,
-  .md-typeset details.interview-questions {
-    border-color: rgb(116, 31, 170);
-  }
-  .md-typeset .interview-questions > .admonition-title,
-  .md-typeset .interview-questions > summary {
-    background-color: rgba(116, 31, 170, 0.1);
-  }
-  .md-typeset .interview-questions > .admonition-title::before,
-  .md-typeset .interview-questions > summary::before {
-    background-color: rgb(116, 31, 170);
-    -webkit-mask-image: var(--md-admonition-icon--interview-questions);
-            mask-image: var(--md-admonition-icon--interview-questions);
-  }
+  --md-admonition-icon--interview-questions: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M192 0c-41.8 0-77.4 26.7-90.5 64L64 64C28.7 64 0 92.7 0 128L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64l-37.5 0C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM105.8 229.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L216 328.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM160 416a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>')
+}
+
+.md-typeset .admonition.interview-questions,
+.md-typeset details.interview-questions {
+  border-color: rgb(116, 31, 170);
+}
+
+.md-typeset .interview-questions>.admonition-title,
+.md-typeset .interview-questions>summary {
+  background-color: rgba(116, 31, 170, 0.1);
+}
+
+.md-typeset .interview-questions>.admonition-title::before,
+.md-typeset .interview-questions>summary::before {
+  background-color: rgb(116, 31, 170);
+  -webkit-mask-image: var(--md-admonition-icon--interview-questions);
+  mask-image: var(--md-admonition-icon--interview-questions);
+}
 
 :root {
-    --md-admonition-icon--cheat-sheet: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>')
-  }
-  .md-typeset .admonition.cheat-sheet,
-  .md-typeset details.cheat-sheet {
-    border-color: rgb(236, 147, 23);
-  }
-  .md-typeset .cheat-sheet > .admonition-title,
-  .md-typeset .cheat-sheet > summary {
-    background-color: rgba(236, 147, 23, 0.1);
-  }
-  .md-typeset .cheat-sheet > .admonition-title::before,
-  .md-typeset .cheat-sheet > summary::before {
-    background-color: rgb(236, 147, 23);
-    -webkit-mask-image: var(--md-admonition-icon--cheat-sheet);
-            mask-image: var(--md-admonition-icon--cheat-sheet);
-  }
+  --md-admonition-icon--cheat-sheet: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>')
+}
 
-  :root {
-    --md-admonition-icon--ml-algo: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32l0 64 120 0c39.8 0 72 32.2 72 72l0 272c0 39.8-32.2 72-72 72l-304 0c-39.8 0-72-32.2-72-72l0-272c0-39.8 32.2-72 72-72l120 0 0-64c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16l32 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-32 0zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l32 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-32 0zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l32 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-32 0zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224l16 0 0 192-16 0c-26.5 0-48-21.5-48-48l0-96c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-16 0 0-192 16 0z"/></svg>')
-  }
-  .md-typeset .admonition.ml-algo,
-  .md-typeset details.ml-algo {
-    border-color: rgb(255, 0, 166);
-  }
-  .md-typeset .ml-algo > .admonition-title,
-  .md-typeset .ml-algo > summary {
-    background-color: rgba(255, 0, 166, 0.1);
-  }
-  .md-typeset .ml-algo > .admonition-title::before,
-  .md-typeset .ml-algo > summary::before {
-    background-color: rgb(255, 0, 166);
-    -webkit-mask-image: var(--md-admonition-icon--ml-algo);
-            mask-image: var(--md-admonition-icon--ml-algo);
-  }
+.md-typeset .admonition.cheat-sheet,
+.md-typeset details.cheat-sheet {
+  border-color: rgb(236, 147, 23);
+}
+
+.md-typeset .cheat-sheet>.admonition-title,
+.md-typeset .cheat-sheet>summary {
+  background-color: rgba(236, 147, 23, 0.1);
+}
+
+.md-typeset .cheat-sheet>.admonition-title::before,
+.md-typeset .cheat-sheet>summary::before {
+  background-color: rgb(236, 147, 23);
+  -webkit-mask-image: var(--md-admonition-icon--cheat-sheet);
+  mask-image: var(--md-admonition-icon--cheat-sheet);
+}
 
 :root {
-    --md-admonition-icon--online-resources: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 32c-8.1 0-16.1 1.4-23.7 4.1L15.8 137.4C6.3 140.9 0 149.9 0 160s6.3 19.1 15.8 22.6l57.9 20.9C57.3 229.3 48 259.8 48 291.9l0 28.1c0 28.4-10.8 57.7-22.3 80.8c-6.5 13-13.9 25.8-22.5 37.6C0 442.7-.9 448.3 .9 453.4s6 8.9 11.2 10.2l64 16c4.2 1.1 8.7 .3 12.4-2s6.3-6.1 7.1-10.4c8.6-42.8 4.3-81.2-2.1-108.7C90.3 344.3 86 329.8 80 316.5l0-24.6c0-30.2 10.2-58.7 27.9-81.5c12.9-15.5 29.6-28 49.2-35.7l157-61.7c8.2-3.2 17.5 .8 20.7 9s-.8 17.5-9 20.7l-157 61.7c-12.4 4.9-23.3 12.4-32.2 21.6l159.6 57.6c7.6 2.7 15.6 4.1 23.7 4.1s16.1-1.4 23.7-4.1L624.2 182.6c9.5-3.4 15.8-12.5 15.8-22.6s-6.3-19.1-15.8-22.6L343.7 36.1C336.1 33.4 328.1 32 320 32zM128 408c0 35.3 86 72 192 72s192-36.7 192-72L496.7 262.6 354.5 314c-11.1 4-22.8 6-34.5 6s-23.5-2-34.5-6L143.3 262.6 128 408z"/></svg>')
-  }
-  .md-typeset .admonition.online-resources,
-  .md-typeset details.online-resources {
-    border-color: rgb(43, 155, 70);
-  }
-  .md-typeset .online-resources > .admonition-title,
-  .md-typeset .online-resources > summary {
-    background-color: rgba(43, 155, 70, 0.1);
-  }
-  .md-typeset .online-resources > .admonition-title::before,
-  .md-typeset .online-resources > summary::before {
-    background-color: rgb(43, 155, 70);
-    -webkit-mask-image: var(--md-admonition-icon--online-resources);
-            mask-image: var(--md-admonition-icon--online-resources);
+  --md-admonition-icon--ml-algo: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32l0 64 120 0c39.8 0 72 32.2 72 72l0 272c0 39.8-32.2 72-72 72l-304 0c-39.8 0-72-32.2-72-72l0-272c0-39.8 32.2-72 72-72l120 0 0-64c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16l32 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-32 0zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l32 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-32 0zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l32 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-32 0zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224l16 0 0 192-16 0c-26.5 0-48-21.5-48-48l0-96c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-16 0 0-192 16 0z"/></svg>')
+}
+
+.md-typeset .admonition.ml-algo,
+.md-typeset details.ml-algo {
+  border-color: rgb(255, 0, 166);
+}
+
+.md-typeset .ml-algo>.admonition-title,
+.md-typeset .ml-algo>summary {
+  background-color: rgba(255, 0, 166, 0.1);
+}
+
+.md-typeset .ml-algo>.admonition-title::before,
+.md-typeset .ml-algo>summary::before {
+  background-color: rgb(255, 0, 166);
+  -webkit-mask-image: var(--md-admonition-icon--ml-algo);
+  mask-image: var(--md-admonition-icon--ml-algo);
+}
+
+:root {
+  --md-admonition-icon--online-resources: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 32c-8.1 0-16.1 1.4-23.7 4.1L15.8 137.4C6.3 140.9 0 149.9 0 160s6.3 19.1 15.8 22.6l57.9 20.9C57.3 229.3 48 259.8 48 291.9l0 28.1c0 28.4-10.8 57.7-22.3 80.8c-6.5 13-13.9 25.8-22.5 37.6C0 442.7-.9 448.3 .9 453.4s6 8.9 11.2 10.2l64 16c4.2 1.1 8.7 .3 12.4-2s6.3-6.1 7.1-10.4c8.6-42.8 4.3-81.2-2.1-108.7C90.3 344.3 86 329.8 80 316.5l0-24.6c0-30.2 10.2-58.7 27.9-81.5c12.9-15.5 29.6-28 49.2-35.7l157-61.7c8.2-3.2 17.5 .8 20.7 9s-.8 17.5-9 20.7l-157 61.7c-12.4 4.9-23.3 12.4-32.2 21.6l159.6 57.6c7.6 2.7 15.6 4.1 23.7 4.1s16.1-1.4 23.7-4.1L624.2 182.6c9.5-3.4 15.8-12.5 15.8-22.6s-6.3-19.1-15.8-22.6L343.7 36.1C336.1 33.4 328.1 32 320 32zM128 408c0 35.3 86 72 192 72s192-36.7 192-72L496.7 262.6 354.5 314c-11.1 4-22.8 6-34.5 6s-23.5-2-34.5-6L143.3 262.6 128 408z"/></svg>')
+}
+
+.md-typeset .admonition.online-resources,
+.md-typeset details.online-resources {
+  border-color: rgb(43, 155, 70);
+}
+
+.md-typeset .online-resources>.admonition-title,
+.md-typeset .online-resources>summary {
+  background-color: rgba(43, 155, 70, 0.1);
+}
+
+.md-typeset .online-resources>.admonition-title::before,
+.md-typeset .online-resources>summary::before {
+  background-color: rgb(43, 155, 70);
+  -webkit-mask-image: var(--md-admonition-icon--online-resources);
+  mask-image: var(--md-admonition-icon--online-resources);
+}
+
+
+/* Glowing Flashcards Nav Item */
+.md-nav__link[href*="flashcards"] {
+  color: #7c4dff !important;
+  /* Make it pop with primary accent color */
+  font-weight: bold;
+  animation: nav-pulse 2s infinite;
+}
+
+@keyframes nav-pulse {
+  0% {
+    text-shadow: 0 0 0 rgba(124, 77, 255, 0);
   }
 
+  50% {
+    text-shadow: 0 0 10px rgba(124, 77, 255, 0.7);
+  }
+
+  100% {
+    text-shadow: 0 0 0 rgba(124, 77, 255, 0);
+  }
+}
+
+/* Generic Glowing Link */
+.glowing-link {
+  color: #7c4dff !important;
+  font-weight: bold;
+  animation: nav-pulse 2s infinite;
+}
