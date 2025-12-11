@@ -405,14 +405,20 @@ document.addEventListener('DOMContentLoaded', function () {
             font-size: 0.85em;
         }
         .badge {
-            padding: 4px 8px;
+            padding: 3px 6px;
             border-radius: 4px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.75rem;
+            font-weight: 600;
+            font-size: 0.65rem;
         }
-        .topic-badge { background: var(--md-primary-fg-color, #5e35b1); color: white; }
-        .difficulty-badge { border: 1px solid currentColor; }
+        .topic-badge {
+            background: var(--md-primary-fg-color, #5e35b1);
+            color: white;
+            text-transform: none;
+        }
+        .difficulty-badge {
+            border: 1px solid currentColor;
+            text-transform: uppercase;
+        }
         
         .card-content {
             flex-grow: 1;
@@ -448,20 +454,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
         #progress-indicator {
             background: var(--md-default-bg-color); /* Match card theme */
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-weight: 500;
             font-family: monospace; /* Tech feel */
+            font-size: 0.7rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             border: 1px solid var(--md-default-fg-color--lightest);
             color: var(--md-primary-fg-color);
-            min-width: 80px;
+            min-width: 60px;
             text-align: center;
         }
     `;
     document.head.appendChild(style);
 
     // --- Logic ---
+
+    // Helper function to format difficulty values
+    function formatDifficulty(difficulty) {
+        if (!difficulty) return 'Medium';
+
+        // Remove markdown and emojis
+        let cleaned = difficulty.replace(/\*\*|🔴|🟡|🟢/g, '').trim();
+
+        // Handle various formats
+        const lower = cleaned.toLowerCase();
+        if (lower.includes('easy') || lower.includes('🟢')) return 'Easy';
+        if (lower.includes('medium') || lower.includes('🟡')) return 'Medium';
+        if (lower.includes('hard') || lower.includes('🔴')) return 'Hard';
+
+        // Title case for other values (shouldn't happen with clean data)
+        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+    }
 
     // Helper function to format topic names with proper capitalization
     function formatTopicName(topic) {
@@ -473,14 +497,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Special cases for acronyms and specific terms
         const specialCases = {
-            'nlp': 'NLP',
-            'natural language processing': 'NLP',
+            'natural language processing': 'Natural Language Processing',
             'sql': 'SQL',
             'ab testing': 'A/B Testing',
             'a/b testing': 'A/B Testing',
-            'dsa': 'DSA',
-            'data structures & algorithms': 'DSA',
-            'data structures and algorithms': 'DSA',
+            'data structures & algorithms': 'Data Structures & Algorithms',
+            'data structures and algorithms': 'Data Structures & Algorithms',
+            'data structures algorithms': 'Data Structures & Algorithms',
             'numpy': 'NumPy',
             'pandas': 'Pandas',
             'scikit learn': 'Scikit-Learn',
@@ -488,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'langchain': 'LangChain',
             'langgraph': 'LangGraph',
             'sklearn': 'Scikit-Learn',
-            'machine learning': 'ML',
+            'machine learning': 'Machine Learning',
             'system design': 'System Design',
             'probability': 'Probability'
         };
@@ -699,17 +722,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Front
         document.getElementById('card-topic').textContent = formatTopicName(q.topic);
-        document.getElementById('card-difficulty').textContent = q.difficulty.replace(/\*\*|🔴|🟡|🟢/g, '').trim(); // Strip formatting if raw markdown leaked
+        const formattedDifficulty = formatDifficulty(q.difficulty);
+        document.getElementById('card-difficulty').textContent = formattedDifficulty;
 
         // Remove existing glow classes
         const cardContainer = document.getElementById('flashcard');
         cardContainer.classList.remove('glow-easy', 'glow-medium', 'glow-hard');
 
         let diffColor = '#4caf50'; // Default Green
-        if (q.difficulty.includes('Hard')) {
+        if (formattedDifficulty === 'Hard') {
             diffColor = '#e91e63';
             cardContainer.classList.add('glow-hard');
-        } else if (q.difficulty.includes('Medium')) {
+        } else if (formattedDifficulty === 'Medium') {
             diffColor = '#ffb74d';
             cardContainer.classList.add('glow-medium');
         } else {
