@@ -2383,6 +2383,1245 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
+### How to implement rolling/sliding window operations? - Google, Amazon, Quantitative Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Windowing`, `Time Series`, `Performance` | **Asked by:** Google, Amazon, Citadel, Two Sigma
+
+??? success "View Answer"
+
+    **Using stride tricks (fastest):**
+
+    ```python
+    import numpy as np
+    from numpy.lib.stride_tricks import sliding_window_view
+    
+    data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    
+    # Modern NumPy (1.20+)
+    windows = sliding_window_view(data, window_shape=3)
+    # [[1, 2, 3],
+    #  [2, 3, 4],
+    #  [3, 4, 5], ...]]
+    
+    rolling_mean = windows.mean(axis=1)
+    rolling_max = windows.max(axis=1)
+    
+    # Old method with as_strided
+    from numpy.lib.stride_tricks import as_strided
+    
+    def rolling_window(a, window):
+        shape = (a.size - window + 1, window)
+        strides = (a.strides[0], a.strides[0])
+        return as_strided(a, shape=shape, strides=strides)
+    ```
+
+    **2D (image) sliding windows:**
+
+    ```python
+    # For convolution/pooling operations
+    image = np.random.rand(10, 10)
+    patches = sliding_window_view(image, window_shape=(3, 3))
+    # Shape: (8, 8, 3, 3) - each position has 3x3 patch
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses stride tricks for O(1) memory. Knows sliding_window_view (NumPy 1.20+). Critical for financial/signal processing roles.
+
+---
+
+### Explain np.argpartition() vs np.argsort() - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Algorithms`, `Sorting`, `Performance` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Key Difference:**
+
+    | Method | Time | Use Case |
+    |--------|------|----------|
+    | `argsort()` | O(n log n) | Need fully sorted |
+    | `argpartition()` | O(n) | Need top/bottom k |
+
+    ```python
+    arr = np.array([7, 2, 9, 1, 5, 8])
+    
+    # Full sort - O(n log n)
+    sorted_idx = np.argsort(arr)
+    # [3, 1, 4, 0, 5, 2] - fully sorted indices
+    
+    # Partition - O(n) - much faster!
+    k = 3  # Find 3 smallest
+    partitioned_idx = np.argpartition(arr, k)
+    # [3, 1, 4, 0, 5, 2] or similar
+    # Guarantee: first k are smallest (not sorted among themselves)
+    
+    top_k_idx = partitioned_idx[:k]
+    top_k_values = arr[top_k_idx]
+    
+    # For sorted top k:
+    top_k_sorted = top_k_idx[np.argsort(arr[top_k_idx])]
+    ```
+
+    **Real interview question (Google):**
+
+    ```python
+    # Find top 10 values in 1 million array
+    data = np.random.rand(1_000_000)
+    
+    # Slow: O(n log n)
+    top_10 = np.sort(data)[-10:]
+    
+    # Fast: O(n)
+    indices = np.argpartition(data, -10)[-10:]
+    top_10 = data[indices]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows when full sort is overkill. Uses argpartition for top-k problems. Mentions quickselect algorithm underneath.
+
+---
+
+### How to use np.searchsorted() for binary search? - Google, Amazon, HFT Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Binary Search`, `Algorithms` | **Asked by:** Google, Amazon, Jane Street, Citadel
+
+??? success "View Answer"
+
+    ```python
+    import numpy as np
+    
+    sorted_arr = np.array([1, 3, 5, 7, 9, 11])
+    
+    # Find insertion index
+    idx = np.searchsorted(sorted_arr, 6)  # Returns 3
+    # Means: insert 6 at index 3 to keep sorted
+    
+    # Find multiple values
+    values = np.array([2, 6, 10])
+    indices = np.searchsorted(sorted_arr, values)
+    # [1, 3, 4]
+    
+    # Side='right' for rightmost insertion point
+    np.searchsorted(sorted_arr, 5, side='right')  # 3 (after 5)
+    np.searchsorted(sorted_arr, 5, side='left')   # 2 (before 5)
+    
+    # Check if values exist
+    idx = np.searchsorted(sorted_arr, 5)
+    exists = (idx < len(sorted_arr)) and (sorted_arr[idx] == 5)
+    ```
+
+    **Real application - Time series:**
+
+    ```python
+    # Find events within time window
+    timestamps = np.array([10, 20, 30, 40, 50, 60])  # Sorted
+    
+    start_idx = np.searchsorted(timestamps, 25, side='left')
+    end_idx = np.searchsorted(timestamps, 55, side='right')
+    
+    events_in_window = timestamps[start_idx:end_idx]
+    # [30, 40, 50]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses for efficient lookups in sorted data. Knows O(log n) complexity. Mentions side parameter for duplicates.
+
+---
+
+### How to calculate pairwise distances efficiently? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Broadcasting`, `Linear Algebra`, `ML` | **Asked by:** Google, Meta, Netflix
+
+??? success "View Answer"
+
+    **Problem:** Calculate distances between all pairs of points.
+
+    **Approach 1: Broadcasting (memory intensive)**
+
+    ```python
+    X = np.random.rand(100, 3)  # 100 points in 3D
+    
+    # Expand dims for broadcasting
+    X_expanded = X[:, np.newaxis, :]  # (100, 1, 3)
+    diff = X_expanded - X[np.newaxis, :, :]  # (100, 100, 3)
+    distances = np.sqrt(np.sum(diff**2, axis=-1))  # (100, 100)
+    ```
+
+    **Approach 2: Using formula (memory efficient)**
+
+    ```python
+    # ||a - b||^2 = ||a||^2 + ||b||^2 - 2*a·b
+    X_sq = np.sum(X**2, axis=1)  # (100,)
+    X_sq_col = X_sq[:, np.newaxis]  # (100, 1)
+    X_sq_row = X_sq[np.newaxis, :]  # (1, 100)
+    
+    dot_product = X @ X.T  # (100, 100)
+    distances_sq = X_sq_col + X_sq_row - 2 * dot_product
+    distances = np.sqrt(np.clip(distances_sq, 0, None))  # Clip for numerical stability
+    ```
+
+    **Approach 3: scipy (production)**
+
+    ```python
+    from scipy.spatial.distance import cdist
+    distances = cdist(X, X, metric='euclidean')
+    ```
+
+    | Method | Memory | Speed | Use Case |
+    |--------|--------|-------|----------|
+    | Broadcasting | O(n²×d) | Medium | Small n |
+    | Formula | O(n²) | Fast | Large n |
+    | scipy | O(n²) | Fastest | Production |
+
+    !!! tip "Interviewer's Insight"
+        Knows multiple approaches. Mentions memory vs speed tradeoff. Uses BLAS-optimized matrix multiplication.
+
+---
+
+### What is the difference between np.stack(), np.concatenate(), vstack(), hstack()? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Array Manipulation`, `Stacking` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Quick comparison:**
+
+    | Function | Axis | New Dim? | Arrays Must Have Same Shape? |
+    |----------|------|----------|-------------------------------|
+    | `stack()` | Creates new | Yes | Yes |
+    | `concatenate()` | Specified | No | All except concat axis |
+    | `vstack()` | 0 (rows) | No | Columns match |
+    | `hstack()` | 1 (cols) | No | Rows match |
+
+    ```python
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5, 6])
+    
+    # stack() - creates NEW dimension
+    np.stack([a, b], axis=0)  # [[1,2,3], [4,5,6]], shape (2,3)
+    np.stack([a, b], axis=1)  # [[1,4], [2,5], [3,6]], shape (3,2)
+    
+    # concatenate() - extends existing dimension
+    np.concatenate([a, b])  # [1,2,3,4,5,6], shape (6,)
+    
+    # 2D example
+    A = np.array([[1, 2], [3, 4]])
+    B = np.array([[5, 6], [7, 8]])
+    
+    # vstack - vertically (more rows)
+    np.vstack([A, B])
+    # [[1, 2],
+    #  [3, 4],
+    #  [5, 6],
+    #  [7, 8]]
+    
+    # hstack - horizontally (more columns)
+    np.hstack([A, B])
+    # [[1, 2, 5, 6],
+    #  [3, 4, 7, 8]]
+    
+    # dstack - depth (3rd dimension)
+    np.dstack([A, B])  # shape (2, 2, 2)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows stack creates new axis. Uses vstack/hstack for readability. Mentions column_stack for 1D arrays.
+
+---
+
+### How to use np.meshgrid() and where is it useful? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Grid Generation`, `Plotting`, `Scientific Computing` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Purpose:** Create coordinate matrices from coordinate vectors.
+
+    ```python
+    import numpy as np
+    
+    x = np.array([1, 2, 3])
+    y = np.array([4, 5])
+    
+    # Create 2D grid
+    X, Y = np.meshgrid(x, y)
+    
+    # X = [[1, 2, 3],    Y = [[4, 4, 4],
+    #      [1, 2, 3]]         [5, 5, 5]]
+    
+    # Every (X[i,j], Y[i,j]) is a coordinate
+    ```
+
+    **Real applications:**
+
+    ```python
+    # 1. Function evaluation on grid
+    x = np.linspace(-5, 5, 50)
+    y = np.linspace(-5, 5, 50)
+    X, Y = np.meshgrid(x, y)
+    
+    # Evaluate function z = f(x, y)
+    Z = np.sin(np.sqrt(X**2 + Y**2))  # 2D sinc function
+    
+    # 2. Distance from origin
+    distances = np.sqrt(X**2 + Y**2)
+    
+    # 3. Machine learning feature grid
+    x1_range = np.linspace(0, 10, 100)
+    x2_range = np.linspace(0, 10, 100)
+    X1, X2 = np.meshgrid(x1_range, x2_range)
+    
+    # Predict on grid for decision boundary
+    grid_points = np.c_[X1.ravel(), X2.ravel()]
+    predictions = model.predict(grid_points)
+    predictions = predictions.reshape(X1.shape)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses for plotting, contour plots, decision boundaries. Knows indexing='xy' vs 'ij' parameter.
+
+---
+
+### Explain np.clip() and use cases - Google, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Array Manipulation`, `Data Cleaning` | **Asked by:** Google, Amazon, Meta, Netflix
+
+??? success "View Answer"
+
+    **Purpose:** Limit values to a range [min, max].
+
+    ```python
+    arr = np.array([1, 5, 10, 15, 20])
+    
+    # Clip to [5, 15]
+    clipped = np.clip(arr, 5, 15)
+    # [5, 5, 10, 15, 15]
+    
+    # One-sided clipping
+    np.clip(arr, 10, None)  # [10, 10, 10, 15, 20] - only minimum
+    np.clip(arr, None, 10)  # [1, 5, 10, 10, 10] - only maximum
+    ```
+
+    **Real applications:**
+
+    ```python
+    # 1. Image processing - pixel values in [0, 255]
+    image = np.random.randn(100, 100) * 100 + 128
+    image = np.clip(image, 0, 255).astype(np.uint8)
+    
+    # 2. Gradient clipping (deep learning)
+    gradients = model.compute_gradients()
+    gradients = np.clip(gradients, -1.0, 1.0)
+    
+    # 3. Outlier handling
+    data = np.random.randn(1000)
+    # Clip to 3 standard deviations
+    mean, std = data.mean(), data.std()
+    data_clipped = np.clip(data, mean - 3*std, mean + 3*std)
+    
+    # 4. Winsorization (statistics)
+    lower = np.percentile(data, 5)
+    upper = np.percentile(data, 95)
+    data_winsorized = np.clip(data, lower, upper)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses for outlier handling, numerical stability. Knows winsorization vs trimming difference.
+
+---
+
+### How to use np.percentile() vs np.quantile()? - Google, Amazon, Netflix Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Statistics`, `Percentiles` | **Asked by:** Google, Amazon, Netflix
+
+??? success "View Answer"
+
+    **Difference:** Same function, different input scale.
+
+    | Function | Input Range | Example |
+    |----------|-------------|---------|
+    | `percentile()` | 0-100 | 25, 50, 75 |
+    | `quantile()` | 0-1 | 0.25, 0.5, 0.75 |
+
+    ```python
+    data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    
+    # Percentile (0-100)
+    np.percentile(data, 25)  # 3.25 (25th percentile)
+    np.percentile(data, [25, 50, 75])  # [3.25, 5.5, 7.75]
+    
+    # Quantile (0-1)
+    np.quantile(data, 0.25)  # 3.25 (same)
+    np.quantile(data, [0.25, 0.5, 0.75])  # [3.25, 5.5, 7.75]
+    
+    # Interpolation methods
+    np.percentile(data, 25, method='linear')     # Default
+    np.percentile(data, 25, method='lower')      # Use lower value
+    np.percentile(data, 25, method='higher')     # Use higher value
+    np.percentile(data, 25, method='midpoint')   # Average of bounds
+    np.percentile(data, 25, method='nearest')    # Closest value
+    ```
+
+    **Common use cases:**
+
+    ```python
+    # IQR (Interquartile Range)
+    Q1, Q3 = np.percentile(data, [25, 75])
+    IQR = Q3 - Q1
+    
+    # Outlier detection
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    outliers = (data < lower_bound) | (data > upper_bound)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows interpolation methods. Uses for outlier detection, box plots, data profiling.
+
+---
+
+### What is np.einsum() and when to use it? - Google, DeepMind, OpenAI Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Einstein Summation`, `Linear Algebra`, `Deep Learning` | **Asked by:** Google, DeepMind, OpenAI, Meta
+
+??? success "View Answer"
+
+    **Einstein summation notation** - concise tensor operations.
+
+    **Basic examples:**
+
+    ```python
+    A = np.random.rand(3, 4)
+    B = np.random.rand(4, 5)
+    
+    # Matrix multiplication: C[i,j] = Σ_k A[i,k] * B[k,j]
+    C = np.einsum('ik,kj->ij', A, B)
+    # Same as: A @ B
+    
+    # Transpose
+    At = np.einsum('ij->ji', A)
+    
+    # Trace (diagonal sum)
+    M = np.random.rand(5, 5)
+    trace = np.einsum('ii->', M)
+    # Same as: np.trace(M)
+    
+    # Element-wise product (Hadamard)
+    result = np.einsum('ij,ij->ij', A, A)
+    # Same as: A * A
+    
+    # Sum along axis
+    row_sums = np.einsum('ij->i', A)  # Sum columns
+    col_sums = np.einsum('ij->j', A)  # Sum rows
+    ```
+
+    **Advanced patterns:**
+
+    ```python
+    # Batch matrix multiply
+    batch_A = np.random.rand(10, 3, 4)
+    batch_B = np.random.rand(10, 4, 5)
+    result = np.einsum('bij,bjk->bik', batch_A, batch_B)
+    
+    # Attention mechanism (simplified)
+    Q = np.random.rand(8, 64)  # Queries
+    K = np.random.rand(8, 64)  # Keys
+    V = np.random.rand(8, 64)  # Values
+    
+    scores = np.einsum('qd,kd->qk', Q, K)  # Attention scores
+    # After softmax:
+    output = np.einsum('qk,kd->qd', scores, V)
+    
+    # Outer product
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5])
+    outer = np.einsum('i,j->ij', a, b)
+    ```
+
+    **When to use:**
+
+    - Complex tensor operations
+    - Batch operations
+    - Transformers/attention
+    - Custom contractions
+
+    !!! tip "Interviewer's Insight"
+        Reads einsum notation fluently. Knows when it's clearer than matmul. Mentions optimize='optimal' parameter for speed.
+
+---
+
+### How to use np.unique() effectively? - Google, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Array Operations`, `Data Analysis` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    arr = np.array([3, 1, 2, 3, 1, 2, 2, 4])
+    
+    # Just unique values (sorted)
+    np.unique(arr)  # [1, 2, 3, 4]
+    
+    # With counts
+    values, counts = np.unique(arr, return_counts=True)
+    # values: [1, 2, 3, 4]
+    # counts: [2, 3, 2, 1]
+    
+    # With original indices
+    values, indices = np.unique(arr, return_inverse=True)
+    # indices: [2, 0, 1, 2, 0, 1, 1, 3]
+    # Reconstruction: values[indices] == arr
+    
+    # With first occurrence index
+    values, first_idx = np.unique(arr, return_index=True)
+    # first_idx: [1, 2, 0, 7] - where each value first appears
+    
+    # All at once
+    values, indices, inverse, counts = np.unique(
+        arr, return_index=True, return_inverse=True, return_counts=True
+    )
+    ```
+
+    **Common patterns:**
+
+    ```python
+    # Most frequent element
+    values, counts = np.unique(arr, return_counts=True)
+    most_frequent = values[np.argmax(counts)]
+    
+    # Value counts as dict
+    dict(zip(*np.unique(arr, return_counts=True)))
+    # {1: 2, 2: 3, 3: 2, 4: 1}
+    
+    # Unique rows in 2D
+    matrix = np.array([[1, 2], [3, 4], [1, 2]])
+    unique_rows = np.unique(matrix, axis=0)
+    # [[1, 2],
+    #  [3, 4]]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses return_counts for frequency analysis. Knows axis parameter for unique rows. Mentions sorting behavior.
+
+---
+
+### How to efficiently check array equality with tolerance? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Comparison`, `Numerical Precision` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Problem:** Floating point comparisons need tolerance.
+
+    ```python
+    a = np.array([1.0, 2.0, 3.0])
+    b = np.array([1.0000001, 2.0000001, 3.0000001])
+    
+    # Exact comparison (usually fails for floats)
+    np.array_equal(a, b)  # False
+    
+    # With tolerance - element-wise
+    np.isclose(a, b)  # [True, True, True]
+    np.isclose(a, b, rtol=1e-5, atol=1e-8)
+    # rtol: relative tolerance
+    # atol: absolute tolerance
+    # Formula: |a - b| <= (atol + rtol * |b|)
+    
+    # All elements close
+    np.allclose(a, b)  # True
+    np.allclose(a, b, rtol=1e-5, atol=1e-8)
+    
+    # Manual implementation
+    np.all(np.abs(a - b) < 1e-6)
+    ```
+
+    **Common pitfalls:**
+
+    ```python
+    # NaN handling
+    a = np.array([1.0, np.nan, 3.0])
+    b = np.array([1.0, np.nan, 3.0])
+    
+    np.allclose(a, b)  # False! NaN != NaN
+    np.allclose(a, b, equal_nan=True)  # True
+    
+    # Infinity
+    a = np.array([1.0, np.inf])
+    b = np.array([1.0, np.inf])
+    np.allclose(a, b)  # True (inf == inf)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses allclose for arrays, isclose for element-wise. Knows equal_nan parameter. Explains rtol vs atol.
+
+---
+
+### How to use np.apply_along_axis() vs vectorization? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Iteration`, `Performance` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **apply_along_axis:** Apply function to 1D slices.
+
+    ```python
+    matrix = np.random.rand(5, 3)
+    
+    # Custom function along axis
+    def normalize(x):
+        return (x - x.mean()) / x.std()
+    
+    # Apply to each row
+    normalized = np.apply_along_axis(normalize, 1, matrix)
+    
+    # Apply to each column
+    normalized = np.apply_along_axis(normalize, 0, matrix)
+    ```
+
+    **Vectorization is faster:**
+
+    ```python
+    # Slow - apply_along_axis uses loop
+    result = np.apply_along_axis(np.sum, 1, matrix)
+    
+    # Fast - vectorized
+    result = matrix.sum(axis=1)
+    
+    # Slow
+    result = np.apply_along_axis(lambda x: x.max() - x.min(), 1, matrix)
+    
+    # Fast
+    result = matrix.max(axis=1) - matrix.min(axis=1)
+    ```
+
+    **When to use apply_along_axis:**
+
+    - No vectorized alternative exists
+    - Complex custom logic per slice
+    - Readability over performance
+
+    ```python
+    # Example: Can't easily vectorize
+    def custom_func(row):
+        if row[0] > 0:
+            return row.sum()
+        else:
+            return row.prod()
+    
+    result = np.apply_along_axis(custom_func, 1, matrix)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Prefers vectorization when possible. Knows apply_along_axis is syntactic sugar over loops. Mentions numba/cython for complex cases.
+
+---
+
+### What are structured arrays and when to use them? - Google, Amazon, HFT Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Data Types`, `Structured Data` | **Asked by:** Google, Amazon, Jane Street, Two Sigma
+
+??? success "View Answer"
+
+    **Structured arrays:** Multiple fields per element (like struct in C).
+
+    ```python
+    # Define dtype with named fields
+    dt = np.dtype([('name', 'U10'), ('age', 'i4'), ('salary', 'f8')])
+    
+    # Create structured array
+    employees = np.array([
+        ('Alice', 30, 50000.0),
+        ('Bob', 25, 45000.0),
+        ('Charlie', 35, 60000.0)
+    ], dtype=dt)
+    
+    # Access by field name
+    employees['name']    # ['Alice', 'Bob', 'Charlie']
+    employees['age']     # [30, 25, 35]
+    employees['salary']  # [50000., 45000., 60000.]
+    
+    # Index like normal array
+    employees[0]  # ('Alice', 30, 50000.)
+    employees[0]['name']  # 'Alice'
+    
+    # Sorting by field
+    sorted_by_age = np.sort(employees, order='age')
+    
+    # Multi-field sort
+    sorted_multi = np.sort(employees, order=['age', 'salary'])
+    ```
+
+    **Use cases:**
+
+    ```python
+    # 1. CSV-like data
+    data = np.genfromtxt('data.csv', delimiter=',', 
+                         dtype=[('date', 'U10'), ('price', 'f8')])
+    
+    # 2. Time series with metadata
+    dt = np.dtype([('timestamp', 'datetime64[s]'), 
+                   ('value', 'f8'), 
+                   ('quality', 'i1')])
+    
+    # 3. Financial tick data
+    dt = np.dtype([('symbol', 'U10'), ('price', 'f8'), 
+                   ('volume', 'i8'), ('timestamp', 'i8')])
+    ```
+
+    **Advantages vs alternatives:**
+
+    | | Structured Array | DataFrame | Dict of Arrays |
+    |---|------------------|-----------|----------------|
+    | Speed | Fast | Slower | Slow |
+    | Memory | Compact | More | Most |
+    | Features | Basic | Rich | Flexible |
+
+    !!! tip "Interviewer's Insight"
+        Uses for high-performance structured data. Knows it's faster than Pandas for simple operations. Mentions record arrays (rec.array).
+
+---
+
+### How to use np.histogram() for binning data? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Statistics`, `Data Analysis` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    data = np.random.randn(1000)
+    
+    # Basic histogram
+    counts, bin_edges = np.histogram(data, bins=10)
+    # counts: frequency in each bin
+    # bin_edges: boundaries (length = bins + 1)
+    
+    # Custom bin edges
+    counts, bins = np.histogram(data, bins=[-3, -2, -1, 0, 1, 2, 3])
+    
+    # Equal-width bins in range
+    counts, bins = np.histogram(data, bins=20, range=(-3, 3))
+    
+    # Density (probability)
+    density, bins = np.histogram(data, bins=10, density=True)
+    # density * bin_width = probability
+    ```
+
+    **2D histogram:**
+
+    ```python
+    x = np.random.randn(1000)
+    y = np.random.randn(1000)
+    
+    H, xedges, yedges = np.histogram2d(x, y, bins=20)
+    # H: 2D counts array
+    ```
+
+    **Use cases:**
+
+    ```python
+    # Discretize continuous data
+    ages = np.array([25, 30, 35, 40, 45, 50, 55])
+    bins = [0, 30, 40, 50, 100]
+    bin_indices = np.digitize(ages, bins)
+    # [1, 1, 2, 2, 3, 3, 3]
+    
+    # Equal-frequency binning (quantile-based)
+    quantiles = np.percentile(data, [0, 25, 50, 75, 100])
+    counts, _ = np.histogram(data, bins=quantiles)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows histogram vs histogram2d. Uses digitize for binning. Mentions density normalization.
+
+---
+
+### Explain np.convolve() vs scipy.signal.convolve() - Google, Amazon, CV Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Signal Processing`, `Convolution` | **Asked by:** Google, Amazon, Meta, CV companies
+
+??? success "View Answer"
+
+    **1D Convolution:**
+
+    ```python
+    signal = np.array([1, 2, 3, 4, 5])
+    kernel = np.array([0.5, 1, 0.5])
+    
+    # NumPy convolution
+    result = np.convolve(signal, kernel, mode='same')
+    
+    # Modes:
+    # 'full': full convolution (length = m + n - 1)
+    # 'same': same length as signal
+    # 'valid': only where fully overlapping
+    ```
+
+    **Mode comparison:**
+
+    ```python
+    signal = [1, 2, 3, 4, 5]
+    kernel = [a, b, c]
+    
+    # 'full' (length 7):
+    # [1*c, 1*b+2*c, 1*a+2*b+3*c, ...]
+    
+    # 'same' (length 5):
+    # centered version of full
+    
+    # 'valid' (length 3):
+    # [1*a+2*b+3*c, 2*a+3*b+4*c, 3*a+4*b+5*c]
+    ```
+
+    **Applications:**
+
+    ```python
+    # Moving average
+    window = np.ones(5) / 5
+    smoothed = np.convolve(signal, window, mode='same')
+    
+    # Edge detection (diff filter)
+    kernel = np.array([1, 0, -1])
+    edges = np.convolve(signal, kernel, mode='same')
+    ```
+
+    **NumPy vs scipy:**
+
+    | Feature | NumPy | scipy |
+    |---------|-------|-------|
+    | Dimensions | 1D only | 1D, 2D, nD |
+    | Methods | Direct | FFT, auto, etc |
+    | Speed | Good | Faster (FFT) |
+
+    !!! tip "Interviewer's Insight"
+        Knows convolve vs correlate difference. Uses scipy for 2D/image processing. Mentions FFT-based convolution for large kernels.
+
+---
+
+### How to use np.pad() for array padding? - Google, CV Companies Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Array Manipulation`, `Image Processing` | **Asked by:** Google, Amazon, OpenCV roles
+
+??? success "View Answer"
+
+    ```python
+    arr = np.array([1, 2, 3, 4, 5])
+    
+    # Constant padding
+    np.pad(arr, pad_width=2, mode='constant', constant_values=0)
+    # [0, 0, 1, 2, 3, 4, 5, 0, 0]
+    
+    # Edge mode (repeat edge values)
+    np.pad(arr, 2, mode='edge')
+    # [1, 1, 1, 2, 3, 4, 5, 5, 5]
+    
+    # Reflect mode (mirror)
+    np.pad(arr, 2, mode='reflect')
+    # [3, 2, 1, 2, 3, 4, 5, 4, 3]
+    
+    # Wrap mode (circular)
+    np.pad(arr, 2, mode='wrap')
+    # [4, 5, 1, 2, 3, 4, 5, 1, 2]
+    ```
+
+    **2D padding (images):**
+
+    ```python
+    image = np.random.rand(28, 28)
+    
+    # Pad all sides equally
+    padded = np.pad(image, 2, mode='constant')  # (32, 32)
+    
+    # Different padding per dimension
+    padded = np.pad(image, ((2, 2), (3, 3)), mode='constant')
+    # Top/bottom: 2, Left/right: 3
+    
+    # Asymmetric padding
+    padded = np.pad(image, ((1, 2), (3, 4)), mode='edge')
+    # Top: 1, Bottom: 2, Left: 3, Right: 4
+    ```
+
+    **Custom padding function:**
+
+    ```python
+    def custom_pad(vector, pad_width, iaxis, kwargs):
+        """Custom padding logic"""
+        vector[:pad_width[0]] = -1  # Left pad
+        vector[-pad_width[1]:] = -1  # Right pad
+    
+    padded = np.pad(arr, 2, custom_pad)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Knows modes for different use cases. Uses for convolution "same" output. Mentions symmetric vs reflect difference.
+
+---
+
+### How to efficiently find indices of multiple values? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Indexing`, `Search` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Problem:** Find indices where array contains specific values.
+
+    **Method 1: np.where()**
+
+    ```python
+    arr = np.array([1, 2, 3, 2, 4, 2, 5])
+    
+    # Single value
+    indices = np.where(arr == 2)[0]  # [1, 3, 5]
+    
+    # Multiple values using isin
+    values_to_find = [2, 4]
+    mask = np.isin(arr, values_to_find)
+    indices = np.where(mask)[0]  # [1, 3, 4, 5]
+    ```
+
+    **Method 2: nonzero()**
+
+    ```python
+    indices = np.nonzero(arr == 2)[0]  # Same as where
+    
+    # Multi-dimensional
+    matrix = np.array([[1, 2], [3, 2], [2, 5]])
+    rows, cols = np.where(matrix == 2)
+    # rows: [0, 1, 2], cols: [1, 1, 0]
+    ```
+
+    **Method 3: argwhere() for coordinates**
+
+    ```python
+    coords = np.argwhere(matrix == 2)
+    # [[0, 1],
+    #  [1, 1],
+    #  [2, 0]]
+    ```
+
+    **Performance comparison:**
+
+    ```python
+    # Fast - vectorized
+    mask = np.isin(large_array, values)
+    indices = np.where(mask)[0]
+    
+    # Slow - loop
+    indices = [i for i, x in enumerate(large_array) if x in values]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses isin for multiple values. Knows where returns tuple. Prefers argwhere for coordinate pairs.
+
+---
+
+### How to use np.gradient() for numerical differentiation? - Google, Amazon, Scientific Computing Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Calculus`, `Numerical Methods` | **Asked by:** Google, Amazon, Quantitative firms
+
+??? success "View Answer"
+
+    ```python
+    # 1D gradient
+    x = np.linspace(0, 2*np.pi, 100)
+    y = np.sin(x)
+    
+    # Numerical derivative
+    dy_dx = np.gradient(y, x)
+    # Approximates cos(x)
+    
+    # Central difference formula
+    # dy/dx ≈ (y[i+1] - y[i-1]) / (x[i+1] - x[i-1])
+    
+    # With uniform spacing
+    y = np.array([1, 4, 9, 16, 25])  # x^2
+    gradient = np.gradient(y)  # [3, 4, 5, 6, 7] ≈ 2x
+    ```
+
+    **2D gradient (images):**
+
+    ```python
+    image = np.random.rand(100, 100)
+    
+    # Gradients in both directions
+    grad_y, grad_x = np.gradient(image)
+    
+    # Gradient magnitude
+    magnitude = np.sqrt(grad_x**2 + grad_y**2)
+    
+    # Gradient direction
+    direction = np.arctan2(grad_y, grad_x)
+    ```
+
+    **Higher-order derivatives:**
+
+    ```python
+    y = np.array([1, 4, 9, 16, 25])  # x^2
+    
+    # First derivative
+    dy = np.gradient(y)  # ≈ 2x
+    
+    # Second derivative
+    d2y = np.gradient(dy)  # ≈ 2 (constant)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses for numerical differentiation. Knows it's second-order accurate. Mentions edge handling with forward/backward differences.
+
+---
+
+### Explain memory views with np.asarray() vs np.array() - Google, HFT Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Memory Management`, `Views` | **Asked by:** Google, Amazon, Jane Street, Citadel
+
+??? success "View Answer"
+
+    **Key difference:**
+
+    | Function | Creates Copy? | When |
+    |----------|---------------|------|
+    | `array()` | Always | Input is list or needs conversion |
+    | `asarray()` | Only if needed | Returns view when possible |
+
+    ```python
+    # From list - both create copy
+    lst = [1, 2, 3]
+    a1 = np.array(lst)
+    a2 = np.asarray(lst)
+    
+    # From array - different behavior
+    arr = np.array([1, 2, 3])
+    
+    a1 = np.array(arr)     # Creates copy
+    a2 = np.asarray(arr)   # Returns view (same object!)
+    
+    print(a1 is arr)  # False
+    print(a2 is arr)  # True
+    
+    # Modify a2 affects arr
+    a2[0] = 999
+    print(arr[0])  # 999!
+    ```
+
+    **Memory efficiency:**
+
+    ```python
+    large_arr = np.random.rand(10**7)
+    
+    # Creates copy - doubles memory!
+    copy1 = np.array(large_arr)
+    
+    # No copy - same memory
+    view1 = np.asarray(large_arr)
+    
+    # Force copy
+    copy2 = np.array(large_arr, copy=True)  # NumPy 2.0+
+    ```
+
+    **Type conversion:**
+
+    ```python
+    arr = np.array([1, 2, 3], dtype=np.int32)
+    
+    # asarray with dtype change creates copy
+    arr_f64 = np.asarray(arr, dtype=np.float64)  # Copy
+    print(arr_f64 is arr)  # False
+    
+    # Same dtype - no copy
+    arr_same = np.asarray(arr, dtype=np.int32)  # View
+    print(arr_same is arr)  # True
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses asarray in functions accepting array-like. Knows it prevents unnecessary copies. Mentions asanyarray for subclasses.
+
+---
+
+### How to use np.savez() for multiple arrays efficiently? - Google, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `File I/O`, `Serialization` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    ```python
+    # Save multiple arrays
+    X_train = np.random.rand(1000, 10)
+    y_train = np.random.randint(0, 2, 1000)
+    X_test = np.random.rand(200, 10)
+    y_test = np.random.randint(0, 2, 200)
+    
+    # Uncompressed .npz
+    np.savez('data.npz', 
+             X_train=X_train, y_train=y_train,
+             X_test=X_test, y_test=y_test)
+    
+    # Compressed .npz (slower save, smaller file)
+    np.savez_compressed('data_compressed.npz',
+                        X_train=X_train, y_train=y_train)
+    
+    # Load
+    data = np.load('data.npz')
+    X_train = data['X_train']
+    y_train = data['y_train']
+    
+    # Or unpack
+    with np.load('data.npz') as data:
+        X_train = data['X_train']
+        y_train = data['y_train']
+    
+    # List keys
+    print(data.files)  # ['X_train', 'y_train', 'X_test', 'y_test']
+    ```
+
+    **Single array (.npy):**
+
+    ```python
+    # Save
+    np.save('array.npy', X_train)
+    
+    # Load
+    X_train = np.load('array.npy')
+    ```
+
+    **Comparison:**
+
+    | Format | Arrays | Compression | Speed | Use Case |
+    |--------|--------|-------------|-------|----------|
+    | .npy | 1 | No | Fastest | Single array |
+    | .npz | Multiple | Optional | Fast | Dataset |
+    | pickle | Any Python | Optional | Slow | Complex objects |
+
+    !!! tip "Interviewer's Insight"
+        Uses savez for datasets. Knows compression tradeoff. Mentions allow_pickle=False for security.
+
+---
+
+### How to use np.fromfunction() for array initialization? - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Array Creation`, `Functional` | **Asked by:** Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **Create arrays using function of indices:**
+
+    ```python
+    # Simple example
+    def f(i, j):
+        return i + j
+    
+    arr = np.fromfunction(f, (3, 4), dtype=int)
+    # [[0, 1, 2, 3],
+    #  [1, 2, 3, 4],
+    #  [2, 3, 4, 5]]
+    
+    # Multiplication table
+    def mult_table(i, j):
+        return (i + 1) * (j + 1)
+    
+    table = np.fromfunction(mult_table, (10, 10), dtype=int)
+    
+    # Distance from center
+    def distance_from_center(i, j, center_i=50, center_j=50):
+        return np.sqrt((i - center_i)**2 + (j - center_j)**2)
+    
+    image = np.fromfunction(distance_from_center, (100, 100))
+    ```
+
+    **vs other methods:**
+
+    ```python
+    # Using meshgrid (equivalent but explicit)
+    i, j = np.mgrid[0:3, 0:4]
+    arr = i + j
+    
+    # Using indices
+    i, j = np.indices((3, 4))
+    arr = i + j
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses for pattern generation. Knows indices are passed as separate arguments. Mentions lambda for simple cases.
+
+---
+
+### How to handle large arrays that don't fit in memory? - Google, Amazon, Netflix Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Memory Management`, `Big Data`, `Performance` | **Asked by:** Google, Amazon, Netflix, Data Engineering roles
+
+??? success "View Answer"
+
+    **Strategy 1: Memory mapping**
+
+    ```python
+    # Create memory-mapped array (on disk)
+    large_array = np.memmap('large_file.dat', 
+                            dtype='float32',
+                            mode='w+',
+                            shape=(100000000, 100))
+    
+    # Works like normal array but uses disk
+    large_array[0:1000] = np.random.rand(1000, 100)
+    
+    # Read-only mode for existing file
+    readonly_array = np.memmap('large_file.dat',
+                               dtype='float32',
+                               mode='r',
+                               shape=(100000000, 100))
+    ```
+
+    **Strategy 2: Chunked processing**
+
+    ```python
+    def process_in_chunks(filename, chunk_size=10000):
+        data = np.load(filename, mmap_mode='r')  # Memory-mapped
+        n_samples = len(data)
+        
+        results = []
+        for start in range(0, n_samples, chunk_size):
+            end = min(start + chunk_size, n_samples)
+            chunk = data[start:end]
+            
+            # Process chunk
+            result = chunk.mean(axis=1)
+            results.append(result)
+        
+        return np.concatenate(results)
+    ```
+
+    **Strategy 3: Generators**
+
+    ```python
+    def data_generator(filename, batch_size=32):
+        """Yield batches without loading all data"""
+        data = np.load(filename, mmap_mode='r')
+        n_samples = len(data)
+        
+        for start in range(0, n_samples, batch_size):
+            end = min(start + batch_size, n_samples)
+            yield data[start:end]
+    
+    # Use in training loop
+    for batch in data_generator('huge_dataset.npy'):
+        model.train(batch)
+    ```
+
+    **Strategy 4: Sparse arrays**
+
+    ```python
+    from scipy.sparse import csr_matrix
+    
+    # For mostly-zero arrays
+    dense = np.zeros((10000, 10000))
+    dense[::100, ::100] = 1  # Only 10000 non-zeros
+    
+    # Much less memory
+    sparse = csr_matrix(dense)
+    ```
+
+    !!! tip "Interviewer's Insight"
+        Uses memmap for out-of-core processing. Knows chunking strategies. Mentions Dask for parallel chunked operations.
+
+---
+
 ## Quick Reference: 100+ NumPy Interview Questions
 
 | Sno | Question Title | Practice Links | Companies Asking | Difficulty | Topics |

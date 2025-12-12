@@ -4932,6 +4932,126 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
+### Valid Anagram - Meta, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Hash Table`, `String`, `Sorting` | **Asked by:** Meta, Amazon, Google, Bloomberg
+
+??? success "View Answer"
+
+    **Problem:** Given two strings s and t, return true if t is an anagram of s.
+
+    **Approach 1: Hash Map (Optimal)**
+
+    ```python
+    def is_anagram(s: str, t: str) -> bool:
+        """Check if two strings are anagrams using character count"""
+        if len(s) != len(t):
+            return False
+        
+        from collections import Counter
+        return Counter(s) == Counter(t)
+    
+    # Alternative without Counter
+    def is_anagram_manual(s: str, t: str) -> bool:
+        if len(s) != len(t):
+            return False
+        
+        char_count = {}
+        for char in s:
+            char_count[char] = char_count.get(char, 0) + 1
+        
+        for char in t:
+            if char not in char_count:
+                return False
+            char_count[char] -= 1
+            if char_count[char] < 0:
+                return False
+        
+        return all(count == 0 for count in char_count.values())
+    
+    # One-liner
+    def is_anagram_oneliner(s: str, t: str) -> bool:
+        from collections import Counter
+        return Counter(s) == Counter(t)
+    ```
+
+    **Approach 2: Sorting**
+
+    ```python
+    def is_anagram_sorting(s: str, t: str) -> bool:
+        """Using sorting - simple but slower"""
+        return sorted(s) == sorted(t)
+    ```
+
+    **Approach 3: Array Count (For lowercase letters only)**
+
+    ```python
+    def is_anagram_array(s: str, t: str) -> bool:
+        """Most efficient for lowercase ASCII letters"""
+        if len(s) != len(t):
+            return False
+        
+        count = [0] * 26  # For 'a' to 'z'
+        
+        for i in range(len(s)):
+            count[ord(s[i]) - ord('a')] += 1
+            count[ord(t[i]) - ord('a')] -= 1
+        
+        return all(c == 0 for c in count)
+    ```
+
+    **Complexity Analysis:**
+
+    | Approach | Time | Space | Notes |
+    |----------|------|-------|-------|
+    | Hash Map | O(n) | O(1) | 26 letters max |
+    | Sorting | O(n log n) | O(1) | Simple, clear |
+    | Array Count | O(n) | O(1) | Fastest for ASCII |
+
+    **Follow-up Questions:**
+
+    1. **Unicode support?** Use hash map instead of array
+    2. **Case sensitive?** `.lower()` both strings first
+    3. **Ignore spaces?** Filter whitespace: `s.replace(' ', '')`
+    4. **Group anagrams?** Use sorted string as hash key
+
+    **Real Interview Example:**
+
+    ```python
+    # Group anagrams (LeetCode #49)
+    from collections import defaultdict
+    
+    def group_anagrams(strs):
+        """Group all anagrams together"""
+        anagrams = defaultdict(list)
+        
+        for s in strs:
+            # Use sorted string as key
+            key = ''.join(sorted(s))
+            anagrams[key].append(s)
+        
+        return list(anagrams.values())
+    
+    # Example
+    strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+    print(group_anagrams(strs))
+    # [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
+    ```
+
+    !!! tip "Interviewer's Insight"
+        **What they're testing:** Hash table fundamentals, optimization thinking.
+
+        **Strong answer signals:**
+
+        - Immediately checks length first (optimization)
+        - Knows Counter vs manual hash map vs array counting
+        - Can explain time/space complexity for each approach
+        - Mentions follow-up: "For Unicode, hash map is better than array"
+        - Extends to group anagrams problem naturally
+        - Discusses trade-offs: "Sorting is cleaner code but O(n log n)"
+
+---
+
 ## Quick Reference: 100+ Interview Questions
 
 
