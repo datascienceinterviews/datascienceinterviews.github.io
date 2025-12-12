@@ -2,8 +2,26 @@
 
 {% block announce %}
   <!-- Add announcement here, including arbitrary HTML -->
-  👀 This project is in early stages of development. <strong> 🤗 Please <a href="/Contribute">contribute content</a> if possible! 🤝</strong><br> 
-<small>🫵 You can <b> <a href="/Contribute">SUBMIT</a></b> simple text/markdown content, I will format it! 🙌</small>
+  <style>
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+      20%, 40%, 60%, 80% { transform: translateX(2px); }
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 5px rgba(255, 165, 0, 0.5); }
+      50% { text-shadow: 0 0 20px rgba(255, 165, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.6); }
+    }
+    .shake-text {
+      display: inline-block;
+      animation: shake 3s ease-in-out infinite;
+    }
+    .glow-link {
+      animation: glow 2s ease-in-out infinite;
+      font-weight: bold;
+    }
+  </style>
+  <span class="shake-text">🚀 <a href="/flashcards" class="glow-link">Flashcards</a> feature is live!</span>
 <meta name="google-adsense-account" content="ca-pub-4988388949365963">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4988388949365963"
     crossorigin="anonymous"></script>

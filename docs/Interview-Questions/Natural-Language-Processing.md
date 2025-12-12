@@ -23,19 +23,325 @@ This document provides a curated list of 100 NLP interview questions commonly as
 
 ??? success "View Answer"
 
-    **Core Components:**
-    
-    1. **Self-Attention:** Weighs importance of each token
-    2. **Multi-Head Attention:** Parallel attention for different relationships
-    3. **Positional Encoding:** Adds position information
-    4. **Feed-Forward Networks:** Per-position transformations
-    
+    ## Architecture Overview
+
+    The Transformer architecture ("Attention is All You Need", 2017) revolutionized NLP by replacing recurrence with attention mechanisms, enabling parallelization and better long-range dependency modeling.
+
+    **Key Parameters (BERT-base):**
+    - **Layers:** 12 encoder layers
+    - **Hidden size (d_model):** 768
+    - **Attention heads:** 12
+    - **Parameters:** 110M
+    - **Max sequence length:** 512 tokens
+    - **FFN dimension:** 3072 (4× d_model)
+
+    ## Core Architecture
+
     $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
-    
-    **Key Innovation:** Parallelizable (unlike RNNs), captures long-range dependencies.
+
+    **Multi-Head Attention:**
+
+    $$\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O$$
+
+    where $\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$
+
+    ## Production Implementation (200 lines)
+
+    ```python
+    # transformer.py
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    import math
+
+    class MultiHeadAttention(nn.Module):
+        """
+        Multi-Head Self-Attention
+
+        Time: O(n² × d) where n=seq_len, d=d_model
+        Space: O(n²) for attention matrix
+        """
+
+        def __init__(self, d_model=768, num_heads=12, dropout=0.1):
+            super().__init__()
+            assert d_model % num_heads == 0
+
+            self.d_model = d_model
+            self.num_heads = num_heads
+            self.d_k = d_model // num_heads  # 64 per head
+
+            # Linear projections
+            self.W_q = nn.Linear(d_model, d_model)
+            self.W_k = nn.Linear(d_model, d_model)
+            self.W_v = nn.Linear(d_model, d_model)
+            self.W_o = nn.Linear(d_model, d_model)
+
+            self.dropout = nn.Dropout(dropout)
+
+        def scaled_dot_product_attention(self, Q, K, V, mask=None):
+            """
+            Scaled Dot-Product Attention
+
+            Args:
+                Q, K, V: [batch, heads, seq_len, d_k]
+                mask: [batch, 1, 1, seq_len] for padding
+
+            Returns:
+                output: [batch, heads, seq_len, d_k]
+                attention_weights: [batch, heads, seq_len, seq_len]
+            """
+            # scores: [batch, heads, seq_len, seq_len]
+            scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+
+            # Apply mask (padding = -inf)
+            if mask is not None:
+                scores = scores.masked_fill(mask == 0, float('-inf'))
+
+            # Attention weights
+            attn_weights = F.softmax(scores, dim=-1)
+            attn_weights = self.dropout(attn_weights)
+
+            # Apply to values
+            output = torch.matmul(attn_weights, V)
+            return output, attn_weights
+
+        def split_heads(self, x):
+            """[batch, seq, d_model] → [batch, heads, seq, d_k]"""
+            batch_size, seq_len, d_model = x.size()
+            return x.view(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+
+        def combine_heads(self, x):
+            """[batch, heads, seq, d_k] → [batch, seq, d_model]"""
+            batch_size, _, seq_len, d_k = x.size()
+            return x.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
+
+        def forward(self, query, key, value, mask=None):
+            # Linear projections and split heads
+            Q = self.split_heads(self.W_q(query))
+            K = self.split_heads(self.W_k(key))
+            V = self.split_heads(self.W_v(value))
+
+            # Attention
+            attn_output, attn_weights = self.scaled_dot_product_attention(Q, K, V, mask)
+
+            # Combine heads and final projection
+            output = self.combine_heads(attn_output)
+            output = self.W_o(output)
+
+            return output, attn_weights
+
+    class PositionWiseFeedForward(nn.Module):
+        """
+        FFN(x) = max(0, xW₁ + b₁)W₂ + b₂
+
+        Applied independently to each position
+        """
+
+        def __init__(self, d_model=768, d_ff=3072, dropout=0.1):
+            super().__init__()
+            self.linear1 = nn.Linear(d_model, d_ff)
+            self.linear2 = nn.Linear(d_ff, d_model)
+            self.dropout = nn.Dropout(dropout)
+
+        def forward(self, x):
+            # x: [batch, seq_len, d_model]
+            return self.linear2(self.dropout(F.gelu(self.linear1(x))))
+
+    class TransformerEncoderLayer(nn.Module):
+        """Single encoder layer with self-attention + FFN"""
+
+        def __init__(self, d_model=768, num_heads=12, d_ff=3072, dropout=0.1):
+            super().__init__()
+
+            self.self_attn = MultiHeadAttention(d_model, num_heads, dropout)
+            self.ffn = PositionWiseFeedForward(d_model, d_ff, dropout)
+
+            self.norm1 = nn.LayerNorm(d_model)
+            self.norm2 = nn.LayerNorm(d_model)
+
+            self.dropout1 = nn.Dropout(dropout)
+            self.dropout2 = nn.Dropout(dropout)
+
+        def forward(self, x, mask=None):
+            # Self-attention + residual + norm
+            attn_output, _ = self.self_attn(x, x, x, mask)
+            x = self.norm1(x + self.dropout1(attn_output))
+
+            # FFN + residual + norm
+            ffn_output = self.ffn(x)
+            x = self.norm2(x + self.dropout2(ffn_output))
+
+            return x
+
+    class PositionalEncoding(nn.Module):
+        """
+        Sinusoidal positional encoding
+
+        PE(pos, 2i) = sin(pos / 10000^(2i/d_model))
+        PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+        """
+
+        def __init__(self, d_model=768, max_len=512):
+            super().__init__()
+
+            # Create PE matrix [max_len, d_model]
+            pe = torch.zeros(max_len, d_model)
+            position = torch.arange(0, max_len).unsqueeze(1).float()
+
+            div_term = torch.exp(
+                torch.arange(0, d_model, 2).float() *
+                (-math.log(10000.0) / d_model)
+            )
+
+            pe[:, 0::2] = torch.sin(position * div_term)
+            pe[:, 1::2] = torch.cos(position * div_term)
+
+            pe = pe.unsqueeze(0)  # [1, max_len, d_model]
+            self.register_buffer('pe', pe)
+
+        def forward(self, x):
+            seq_len = x.size(1)
+            return x + self.pe[:, :seq_len, :]
+
+    class TransformerEncoder(nn.Module):
+        """Complete Transformer Encoder (BERT-style)"""
+
+        def __init__(
+            self,
+            vocab_size=30522,
+            d_model=768,
+            num_layers=12,
+            num_heads=12,
+            d_ff=3072,
+            max_len=512,
+            dropout=0.1
+        ):
+            super().__init__()
+
+            self.embedding = nn.Embedding(vocab_size, d_model)
+            self.pos_encoding = PositionalEncoding(d_model, max_len)
+
+            self.layers = nn.ModuleList([
+                TransformerEncoderLayer(d_model, num_heads, d_ff, dropout)
+                for _ in range(num_layers)
+            ])
+
+            self.dropout = nn.Dropout(dropout)
+            self.d_model = d_model
+
+        def forward(self, input_ids, attention_mask=None):
+            """
+            Args:
+                input_ids: [batch, seq_len]
+                attention_mask: [batch, seq_len] (1=real, 0=padding)
+
+            Returns:
+                [batch, seq_len, d_model]
+            """
+            # Token embeddings + scaling
+            x = self.embedding(input_ids) * math.sqrt(self.d_model)
+
+            # Add positional encoding
+            x = self.pos_encoding(x)
+            x = self.dropout(x)
+
+            # Prepare attention mask [batch, 1, 1, seq_len]
+            if attention_mask is not None:
+                attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
+
+            # Pass through layers
+            for layer in self.layers:
+                x = layer(x, attention_mask)
+
+            return x
+
+    # Example
+    if __name__ == "__main__":
+        model = TransformerEncoder(
+            vocab_size=30522,  # BERT vocab
+            d_model=768,
+            num_layers=12,
+            num_heads=12
+        )
+
+        input_ids = torch.randint(0, 30522, (2, 10))  # batch=2, seq=10
+        mask = torch.ones(2, 10)
+
+        output = model(input_ids, mask)
+        print(f"Output shape: {output.shape}")  # [2, 10, 768]
+
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"Parameters: {total_params:,}")  # ~110M
+    ```
+
+    ## Architecture Comparison
+
+    | Model | Type | Params | Context | Training | Best For |
+    |-------|------|--------|---------|----------|----------|
+    | **BERT** | Encoder | 110M-340M | 512 | Days (TPUs) | Classification, NER, QA |
+    | **GPT-3** | Decoder | 175B | 2048 | Months (GPUs) | Generation, few-shot |
+    | **T5** | Enc-Dec | 220M-11B | 512 | Weeks (TPUs) | Translation, summarization |
+    | **LLaMA** | Decoder | 7B-65B | 2048 | Weeks (GPUs) | Open-source generation |
+
+    ## Key Innovations Explained
+
+    **1. Why √d_k Scaling?**
+    - **Problem:** For large d_k, dot products grow large → softmax saturates
+    - **Impact:** Gradients vanish, training fails
+    - **Solution:** Divide by √d_k to normalize variance
+    - **Math:** Var(Q·K) = d_k, so Var(Q·K/√d_k) = 1
+
+    **2. Multi-Head Attention Benefits**
+    - Different heads learn different patterns:
+      - **Head 1:** Syntactic dependencies (subject-verb agreement)
+      - **Head 2:** Semantic relationships
+      - **Head 3:** Coreference resolution
+    - **12 heads × 64-dim = 768-dim** (same as single-head)
+
+    **3. Position Encoding**
+    - **Why needed:** Self-attention is permutation-invariant
+    - **Sinusoidal advantage:** Generalizes to longer sequences
+    - **Modern alternatives:** Learned PE, RoPE, ALiBi
+
+    ## Common Pitfalls
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **O(n²) memory** | OOM for long sequences (>4K) | Flash Attention, sparse patterns |
+    | **No positional info** | Model ignores token order | Positional encoding |
+    | **Padding inefficiency** | Wasted compute | Dynamic batching, pack sequences |
+    | **Attention collapse** | All weights uniform | Proper init, gradient clipping |
+    | **512 token limit** | Can't process long documents | Longformer, Big Bird, chunking |
+
+    ## Real-World Systems
+
+    **Google BERT (2018):**
+    - **Training:** 16 TPUs × 4 days, Wikipedia + BooksCorpus
+    - **Impact:** SotA on 11 NLP tasks, pre-training revolution
+    - **Production:** Powers Google Search understanding
+
+    **OpenAI GPT-3 (2020):**
+    - **Scale:** 175B params, 96 layers, 96 heads
+    - **Training:** $4.6M cost, 300B tokens
+    - **Innovation:** Few-shot learning without fine-tuning
+    - **Limitation:** 2K context (GPT-4: 128K with improvements)
+
+    **Meta LLaMA (2023):**
+    - **Efficiency:** 65B params matches GPT-3 175B
+    - **Improvements:** RoPE, SwiGLU, RMSNorm
+    - **Training:** 1.4T tokens, 2048 A100 GPUs
+    - **Open-source:** Democratized LLM access
 
     !!! tip "Interviewer's Insight"
-        Knows why $\sqrt{d_k}$ scaling matters and can explain attention mechanism.
+        **Strong candidates:**
+
+        - Can implement scaled dot-product attention from scratch with correct tensor shapes
+        - Explain √d_k scaling mathematically (prevents softmax saturation)
+        - Understand O(n²) complexity and solutions (Flash Attention reduces to O(n))
+        - Know when to use BERT vs GPT vs T5 (classification vs generation vs sequence-to-sequence)
+        - Mention recent advances: RoPE for longer context, Flash Attention for efficiency
+        - Discuss production concerns: quantization (INT8 inference), distillation (DistilBERT), ONNX export
+        - Reference real impact: "BERT improved Google Search relevance by 10%"
 
 ---
 

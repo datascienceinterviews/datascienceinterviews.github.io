@@ -4942,19 +4942,707 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Schema Design:**
-    - Star schema (fact + dimension tables)
-    - Slowly changing dimensions (SCD Type 1/2)
-    
-    **Technology Stack:**
-    - Storage: S3, GCS
-    - Processing: Spark, DBT
-    - Query: BigQuery, Snowflake, Redshift
-    
-    **Partitioning:** By date for time-series data.
+    ## Scale Requirements
+
+    - **Data Volume:** 100TB-10PB total storage
+    - **Daily Ingestion:** 1TB-100TB/day
+    - **Tables:** 100-10K tables (10-100 fact, 50-500 dimension)
+    - **Queries:** 1K-100K queries/day
+    - **Latency:** <5s for dashboards, <30s for ad-hoc, <5min for reports
+    - **Users:** 100-10K analysts/data scientists
+    - **Retention:** 1-7 years historical data
+
+    ## Architecture
+
+    ```
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                      Source Systems                              │
+    │                                                                  │
+    │  [Databases] [APIs] [SaaS Apps] [Event Streams] [Files]        │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   Ingestion Layer (ELT)                          │
+    │                                                                  │
+    │  Batch:                    CDC:                  Streaming:     │
+    │  Fivetran, Airbyte        Debezium             Kafka Connect    │
+    │  (daily/hourly)           (real-time)          (real-time)      │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │              Raw/Staging Layer (S3/GCS/ADLS)                     │
+    │                                                                  │
+    │  /raw/source_name/table_name/yyyy/mm/dd/data.parquet           │
+    │  - Immutable source data                                        │
+    │  - Partitioned by ingestion date                                │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │           Transformation Layer (DBT/Spark/Airflow)               │
+    │                                                                  │
+    │  DBT Models:                                                    │
+    │  1. Staging: Clean, type-cast, standardize                     │
+    │  2. Intermediate: Joins, aggregations, deduplication           │
+    │  3. Marts: Business-ready star/snowflake schemas               │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │         Data Quality Checks (Great Expectations)          │  │
+    │  │  - Schema validation                                      │  │
+    │  │  - Referential integrity                                  │  │
+    │  │  - Business rules (e.g., revenue > 0)                     │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │          Data Warehouse (BigQuery/Snowflake/Redshift)            │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │                 Star Schema Design                        │  │
+    │  │                                                            │  │
+    │  │       Fact Tables:                                        │  │
+    │  │       ┌─────────────────────┐                             │  │
+    │  │       │   fact_sales        │                             │  │
+    │  │       ├─────────────────────┤                             │  │
+    │  │       │ sale_id (PK)        │                             │  │
+    │  │       │ date_key (FK) ──────┼───┐                         │  │
+    │  │       │ product_key (FK) ───┼─┐ │                         │  │
+    │  │       │ customer_key (FK) ──┼┐│ │                         │  │
+    │  │       │ store_key (FK) ─────┼┼┼─┼──┐                      │  │
+    │  │       │ quantity            ││││ │  │                      │  │
+    │  │       │ revenue             ││││ │  │                      │  │
+    │  │       │ cost                ││││ │  │                      │  │
+    │  │       └─────────────────────┘│││ │  │                      │  │
+    │  │                               │││ │  │                      │  │
+    │  │       Dimension Tables:       │││ │  │                      │  │
+    │  │       ┌──────────────┐        │││ │  │                      │  │
+    │  │       │ dim_customer │◄───────┘││ │  │                      │  │
+    │  │       ├──────────────┤         ││ │  │                      │  │
+    │  │       │ customer_key │         ││ │  │                      │  │
+    │  │       │ name         │         ││ │  │                      │  │
+    │  │       │ email        │         ││ │  │                      │  │
+    │  │       │ segment      │         ││ │  │                      │  │
+    │  │       │ valid_from   │ (SCD)   ││ │  │                      │  │
+    │  │       │ valid_to     │ (Type2) ││ │  │                      │  │
+    │  │       └──────────────┘         ││ │  │                      │  │
+    │  │                                ││ │  │                      │  │
+    │  │       ┌──────────────┐         ││ │  │                      │  │
+    │  │       │ dim_product  │◄────────┘│ │  │                      │  │
+    │  │       ├──────────────┤          │ │  │                      │  │
+    │  │       │ product_key  │          │ │  │                      │  │
+    │  │       │ product_name │          │ │  │                      │  │
+    │  │       │ category     │          │ │  │                      │  │
+    │  │       │ brand        │          │ │  │                      │  │
+    │  │       └──────────────┘          │ │  │                      │  │
+    │  │                                 │ │  │                      │  │
+    │  │       ┌──────────────┐          │ │  │                      │  │
+    │  │       │ dim_date     │◄─────────┘ │  │                      │  │
+    │  │       ├──────────────┤            │  │                      │  │
+    │  │       │ date_key     │            │  │                      │  │
+    │  │       │ date         │            │  │                      │  │
+    │  │       │ day_of_week  │            │  │                      │  │
+    │  │       │ month        │            │  │                      │  │
+    │  │       │ quarter      │            │  │                      │  │
+    │  │       │ is_holiday   │            │  │                      │  │
+    │  │       └──────────────┘            │  │                      │  │
+    │  │                                   │  │                      │  │
+    │  │       ┌──────────────┐            │  │                      │  │
+    │  │       │ dim_store    │◄───────────┘  │                      │  │
+    │  │       ├──────────────┤               │                      │  │
+    │  │       │ store_key    │               │                      │  │
+    │  │       │ store_name   │               │                      │  │
+    │  │       │ city         │               │                      │  │
+    │  │       │ country      │               │                      │  │
+    │  │       └──────────────┘               │                      │  │
+    │  └──────────────────────────────────────┘                      │  │
+    │                                                                  │
+    │  Partitioning: fact_sales partitioned by date_key               │
+    │  Clustering: clustered by (customer_key, product_key)           │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    Semantic/Metrics Layer                        │
+    │                                                                  │
+    │  dbt Metrics / LookML / Cube.js:                                │
+    │  - Total Revenue = SUM(revenue)                                 │
+    │  - Average Order Value = AVG(revenue)                           │
+    │  - Customer Lifetime Value = SUM(revenue) per customer          │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   Consumption Layer                              │
+    │                                                                  │
+    │  [BI Tools: Tableau, Looker, Power BI]                          │
+    │  [Data Science: Python, R, Notebooks]                           │
+    │  [Reverse ETL: Back to operational systems]                     │
+    └─────────────────────────────────────────────────────────────────┘
+    ```
+
+    ## Production Implementation (290 lines)
+
+    ```python
+    # data_warehouse.py
+    from typing import List, Dict, Any, Optional
+    from dataclasses import dataclass
+    from datetime import datetime, date
+    from enum import Enum
+    import pandas as pd
+    import logging
+
+    # ============= Configuration =============
+    class SCDType(Enum):
+        """Slowly Changing Dimension types"""
+        TYPE_0 = 0  # No changes
+        TYPE_1 = 1  # Overwrite
+        TYPE_2 = 2  # Add new row with versioning
+        TYPE_3 = 3  # Add new column
+        TYPE_4 = 4  # Separate history table
+
+    @dataclass
+    class WarehouseConfig:
+        """Data warehouse configuration"""
+        warehouse_type: str = "bigquery"  # bigquery, snowflake, redshift
+        project_id: str = "my-project"
+        dataset_id: str = "analytics"
+        partition_field: str = "date_key"
+        cluster_fields: List[str] = None
+
+        def __post_init__(self):
+            if self.cluster_fields is None:
+                self.cluster_fields = ["customer_key", "product_key"]
+
+    config = WarehouseConfig()
+
+    # ============= Star Schema Design =============
+    class StarSchemaDesigner:
+        """Design and implement star schema"""
+
+        def __init__(self):
+            self.logger = logging.getLogger(__name__)
+
+        def generate_fact_table_ddl(
+            self,
+            table_name: str,
+            measures: List[str],
+            dimensions: List[str],
+            partition_by: Optional[str] = None,
+            cluster_by: Optional[List[str]] = None
+        ) -> str:
+            """
+            Generate DDL for fact table with partitioning and clustering
+            """
+            # BigQuery DDL
+            ddl = f"""
+    CREATE TABLE IF NOT EXISTS {config.project_id}.{config.dataset_id}.{table_name}
+    (
+        {table_name}_id INT64 NOT NULL,  -- Surrogate key
+
+        -- Dimension foreign keys
+        {chr(10).join(f'    {dim}_key INT64 NOT NULL,' for dim in dimensions)}
+
+        -- Measures (metrics)
+        {chr(10).join(f'    {measure} FLOAT64,' for measure in measures)}
+
+        -- Audit columns
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP()
+    )
+    """
+
+            # Add partitioning
+            if partition_by:
+                ddl += f"\nPARTITION BY DATE({partition_by})"
+
+            # Add clustering
+            if cluster_by:
+                ddl += f"\nCLUSTER BY {', '.join(cluster_by)}"
+
+            ddl += ";"
+
+            return ddl
+
+        def generate_dimension_table_ddl(
+            self,
+            table_name: str,
+            attributes: List[str],
+            scd_type: SCDType = SCDType.TYPE_1
+        ) -> str:
+            """
+            Generate DDL for dimension table with SCD support
+            """
+            ddl = f"""
+    CREATE TABLE IF NOT EXISTS {config.project_id}.{config.dataset_id}.{table_name}
+    (
+        {table_name}_key INT64 NOT NULL,  -- Surrogate key
+        {table_name}_id STRING NOT NULL,  -- Natural key (business key)
+
+        -- Dimension attributes
+        {chr(10).join(f'    {attr} STRING,' for attr in attributes)}
+    """
+
+            # SCD Type 2 specific columns
+            if scd_type == SCDType.TYPE_2:
+                ddl += """
+        -- SCD Type 2 columns
+        valid_from DATE NOT NULL,
+        valid_to DATE,
+        is_current BOOL NOT NULL DEFAULT TRUE,
+        version INT64 NOT NULL DEFAULT 1,
+    """
+
+            # Audit columns
+            ddl += """
+        -- Audit columns
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP()
+    );
+    """
+
+            return ddl
+
+    # ============= Slowly Changing Dimensions =============
+    class SCDHandler:
+        """Handle Slowly Changing Dimensions"""
+
+        def __init__(self):
+            self.logger = logging.getLogger(__name__)
+
+        def apply_scd_type_1(
+            self,
+            existing_dim: pd.DataFrame,
+            new_data: pd.DataFrame,
+            natural_key: str,
+            attributes: List[str]
+        ) -> pd.DataFrame:
+            """
+            SCD Type 1: Overwrite (no history)
+
+            Simply update the existing record with new values
+            """
+            # Merge on natural key
+            merged = existing_dim.set_index(natural_key).combine_first(
+                new_data.set_index(natural_key)
+            ).reset_index()
+
+            merged['updated_at'] = datetime.now()
+
+            self.logger.info(f"Applied SCD Type 1 to {len(new_data)} records")
+            return merged
+
+        def apply_scd_type_2(
+            self,
+            existing_dim: pd.DataFrame,
+            new_data: pd.DataFrame,
+            natural_key: str,
+            attributes: List[str],
+            effective_date: date = None
+        ) -> pd.DataFrame:
+            """
+            SCD Type 2: Add new row with versioning (preserves history)
+
+            When a dimension changes:
+            1. Mark old record as no longer current (is_current=False, valid_to=today)
+            2. Insert new record with new values (is_current=True, valid_from=today)
+            """
+            if effective_date is None:
+                effective_date = date.today()
+
+            result_records = []
+
+            for _, new_record in new_data.iterrows():
+                # Find existing record with same natural key
+                existing = existing_dim[
+                    (existing_dim[natural_key] == new_record[natural_key]) &
+                    (existing_dim['is_current'] == True)
+                ]
+
+                if existing.empty:
+                    # New dimension member
+                    new_record['valid_from'] = effective_date
+                    new_record['valid_to'] = None
+                    new_record['is_current'] = True
+                    new_record['version'] = 1
+                    new_record['created_at'] = datetime.now()
+                    result_records.append(new_record)
+                else:
+                    # Check if any attributes changed
+                    changed = False
+                    for attr in attributes:
+                        if existing.iloc[0][attr] != new_record[attr]:
+                            changed = True
+                            break
+
+                    if changed:
+                        # Expire old record
+                        old_record = existing.iloc[0].copy()
+                        old_record['valid_to'] = effective_date
+                        old_record['is_current'] = False
+                        old_record['updated_at'] = datetime.now()
+                        result_records.append(old_record)
+
+                        # Insert new record
+                        new_record['valid_from'] = effective_date
+                        new_record['valid_to'] = None
+                        new_record['is_current'] = True
+                        new_record['version'] = existing.iloc[0]['version'] + 1
+                        new_record['created_at'] = datetime.now()
+                        result_records.append(new_record)
+
+                        self.logger.info(
+                            f"Applied SCD Type 2: {natural_key}={new_record[natural_key]}, "
+                            f"version {old_record['version']} → {new_record['version']}"
+                        )
+                    else:
+                        # No change, keep existing
+                        result_records.append(existing.iloc[0])
+
+            return pd.DataFrame(result_records)
+
+        def apply_scd_type_3(
+            self,
+            existing_dim: pd.DataFrame,
+            new_data: pd.DataFrame,
+            natural_key: str,
+            tracked_attributes: List[str]
+        ) -> pd.DataFrame:
+            """
+            SCD Type 3: Add column for previous value (limited history)
+
+            E.g., current_city, previous_city
+            """
+            for _, new_record in new_data.iterrows():
+                mask = existing_dim[natural_key] == new_record[natural_key]
+
+                if mask.any():
+                    for attr in tracked_attributes:
+                        old_value = existing_dim.loc[mask, attr].iloc[0]
+                        new_value = new_record[attr]
+
+                        if old_value != new_value:
+                            # Move current to previous
+                            existing_dim.loc[mask, f'previous_{attr}'] = old_value
+                            existing_dim.loc[mask, attr] = new_value
+                            self.logger.info(f"SCD Type 3: {attr} changed from {old_value} to {new_value}")
+
+            return existing_dim
+
+    # ============= DBT Model Generator =============
+    class DBTModelGenerator:
+        """Generate DBT models for warehouse transformations"""
+
+        def generate_staging_model(self, source_table: str, transformations: Dict[str, str]) -> str:
+            """
+            Generate DBT staging model (cleansing, type casting)
+            """
+            model = f"""
+    -- models/staging/stg_{source_table}.sql
+    {{{{
+        config(
+            materialized='view'
+        )
+    }}}}
+
+    WITH source AS (
+        SELECT * FROM {{{{ source('raw', '{source_table}') }}}}
+    ),
+
+    renamed AS (
+        SELECT
+            {chr(10).join(f'        {old} AS {new},' for old, new in transformations.items())}
+            _loaded_at
+        FROM source
+    )
+
+    SELECT * FROM renamed
+    """
+            return model
+
+        def generate_fact_model(
+            self,
+            fact_name: str,
+            source_tables: List[str],
+            measures: List[str],
+            dimensions: List[str]
+        ) -> str:
+            """
+            Generate DBT fact table model
+            """
+            model = f"""
+    -- models/marts/{fact_name}.sql
+    {{{{
+        config(
+            materialized='incremental',
+            partition_by={{
+                'field': 'date_key',
+                'data_type': 'date',
+                'granularity': 'day'
+            }},
+            cluster_by=['customer_key', 'product_key']
+        )
+    }}}}
+
+    WITH base AS (
+        SELECT * FROM {{{{ ref('stg_{source_tables[0]}') }}}}
+        {f"LEFT JOIN {{{{ ref('stg_{source_tables[1]}') }}}} USING (join_key)" if len(source_tables) > 1 else ''}
+    ),
+
+    final AS (
+        SELECT
+            {{ dbt_utils.generate_surrogate_key([
+                {', '.join(f"'{dim}'" for dim in dimensions)}
+            ]) }} AS {fact_name}_id,
+
+            -- Dimension keys
+            {chr(10).join(f'        {dim}_key,' for dim in dimensions)}
+
+            -- Measures
+            {chr(10).join(f'        {measure},' for measure in measures)}
+
+            CURRENT_TIMESTAMP() AS created_at
+        FROM base
+
+        {{%- if is_incremental() %}}
+        WHERE date_key > (SELECT MAX(date_key) FROM {{{{ this }}}})
+        {{%- endif %}}
+    )
+
+    SELECT * FROM final
+    """
+            return model
+
+        def generate_data_quality_tests(self, table_name: str, unique_cols: List[str], not_null_cols: List[str]) -> str:
+            """
+            Generate DBT data quality tests (YAML)
+            """
+            yaml = f"""
+    # models/{table_name}.yml
+    version: 2
+
+    models:
+      - name: {table_name}
+        description: "Fact table for {table_name}"
+
+        tests:
+          - dbt_expectations.expect_table_row_count_to_be_between:
+              min_value: 1000
+
+        columns:
+          {chr(10).join(f'''
+          - name: {col}
+            tests:
+              - unique
+              - not_null''' for col in unique_cols)}
+
+          {chr(10).join(f'''
+          - name: {col}
+            tests:
+              - not_null''' for col in not_null_cols)}
+
+          - name: revenue
+            tests:
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+                  max_value: 1000000
+    """
+            return yaml
+
+    # ============= Partitioning Strategy =============
+    class PartitioningStrategy:
+        """Determine optimal partitioning strategy"""
+
+        def recommend_partition_strategy(
+            self,
+            table_size_gb: float,
+            query_pattern: str,  # 'time_range', 'full_scan', 'point_lookup'
+            date_range_years: int
+        ) -> Dict[str, Any]:
+            """
+            Recommend partitioning strategy based on usage patterns
+            """
+            recommendations = {}
+
+            # Size-based recommendations
+            if table_size_gb < 10:
+                recommendations['partition'] = None
+                recommendations['reason'] = "Table too small, partitioning overhead not worth it"
+
+            elif query_pattern == 'time_range':
+                # Time-series queries benefit from date partitioning
+                if date_range_years <= 1:
+                    recommendations['partition'] = 'daily'
+                elif date_range_years <= 3:
+                    recommendations['partition'] = 'weekly'
+                else:
+                    recommendations['partition'] = 'monthly'
+
+                recommendations['reason'] = "Time-range queries → date partitioning reduces scan"
+
+            elif query_pattern == 'point_lookup':
+                recommendations['partition'] = None
+                recommendations['cluster_by'] = ['primary_key']
+                recommendations['reason'] = "Point lookups → clustering more effective than partitioning"
+
+            else:  # full_scan
+                recommendations['partition'] = 'monthly'
+                recommendations['reason'] = "Full scans → coarse partitioning for data lifecycle management"
+
+            # Clustering recommendations
+            if table_size_gb > 1:
+                recommendations['cluster_by'] = ['customer_key', 'product_key']
+                recommendations['cluster_reason'] = "Improves JOIN and filter performance"
+
+            return recommendations
+
+    # ============= Example Usage =============
+    def example_warehouse_setup():
+        """Example: Set up star schema for e-commerce analytics"""
+
+        designer = StarSchemaDesigner()
+        scd_handler = SCDHandler()
+        dbt_gen = DBTModelGenerator()
+
+        # 1. Generate fact table DDL
+        fact_sales_ddl = designer.generate_fact_table_ddl(
+            table_name="fact_sales",
+            measures=["quantity", "revenue", "cost", "discount"],
+            dimensions=["date", "customer", "product", "store"],
+            partition_by="date_key",
+            cluster_by=["customer_key", "product_key"]
+        )
+        print("Fact Table DDL:")
+        print(fact_sales_ddl)
+
+        # 2. Generate dimension table DDL with SCD Type 2
+        dim_customer_ddl = designer.generate_dimension_table_ddl(
+            table_name="dim_customer",
+            attributes=["name", "email", "segment", "city", "country"],
+            scd_type=SCDType.TYPE_2
+        )
+        print("\nDimension Table DDL (SCD Type 2):")
+        print(dim_customer_ddl)
+
+        # 3. Apply SCD Type 2 transformation
+        existing_customers = pd.DataFrame({
+            'customer_key': [1, 2],
+            'customer_id': ['C001', 'C002'],
+            'name': ['Alice', 'Bob'],
+            'segment': ['Premium', 'Standard'],
+            'is_current': [True, True],
+            'version': [1, 1],
+            'valid_from': [date(2024, 1, 1), date(2024, 1, 1)],
+            'valid_to': [None, None]
+        })
+
+        new_customer_data = pd.DataFrame({
+            'customer_id': ['C001', 'C003'],
+            'name': ['Alice'],
+            'segment': ['VIP'],  # Alice upgraded from Premium to VIP
+        })
+
+        updated_customers = scd_handler.apply_scd_type_2(
+            existing_customers,
+            new_customer_data,
+            natural_key='customer_id',
+            attributes=['name', 'segment']
+        )
+        print("\nSCD Type 2 Result:")
+        print(updated_customers)
+
+        # 4. Generate DBT fact model
+        fact_model = dbt_gen.generate_fact_model(
+            fact_name="fact_sales",
+            source_tables=["sales_transactions", "products"],
+            measures=["quantity", "revenue", "cost"],
+            dimensions=["date", "customer", "product", "store"]
+        )
+        print("\nDBT Fact Model:")
+        print(fact_model)
+    ```
+
+    ## Technology Comparison
+
+    | Platform | Strengths | Weaknesses | Best For |
+    |----------|-----------|------------|----------|
+    | **BigQuery** | Serverless, fast, columnar, integrates with GCP | Can get expensive at scale, vendor lock-in | GCP users, fast analytics |
+    | **Snowflake** | Multi-cloud, separation of compute/storage, zero-copy cloning | Cost can be high, cold start latency | Multi-cloud, scalability |
+    | **Redshift** | AWS integration, mature, familiar (Postgres-based) | More manual tuning needed | AWS-native, budget-conscious |
+    | **Databricks** | Unified analytics, ML integration, Delta Lake | Complexity, cost | ML-heavy workloads |
+    | **Synapse** | Azure integration, Spark + SQL, serverless | Less mature than competitors | Azure-native environments |
+
+    ## Schema Design Comparison
+
+    | Schema | Structure | Pros | Cons | Use Case |
+    |--------|-----------|------|------|----------|
+    | **Star** | 1 fact + N dimensions (denormalized) | Simple queries, fast joins, BI-friendly | Data redundancy | Most BI/analytics workloads |
+    | **Snowflake** | Normalized dimensions (dimension hierarchies) | Reduces redundancy, easier updates | More joins, complex queries | Highly normalized sources |
+    | **Data Vault** | Hubs, Links, Satellites | Auditability, flexibility | Complex, slower queries | Regulatory/audit-heavy industries |
+    | **One Big Table (OBT)** | Fully denormalized | Simplest queries, fastest | Massive redundancy, hard to update | Reporting, static datasets |
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **No Partitioning** | Full table scans, high cost | Partition by date (daily/monthly) |
+    | **Wrong Grain** | Incorrect aggregations | Define fact table grain clearly (1 row = 1 sale) |
+    | **No SCD Strategy** | Lost history or incorrect snapshots | Implement SCD Type 2 for critical dimensions |
+    | **Surrogate vs Natural Keys** | Join failures, duplicates | Always use surrogate keys for dimensions |
+    | **Missing Audit Columns** | Can't debug data issues | Add created_at, updated_at, loaded_by |
+    | **No Data Quality Tests** | Bad data propagates | Implement dbt tests, Great Expectations |
+    | **Over-Normalization** | Slow queries (too many joins) | Denormalize for query performance |
+    | **Late-Arriving Facts** | Orphaned records | Handle late arrivals with default dimensions |
+
+    ## Real-World Examples
+
+    **Airbnb's Data Warehouse:**
+    - **Scale:** 10PB+ in S3, 100K+ tables
+    - **Architecture:** S3 (storage) + Presto/Hive (query) + Airflow (orchestration)
+    - **Schema:** Star schema with 200+ fact tables
+    - **Innovation:** Minerva (metadata service), automatic partitioning
+    - **Impact:** Powers all business analytics, 1000+ data scientists
+
+    **Netflix's Data Warehouse:**
+    - **Scale:** 100PB+ in S3
+    - **Architecture:** S3 (Iceberg format) + Spark + Trino
+    - **Partitioning:** Dynamic partitioning by region + date
+    - **Use Case:** A/B test analysis, content performance, personalization
+    - **Impact:** Drives all content and product decisions
+
+    **Uber's Data Warehouse:**
+    - **Scale:** Multiple exabytes
+    - **Architecture:** HDFS → Hive → Vertica/Presto
+    - **Schema:** 100K+ tables, star/OBT hybrid
+    - **Innovation:** Databook (data discovery), automated quality checks
+    - **Impact:** Real-time surge pricing, driver matching analytics
+
+    ## Monitoring & Optimization
+
+    ```python
+    def warehouse_health_metrics() -> Dict[str, str]:
+        """Key metrics to monitor for warehouse health"""
+        return {
+            'storage': 'Total GB, growth rate, top 10 largest tables',
+            'query_performance': 'P50/P95/P99 latency, slot utilization (BigQuery), warehouse credit usage (Snowflake)',
+            'data_freshness': 'Max lag for each table (expected vs actual load time)',
+            'data_quality': 'Test failure rate, null percentage, duplicate rate',
+            'cost': 'Daily spend by team/project, cost per query, storage vs compute split',
+            'usage': 'Queries/day, active users, most queried tables'
+        }
+
+    def optimize_query_performance(slow_query: str) -> List[str]:
+        """Recommendations for slow query optimization"""
+        return [
+            "1. Check EXPLAIN plan for full table scans",
+            "2. Add partition filter (WHERE date_key >= ...)",
+            "3. Use clustering columns in WHERE/JOIN clauses",
+            "4. Denormalize frequently joined dimensions",
+            "5. Create aggregated summary tables (OLAP cubes)",
+            "6. Use materialized views for common queries",
+            "7. Limit SELECT * to only needed columns",
+            "8. For BigQuery: use APPROX_COUNT_DISTINCT for cardinality"
+        ]
+    ```
 
     !!! tip "Interviewer's Insight"
-        Knows star vs snowflake schema and partitioning.
+        Emphasizes star schema design with proper grain definition, SCD Type 2 for dimension history, and partitioning/clustering strategies. Discusses DBT for transformations, data quality testing, and trade-offs between star/snowflake/data vault schemas. Can explain how Airbnb/Netflix/Uber implement warehouses at PB-scale with specific architectural patterns.
 
 ---
 
@@ -4964,20 +5652,545 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
+    ## Scale Requirements
+
+    - **Event Volume:** 1M-100M events/second
+    - **Latency:** <1s end-to-end (event to output)
+    - **Throughput:** 10GB-1TB/second
+    - **State Size:** 10GB-10TB (distributed across cluster)
+    - **Windows:** 1s-24h time windows
+    - **Late Data:** Handle events up to 1h late
+    - **Availability:** 99.99% SLA with checkpointing
+
+    ## Architecture
+
     ```
-    [Events] → [Kafka] → [Flink/Spark] → [Feature Store] → [Model]
-                                ↓
-                         [Aggregations]
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    Event Sources                                 │
+    │                                                                  │
+    │  [User Actions] [IoT Sensors] [Logs] [Transactions] [Clicks]   │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │               Message Queue (Kafka/Pulsar)                       │
+    │                                                                  │
+    │  Topic: user_events                                             │
+    │  - Partitions: 100 (parallelism)                                │
+    │  - Replication: 3x                                              │
+    │  - Retention: 7 days                                            │
+    │  - Throughput: 1M msgs/sec                                      │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │         Stream Processing (Flink/Spark Streaming/Kafka Streams) │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │              Event Time Processing                        │  │
+    │  │                                                            │  │
+    │  │  Watermarks: Max(event_time) - 5min lag                   │  │
+    │  │  - Handles late arrivals up to 5min                       │  │
+    │  │  - Triggers window computation                            │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │                  Windowing Operations                      │  │
+    │  │                                                            │  │
+    │  │  Tumbling (5min):    [00:00-00:05] [00:05-00:10] ...     │  │
+    │  │  Sliding (5min/1min): [00:00-00:05] [00:01-00:06] ...    │  │
+    │  │  Session (gap 10min): User activity sessions              │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │              Stateful Operations                          │  │
+    │  │                                                            │  │
+    │  │  - Aggregations: SUM, AVG, COUNT per key                  │  │
+    │  │  - Joins: Stream-Stream, Stream-Table                     │  │
+    │  │  - Pattern detection: CEP (Complex Event Processing)      │  │
+    │  │                                                            │  │
+    │  │  State Backend: RocksDB (disk), Heap (memory)            │  │
+    │  │  Checkpointing: Every 1min to S3/HDFS                     │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │            Exactly-Once Semantics                         │  │
+    │  │                                                            │  │
+    │  │  1. Checkpointing (Flink snapshots)                       │  │
+    │  │  2. Two-phase commit (transactional sinks)                │  │
+    │  │  3. Idempotent writes (deduplication keys)                │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                        Sinks (Outputs)                           │
+    │                                                                  │
+    │  [Feature Store] [Database] [Cache] [Alerts] [Dashboards]      │
+    │  (Redis/Cassandra) (PostgreSQL) (Redis) (PagerDuty) (Grafana)  │
+    └─────────────────────────────────────────────────────────────────┘
+
+                ┌──────────────────────────────────────┐
+                │      Monitoring & Observability      │
+                │                                      │
+                │  - Lag (consumer lag per partition) │
+                │  - Throughput (records/sec)         │
+                │  - Latency (event time - proc time) │
+                │  - Checkpoint duration & failures   │
+                │  - State size growth                │
+                └──────────────────────────────────────┘
     ```
-    
-    **Key Concepts:**
-    - Windowing (tumbling, sliding, session)
-    - Watermarks for late data
-    - Exactly-once semantics
-    - State management
+
+    ## Production Implementation (310 lines)
+
+    ```python
+    # stream_processing.py
+    from pyflink.datastream import StreamExecutionEnvironment, TimeCharacteristic
+    from pyflink.datastream.window import TumblingEventTimeWindows, SlidingEventTimeWindows, Time
+    from pyflink.datastream.functions import MapFunction, AggregateFunction, ProcessWindowFunction
+    from pyflink.common.watermark_strategy import WatermarkStrategy
+    from pyflink.common.typeinfo import Types
+    from pyflink.common.serialization import SimpleStringSchema
+    from pyflink.datastream.connectors import FlinkKafkaConsumer, FlinkKafkaProducer
+    from typing import Tuple, Iterable
+    from dataclasses import dataclass
+    from datetime import datetime, timedelta
+    import json
+    import logging
+
+    # ============= Configuration =============
+    @dataclass
+    class StreamConfig:
+        """Stream processing configuration"""
+        kafka_bootstrap_servers: str = "localhost:9092"
+        input_topic: str = "user_events"
+        output_topic: str = "aggregated_metrics"
+        checkpoint_interval_ms: int = 60000  # 1 minute
+        max_out_of_orderness_ms: int = 300000  # 5 minutes
+        parallelism: int = 10
+
+    config = StreamConfig()
+
+    # ============= Event Schema =============
+    @dataclass
+    class UserEvent:
+        """User event schema"""
+        user_id: str
+        event_type: str
+        value: float
+        timestamp: int  # Unix timestamp (ms)
+        metadata: dict
+
+        @staticmethod
+        def from_json(json_str: str) -> 'UserEvent':
+            """Parse JSON string to UserEvent"""
+            data = json.loads(json_str)
+            return UserEvent(
+                user_id=data['user_id'],
+                event_type=data['event_type'],
+                value=data.get('value', 0.0),
+                timestamp=data['timestamp'],
+                metadata=data.get('metadata', {})
+            )
+
+        def to_json(self) -> str:
+            """Serialize UserEvent to JSON"""
+            return json.dumps({
+                'user_id': self.user_id,
+                'event_type': self.event_type,
+                'value': self.value,
+                'timestamp': self.timestamp,
+                'metadata': self.metadata
+            })
+
+    # ============= Watermark Strategy =============
+    class UserEventWatermarkStrategy:
+        """Custom watermark strategy for handling late events"""
+
+        @staticmethod
+        def create(max_out_of_orderness: timedelta):
+            """
+            Create watermark strategy with bounded out-of-orderness
+
+            Watermark = max(event_time) - max_out_of_orderness
+            Events with timestamp < watermark are considered late
+            """
+            return WatermarkStrategy \
+                .for_bounded_out_of_orderness(max_out_of_orderness) \
+                .with_timestamp_assigner(lambda event, ts: event.timestamp)
+
+    # ============= Stream Processing Functions =============
+    class ParseEventFunction(MapFunction):
+        """Parse JSON events from Kafka"""
+
+        def map(self, value: str) -> UserEvent:
+            return UserEvent.from_json(value)
+
+    class AggregateMetricsFunction(AggregateFunction):
+        """
+        Aggregate function for window computations
+        Efficiently computes running aggregations
+        """
+
+        def create_accumulator(self) -> Tuple[int, float, float, float]:
+            """Initialize accumulator: (count, sum, min, max)"""
+            return (0, 0.0, float('inf'), float('-inf'))
+
+        def add(self, value: UserEvent, accumulator: Tuple) -> Tuple:
+            """Add new event to accumulator"""
+            count, sum_val, min_val, max_val = accumulator
+            return (
+                count + 1,
+                sum_val + value.value,
+                min(min_val, value.value),
+                max(max_val, value.value)
+            )
+
+        def get_result(self, accumulator: Tuple) -> dict:
+            """Compute final result from accumulator"""
+            count, sum_val, min_val, max_val = accumulator
+            avg = sum_val / count if count > 0 else 0
+            return {
+                'count': count,
+                'sum': sum_val,
+                'avg': avg,
+                'min': min_val,
+                'max': max_val
+            }
+
+        def merge(self, acc1: Tuple, acc2: Tuple) -> Tuple:
+            """Merge two accumulators (for parallel processing)"""
+            return (
+                acc1[0] + acc2[0],  # count
+                acc1[1] + acc2[1],  # sum
+                min(acc1[2], acc2[2]),  # min
+                max(acc1[3], acc2[3])  # max
+            )
+
+    class EnrichWindowResults(ProcessWindowFunction):
+        """
+        Process window function to enrich aggregation results
+        Has access to window metadata (start, end)
+        """
+
+        def process(self, key: str, context: ProcessWindowFunction.Context,
+                   elements: Iterable[dict]) -> Iterable[str]:
+            """
+            Enrich aggregated results with window metadata
+            """
+            result = list(elements)[0]  # Single element from AggregateFunction
+
+            window = context.window()
+            output = {
+                'user_id': key,
+                'window_start': window.start,
+                'window_end': window.end,
+                'metrics': result,
+                'processing_time': context.current_processing_time()
+            }
+
+            yield json.dumps(output)
+
+    # ============= Complex Event Processing (CEP) =============
+    class FraudDetectionPattern:
+        """
+        Detect fraud patterns using CEP
+        Example: Multiple high-value transactions in short time
+        """
+
+        @staticmethod
+        def detect_suspicious_pattern(events: Iterable[UserEvent]) -> bool:
+            """
+            Pattern: 3+ transactions > $1000 within 5 minutes
+            """
+            high_value_events = [e for e in events if e.value > 1000]
+
+            if len(high_value_events) < 3:
+                return False
+
+            # Check if all within 5 minutes
+            timestamps = sorted([e.timestamp for e in high_value_events])
+            time_span_ms = timestamps[-1] - timestamps[0]
+            return time_span_ms <= 300000  # 5 minutes
+
+    # ============= State Management =============
+    class StatefulCounter:
+        """
+        Maintain stateful counter across events
+        Uses Flink's ValueState for fault-tolerant state
+        """
+
+        def __init__(self):
+            self.state = None  # Initialized by Flink runtime
+
+        def process(self, event: UserEvent, ctx) -> Iterable[Tuple[str, int]]:
+            """
+            Update counter state for each user
+            """
+            # Get current count (or 0 if first event)
+            current_count = self.state.value() or 0
+
+            # Increment counter
+            new_count = current_count + 1
+            self.state.update(new_count)
+
+            # Emit result
+            yield (event.user_id, new_count)
+
+    # ============= Stream-Stream Join =============
+    class StreamJoinExample:
+        """
+        Join two streams with time-bounded join window
+        Example: Join clicks with purchases within 1 hour
+        """
+
+        @staticmethod
+        def join_streams(click_stream, purchase_stream):
+            """
+            Join click stream with purchase stream
+            Match clicks with purchases within 1 hour window
+            """
+            return click_stream.join(purchase_stream) \
+                .where(lambda click: click.user_id) \
+                .equal_to(lambda purchase: purchase.user_id) \
+                .window(TumblingEventTimeWindows.of(Time.hours(1))) \
+                .apply(lambda click, purchase: {
+                    'user_id': click.user_id,
+                    'click_time': click.timestamp,
+                    'purchase_time': purchase.timestamp,
+                    'time_to_convert_ms': purchase.timestamp - click.timestamp
+                })
+
+    # ============= Main Pipeline =============
+    def create_streaming_pipeline():
+        """
+        Create production Flink streaming pipeline
+        """
+        # 1. Set up execution environment
+        env = StreamExecutionEnvironment.get_execution_environment()
+        env.set_parallelism(config.parallelism)
+
+        # Enable checkpointing for exactly-once semantics
+        env.enable_checkpointing(config.checkpoint_interval_ms)
+        env.get_checkpoint_config().set_checkpoint_storage_dir("s3://checkpoints/")
+
+        # Event time processing
+        env.set_stream_time_characteristic(TimeCharacteristic.EventTime)
+
+        # 2. Set up Kafka source
+        kafka_props = {
+            'bootstrap.servers': config.kafka_bootstrap_servers,
+            'group.id': 'flink-consumer-group'
+        }
+
+        kafka_consumer = FlinkKafkaConsumer(
+            topics=config.input_topic,
+            deserialization_schema=SimpleStringSchema(),
+            properties=kafka_props
+        )
+
+        # 3. Define watermark strategy
+        watermark_strategy = UserEventWatermarkStrategy.create(
+            timedelta(milliseconds=config.max_out_of_orderness_ms)
+        )
+
+        # 4. Create data stream
+        event_stream = env.add_source(kafka_consumer) \
+            .map(ParseEventFunction()) \
+            .assign_timestamps_and_watermarks(watermark_strategy)
+
+        # 5. Apply windowing and aggregations
+        tumbling_aggregations = event_stream \
+            .key_by(lambda event: event.user_id) \
+            .window(TumblingEventTimeWindows.of(Time.minutes(5))) \
+            .aggregate(
+                AggregateMetricsFunction(),
+                EnrichWindowResults()
+            )
+
+        # 6. Sliding window for overlapping computations
+        sliding_aggregations = event_stream \
+            .key_by(lambda event: event.user_id) \
+            .window(SlidingEventTimeWindows.of(
+                Time.minutes(10),  # window size
+                Time.minutes(1)    # slide interval
+            )) \
+            .aggregate(AggregateMetricsFunction())
+
+        # 7. Session windows (activity-based)
+        # Groups events into sessions based on inactivity gap
+        session_windows = event_stream \
+            .key_by(lambda event: event.user_id) \
+            .window(SessionWindows.with_gap(Time.minutes(30))) \
+            .aggregate(AggregateMetricsFunction())
+
+        # 8. Set up Kafka sink
+        kafka_producer = FlinkKafkaProducer(
+            topic=config.output_topic,
+            serialization_schema=SimpleStringSchema(),
+            producer_config=kafka_props
+        )
+
+        tumbling_aggregations.add_sink(kafka_producer)
+
+        # 9. Execute pipeline
+        env.execute("User Event Processing Pipeline")
+
+    # ============= Alternative: Kafka Streams (Lighter Weight) =============
+    def kafka_streams_example():
+        """
+        Alternative implementation using Kafka Streams
+        Simpler for Kafka-native deployments
+        """
+        from confluent_kafka import Consumer, Producer
+        import time
+
+        # Consumer
+        consumer_config = {
+            'bootstrap.servers': config.kafka_bootstrap_servers,
+            'group.id': 'kafka-streams-group',
+            'auto.offset.reset': 'earliest'
+        }
+
+        consumer = Consumer(consumer_config)
+        consumer.subscribe([config.input_topic])
+
+        # Producer
+        producer = Producer({'bootstrap.servers': config.kafka_bootstrap_servers})
+
+        # Stateful aggregation (in-memory for simplicity)
+        state = {}
+
+        try:
+            while True:
+                msg = consumer.poll(timeout=1.0)
+                if msg is None:
+                    continue
+
+                # Parse event
+                event = UserEvent.from_json(msg.value().decode('utf-8'))
+
+                # Update state
+                key = event.user_id
+                if key not in state:
+                    state[key] = {'count': 0, 'sum': 0}
+
+                state[key]['count'] += 1
+                state[key]['sum'] += event.value
+
+                # Emit result
+                result = {
+                    'user_id': key,
+                    'count': state[key]['count'],
+                    'avg': state[key]['sum'] / state[key]['count']
+                }
+
+                producer.produce(
+                    config.output_topic,
+                    json.dumps(result).encode('utf-8')
+                )
+
+        except KeyboardInterrupt:
+            pass
+        finally:
+            consumer.close()
+            producer.flush()
+
+    # ============= Example Usage =============
+    if __name__ == "__main__":
+        # Run Flink pipeline
+        create_streaming_pipeline()
+
+        # Or run Kafka Streams
+        # kafka_streams_example()
+    ```
+
+    ## Windowing Comparison
+
+    | Window Type | Behavior | Use Case | Example |
+    |-------------|----------|----------|---------|
+    | **Tumbling** | Fixed, non-overlapping | Periodic aggregations | Hourly metrics, daily summaries |
+    | **Sliding** | Fixed, overlapping | Moving averages | Last 5min metrics every 1min |
+    | **Session** | Gap-based, variable | User sessions | Activity grouped by 30min gaps |
+    | **Global** | All data in one window | Rare; entire stream | Counting all events ever |
+
+    ## State Backend Comparison
+
+    | Backend | Storage | Performance | Use Case |
+    |---------|---------|-------------|----------|
+    | **Heap** | JVM memory | Fastest | Small state (<1GB), low latency |
+    | **RocksDB** | Local disk | Slower, scalable | Large state (GB-TB), fault-tolerant |
+    | **External** | S3, HDFS | Slowest | Very large state, recovery |
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **No Watermarks** | Windows never close | Configure watermarks with acceptable lag |
+    | **Processing Time Windows** | Non-deterministic results | Use event time for reproducibility |
+    | **Too Small Windows** | High overhead | Balance window size vs latency needs |
+    | **No Checkpointing** | Data loss on failure | Enable checkpointing every 1-5min |
+    | **Unbounded State Growth** | OOM errors | Use TTL for state, cleanup old keys |
+    | **Skewed Keys** | Hotspot on single task | Pre-aggregate, use combiner, salting |
+    | **Late Data Ignored** | Missed events | Configure allowed lateness, side outputs |
+    | **No Backpressure Handling** | System overload | Rate limiting, buffering, auto-scaling |
+
+    ## Real-World Examples
+
+    **Uber's Stream Processing:**
+    - **Scale:** 1M+ events/second, 100+ Flink jobs
+    - **Use Cases:** Surge pricing, ETA calculation, fraud detection
+    - **Architecture:** Kafka → Flink → Cassandra/Redis
+    - **State:** 10TB+ distributed state in RocksDB
+    - **Impact:** Real-time pricing updates, <1s latency
+
+    **Netflix's Keystone:**
+    - **Scale:** 8M+ events/second peak
+    - **Use Cases:** Viewing history, recommendations, A/B tests
+    - **Architecture:** Kafka → Flink → Elasticsearch/S3
+    - **Features:** Exactly-once, session windows, 99.99% availability
+    - **Impact:** Powers real-time personalization for 200M+ users
+
+    **LinkedIn's Stream Processing:**
+    - **Scale:** 1.5T+ messages/day
+    - **Use Cases:** Feed updates, notifications, analytics
+    - **Architecture:** Kafka Streams + Samza
+    - **Innovation:** Venice (distributed state store)
+    - **Impact:** Real-time feed ranking, <100ms updates
+
+    ## Monitoring Metrics
+
+    ```python
+    def stream_processing_metrics() -> dict:
+        """Key metrics for stream processing health"""
+        return {
+            'throughput': {
+                'records_in_per_sec': 'Input rate from Kafka',
+                'records_out_per_sec': 'Output rate to sinks',
+                'bytes_per_sec': 'Network throughput'
+            },
+            'latency': {
+                'event_time_lag': 'Watermark - current event time',
+                'processing_lag': 'Processing time - event time',
+                'end_to_end_latency': 'Event creation to sink output'
+            },
+            'resource_usage': {
+                'cpu_utilization': 'Per task manager',
+                'memory_heap': 'JVM heap usage',
+                'state_size': 'RocksDB state size',
+                'network_buffers': 'Backpressure indicator'
+            },
+            'checkpointing': {
+                'checkpoint_duration': 'Time to complete checkpoint',
+                'checkpoint_size': 'Checkpoint state size',
+                'checkpoint_failures': 'Failed checkpoints count'
+            },
+            'kafka': {
+                'consumer_lag': 'Per partition lag',
+                'rebalance_count': 'Consumer group rebalances'
+            }
+        }
+    ```
 
     !!! tip "Interviewer's Insight"
-        Handles late data and stateful processing.
+        Emphasizes event-time processing vs processing-time, watermarks for handling late data, and exactly-once semantics via checkpointing. Discusses windowing strategies (tumbling/sliding/session), state management (heap vs RocksDB), and backpressure handling. Can explain how Uber/Netflix/LinkedIn implement stream processing at massive scale with specific trade-offs (latency vs throughput, memory vs disk state).
 
 ---
 
@@ -4987,16 +6200,591 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Components:**
-    1. **Label UI:** Annotation interface
-    2. **Quality assurance:** Multiple annotators, consensus
-    3. **Active learning:** Prioritize uncertain samples
-    4. **Version control:** Track label changes
-    
-    **Tools:** Label Studio, Scale AI, Labelbox.
+    ## Scale Requirements
+
+    - **Data Volume:** 100K-10M samples to label
+    - **Throughput:** 100-10K labels/day
+    - **Annotators:** 10-1K human labelers
+    - **Agreement:** >80% inter-annotator agreement (IAA)
+    - **Quality:** >95% label accuracy
+    - **Latency:** <2s for UI responsiveness
+    - **Active Learning:** Reduce labeling by 50-70% via smart sampling
+
+    ## Architecture
+
+    ```
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   Unlabeled Data Pool                            │
+    │                                                                  │
+    │  [Images] [Text] [Audio] [Video] [Structured Data]             │
+    │  - 10M samples (raw)                                            │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │              Active Learning Sampler                             │
+    │                                                                  │
+    │  Sampling Strategies:                                           │
+    │  1. Random (baseline)                                           │
+    │  2. Uncertainty Sampling (low confidence predictions)           │
+    │  3. Diversity Sampling (representative distribution)            │
+    │  4. Query-by-Committee (model disagreement)                     │
+    │  5. Expected Model Change (gradient-based)                      │
+    │                                                                  │
+    │  Priority Score = uncertainty * diversity * business_value      │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  Annotation Interface (UI)                       │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │              Task-Specific UI                             │  │
+    │  │                                                            │  │
+    │  │  Classification: Multi-choice buttons                     │  │
+    │  │  Object Detection: Bounding box tool                      │  │
+    │  │  Segmentation: Polygon/brush tool                         │  │
+    │  │  NER: Text highlighting                                   │  │
+    │  │  Ranking: Drag-and-drop ordering                          │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  Features:                                                      │
+    │  - Keyboard shortcuts (fast labeling)                           │
+    │  - Pre-annotations (model predictions as starting point)        │
+    │  - Guidelines & examples                                        │
+    │  - Progress tracking                                            │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                Quality Assurance Layer                           │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │          Multi-Annotator Consensus                        │  │
+    │  │                                                            │  │
+    │  │  Strategy: 3 annotators per sample                        │  │
+    │  │  - Majority vote (2/3 agree)                              │  │
+    │  │  - Adjudication (expert resolves conflicts)               │  │
+    │  │  - Dawid-Skene model (probabilistic consensus)            │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │          Inter-Annotator Agreement (IAA)                  │  │
+    │  │                                                            │  │
+    │  │  Metrics:                                                 │  │
+    │  │  - Cohen's Kappa (2 annotators)                           │  │
+    │  │  - Fleiss' Kappa (3+ annotators)                          │  │
+    │  │  - Krippendorff's Alpha (ordinal/interval data)           │  │
+    │  │                                                            │  │
+    │  │  Alert if Kappa < 0.6 (poor agreement)                    │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │             Gold Standard Test Set                        │  │
+    │  │                                                            │  │
+    │  │  - 100-1000 expert-labeled samples                        │  │
+    │  │  - Test each annotator periodically                       │  │
+    │  │  - Track accuracy over time                               │  │
+    │  │  - Retrain if accuracy < 90%                              │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    Labeled Dataset                               │
+    │                                                                  │
+    │  Version Control:                                               │
+    │  - v1.0: Initial 10K labels (baseline)                          │
+    │  - v1.1: +5K labels, fixed 200 errors                           │
+    │  - v2.0: New label schema, relabeled all                        │
+    │                                                                  │
+    │  Metadata: annotator_id, timestamp, confidence, version         │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  Model Training & Feedback                       │
+    │                                                                  │
+    │  [Train Model] → [Evaluate] → [Identify Hard Examples]         │
+    │                                        ↓                         │
+    │                          [Feed back to Active Learning]         │
+    └─────────────────────────────────────────────────────────────────┘
+    ```
+
+    ## Production Implementation (280 lines)
+
+    ```python
+    # labeling_pipeline.py
+    from typing import List, Dict, Any, Optional, Tuple
+    from dataclasses import dataclass
+    from datetime import datetime
+    import numpy as np
+    from sklearn.metrics import cohen_kappa_score
+    from collections import Counter
+    import logging
+
+    # ============= Configuration =============
+    @dataclass
+    class LabelingConfig:
+        """Labeling pipeline configuration"""
+        num_annotators_per_sample: int = 3
+        min_agreement_threshold: float = 0.6  # Kappa score
+        gold_standard_size: int = 1000
+        active_learning_batch_size: int = 100
+        min_annotator_accuracy: float = 0.90
+
+    config = LabelingConfig()
+
+    # ============= Active Learning Sampler =============
+    class ActiveLearningSampler:
+        """Sample most informative examples for labeling"""
+
+        def __init__(self, model):
+            self.model = model
+            self.logger = logging.getLogger(__name__)
+
+        def uncertainty_sampling(
+            self,
+            unlabeled_data: np.ndarray,
+            n_samples: int
+        ) -> List[int]:
+            """
+            Sample examples with highest prediction uncertainty
+
+            Methods:
+            - Least Confident: 1 - max(P(y|x))
+            - Margin: P(y1|x) - P(y2|x)  (smallest margin)
+            - Entropy: -∑ P(y|x) log P(y|x)
+            """
+            # Get prediction probabilities
+            probs = self.model.predict_proba(unlabeled_data)
+
+            # Entropy-based uncertainty
+            entropy = -np.sum(probs * np.log(probs + 1e-10), axis=1)
+
+            # Select top-k most uncertain
+            uncertain_indices = np.argsort(entropy)[-n_samples:]
+
+            self.logger.info(f"Selected {n_samples} uncertain samples (avg entropy: {entropy[uncertain_indices].mean():.3f})")
+            return uncertain_indices.tolist()
+
+        def diversity_sampling(
+            self,
+            unlabeled_data: np.ndarray,
+            n_samples: int,
+            embeddings: Optional[np.ndarray] = None
+        ) -> List[int]:
+            """
+            Sample diverse examples using k-means clustering
+            """
+            from sklearn.cluster import KMeans
+
+            if embeddings is None:
+                embeddings = unlabeled_data
+
+            # Cluster into n_samples clusters
+            kmeans = KMeans(n_clusters=n_samples, random_state=42)
+            kmeans.fit(embeddings)
+
+            # Select one sample closest to each cluster center
+            diverse_indices = []
+            for i in range(n_samples):
+                cluster_mask = kmeans.labels_ == i
+                cluster_samples = np.where(cluster_mask)[0]
+
+                if len(cluster_samples) > 0:
+                    # Find closest to center
+                    distances = np.linalg.norm(
+                        embeddings[cluster_samples] - kmeans.cluster_centers_[i],
+                        axis=1
+                    )
+                    closest_idx = cluster_samples[np.argmin(distances)]
+                    diverse_indices.append(closest_idx)
+
+            return diverse_indices
+
+        def query_by_committee(
+            self,
+            unlabeled_data: np.ndarray,
+            models: List[Any],
+            n_samples: int
+        ) -> List[int]:
+            """
+            Sample examples where models disagree most (ensemble variance)
+            """
+            # Get predictions from each model
+            all_predictions = np.array([
+                model.predict(unlabeled_data) for model in models
+            ])
+
+            # Calculate disagreement (variance)
+            disagreement = np.var(all_predictions, axis=0)
+
+            # Select top-k most disagreed
+            disagreed_indices = np.argsort(disagreement)[-n_samples:]
+
+            return disagreed_indices.tolist()
+
+    # ============= Quality Assurance =============
+    class QualityAssurance:
+        """Ensure high-quality labels through consensus and validation"""
+
+        def __init__(self, config: LabelingConfig):
+            self.config = config
+            self.logger = logging.getLogger(__name__)
+
+        def compute_inter_annotator_agreement(
+            self,
+            annotations: List[List[int]]
+        ) -> float:
+            """
+            Compute Fleiss' Kappa for multi-annotator agreement
+
+            annotations: List of annotations per sample
+            [[annotator1_labels], [annotator2_labels], ...]
+            """
+            from statsmodels.stats.inter_rater import fleiss_kappa
+
+            # Convert to matrix format: (n_samples, n_categories)
+            n_samples = len(annotations[0])
+            n_annotators = len(annotations)
+
+            # Count votes per category
+            categories = set()
+            for ann in annotations:
+                categories.update(ann)
+            n_categories = len(categories)
+
+            # Build contingency table
+            table = np.zeros((n_samples, n_categories))
+            for sample_idx in range(n_samples):
+                votes = [annotations[ann_idx][sample_idx] for ann_idx in range(n_annotators)]
+                vote_counts = Counter(votes)
+                for cat_idx, cat in enumerate(sorted(categories)):
+                    table[sample_idx, cat_idx] = vote_counts.get(cat, 0)
+
+            kappa = fleiss_kappa(table)
+            self.logger.info(f"Inter-annotator agreement (Fleiss' Kappa): {kappa:.3f}")
+
+            return kappa
+
+        def majority_vote_consensus(
+            self,
+            annotations: List[int]
+        ) -> Tuple[int, float]:
+            """
+            Get consensus label via majority vote
+
+            Returns: (consensus_label, confidence)
+            """
+            vote_counts = Counter(annotations)
+            consensus_label = vote_counts.most_common(1)[0][0]
+            confidence = vote_counts[consensus_label] / len(annotations)
+
+            return consensus_label, confidence
+
+        def dawid_skene_consensus(
+            self,
+            annotations: np.ndarray,
+            max_iter: int = 100
+        ) -> np.ndarray:
+            """
+            Probabilistic consensus using Dawid-Skene model
+
+            Accounts for annotator quality/bias
+            annotations: (n_samples, n_annotators) matrix
+            """
+            n_samples, n_annotators = annotations.shape
+            n_classes = int(annotations.max()) + 1
+
+            # Initialize: assume all annotators perfect
+            annotator_confusion = np.zeros((n_annotators, n_classes, n_classes))
+            for a in range(n_annotators):
+                annotator_confusion[a] = np.eye(n_classes)
+
+            # E-M algorithm
+            for iteration in range(max_iter):
+                # E-step: Estimate true labels
+                class_probs = np.ones((n_samples, n_classes))
+                for i in range(n_samples):
+                    for a in range(n_annotators):
+                        if not np.isnan(annotations[i, a]):
+                            label = int(annotations[i, a])
+                            class_probs[i] *= annotator_confusion[a, :, label]
+
+                class_probs /= class_probs.sum(axis=1, keepdims=True)
+
+                # M-step: Update annotator confusion matrices
+                for a in range(n_annotators):
+                    for j in range(n_classes):
+                        for k in range(n_classes):
+                            numerator = 0
+                            denominator = 0
+                            for i in range(n_samples):
+                                if not np.isnan(annotations[i, a]) and annotations[i, a] == k:
+                                    numerator += class_probs[i, j]
+                                    denominator += class_probs[i, j]
+
+                            annotator_confusion[a, j, k] = numerator / (denominator + 1e-10)
+
+            # Final consensus: argmax of class probabilities
+            consensus_labels = np.argmax(class_probs, axis=1)
+            return consensus_labels
+
+        def evaluate_annotator_quality(
+            self,
+            annotator_labels: List[int],
+            gold_standard: List[int]
+        ) -> Dict[str, float]:
+            """
+            Evaluate individual annotator against gold standard
+            """
+            accuracy = np.mean(np.array(annotator_labels) == np.array(gold_standard))
+            kappa = cohen_kappa_score(gold_standard, annotator_labels)
+
+            return {
+                'accuracy': accuracy,
+                'kappa': kappa,
+                'pass': accuracy >= self.config.min_annotator_accuracy
+            }
+
+    # ============= Annotation Task Manager =============
+    class AnnotationTaskManager:
+        """Manage annotation tasks and assignments"""
+
+        def __init__(self):
+            self.tasks = []
+            self.assignments = {}
+            self.logger = logging.getLogger(__name__)
+
+        def create_tasks(
+            self,
+            sample_ids: List[str],
+            n_annotators_per_sample: int
+        ) -> List[Dict]:
+            """
+            Create annotation tasks with redundancy
+            """
+            tasks = []
+            for sample_id in sample_ids:
+                for annotator_round in range(n_annotators_per_sample):
+                    task = {
+                        'task_id': f"{sample_id}_{annotator_round}",
+                        'sample_id': sample_id,
+                        'status': 'pending',
+                        'annotator_id': None,
+                        'label': None,
+                        'timestamp': None,
+                        'time_spent_seconds': None
+                    }
+                    tasks.append(task)
+
+            self.tasks.extend(tasks)
+            self.logger.info(f"Created {len(tasks)} annotation tasks for {len(sample_ids)} samples")
+            return tasks
+
+        def assign_task(
+            self,
+            annotator_id: str,
+            task_filter: Optional[Dict] = None
+        ) -> Optional[Dict]:
+            """
+            Assign next available task to annotator
+
+            Routing strategies:
+            - Round-robin
+            - Skill-based (match annotator expertise to task difficulty)
+            - Load-balancing (distribute evenly)
+            """
+            # Find pending task
+            for task in self.tasks:
+                if task['status'] == 'pending':
+                    # Avoid self-agreement: don't assign to same annotator
+                    sample_tasks = [t for t in self.tasks if t['sample_id'] == task['sample_id']]
+                    assigned_annotators = [t['annotator_id'] for t in sample_tasks if t['annotator_id']]
+
+                    if annotator_id not in assigned_annotators:
+                        task['status'] = 'assigned'
+                        task['annotator_id'] = annotator_id
+                        self.logger.info(f"Assigned task {task['task_id']} to {annotator_id}")
+                        return task
+
+            return None
+
+        def submit_annotation(
+            self,
+            task_id: str,
+            label: Any,
+            time_spent_seconds: float
+        ):
+            """Submit completed annotation"""
+            for task in self.tasks:
+                if task['task_id'] == task_id:
+                    task['status'] = 'completed'
+                    task['label'] = label
+                    task['timestamp'] = datetime.now()
+                    task['time_spent_seconds'] = time_spent_seconds
+                    break
+
+        def get_completed_annotations(self, sample_id: str) -> List[Any]:
+            """Get all completed annotations for a sample"""
+            return [
+                task['label'] for task in self.tasks
+                if task['sample_id'] == sample_id and task['status'] == 'completed'
+            ]
+
+    # ============= Label Version Control =============
+    class LabelVersionControl:
+        """Track label changes and versions"""
+
+        def __init__(self):
+            self.versions = []
+            self.label_history = {}
+
+        def create_version(
+            self,
+            version_name: str,
+            labels: Dict[str, Any],
+            metadata: Dict
+        ):
+            """
+            Create a new label dataset version
+            """
+            version = {
+                'version': version_name,
+                'timestamp': datetime.now(),
+                'num_labels': len(labels),
+                'metadata': metadata,
+                'labels': labels.copy()
+            }
+            self.versions.append(version)
+
+        def track_label_change(
+            self,
+            sample_id: str,
+            old_label: Any,
+            new_label: Any,
+            reason: str
+        ):
+            """Track individual label corrections"""
+            if sample_id not in self.label_history:
+                self.label_history[sample_id] = []
+
+            self.label_history[sample_id].append({
+                'timestamp': datetime.now(),
+                'old_label': old_label,
+                'new_label': new_label,
+                'reason': reason
+            })
+
+        def get_label_statistics(self) -> Dict:
+            """Get label dataset statistics"""
+            if not self.versions:
+                return {}
+
+            latest = self.versions[-1]
+            labels = list(latest['labels'].values())
+
+            return {
+                'total_samples': len(labels),
+                'label_distribution': dict(Counter(labels)),
+                'versions': len(self.versions),
+                'corrections': len(self.label_history)
+            }
+
+    # ============= Example Usage =============
+    def example_labeling_pipeline():
+        """Example: Active learning + quality assurance pipeline"""
+        from sklearn.ensemble import RandomForestClassifier
+
+        # 1. Initialize components
+        model = RandomForestClassifier()
+        sampler = ActiveLearningSampler(model)
+        qa = QualityAssurance(config)
+        task_manager = AnnotationTaskManager()
+        version_control = LabelVersionControl()
+
+        # 2. Simulate unlabeled data
+        unlabeled_data = np.random.randn(10000, 20)
+
+        # 3. Active learning: Select 100 most informative samples
+        selected_indices = sampler.uncertainty_sampling(unlabeled_data, n_samples=100)
+
+        # 4. Create annotation tasks (3 annotators per sample)
+        sample_ids = [f"sample_{i}" for i in selected_indices]
+        tasks = task_manager.create_tasks(sample_ids, n_annotators_per_sample=3)
+
+        # 5. Simulate annotations
+        for task in tasks[:9]:  # First 9 tasks (3 samples x 3 annotators)
+            task_manager.submit_annotation(
+                task_id=task['task_id'],
+                label=np.random.randint(0, 3),  # 3 classes
+                time_spent_seconds=np.random.uniform(5, 30)
+            )
+
+        # 6. Compute consensus for first sample
+        sample_0_annotations = task_manager.get_completed_annotations(sample_ids[0])
+        consensus_label, confidence = qa.majority_vote_consensus(sample_0_annotations)
+        print(f"Sample 0: Consensus = {consensus_label}, Confidence = {confidence:.2f}")
+
+        # 7. Evaluate inter-annotator agreement
+        all_annotations = [[np.random.randint(0, 3) for _ in range(100)] for _ in range(3)]
+        kappa = qa.compute_inter_annotator_agreement(all_annotations)
+
+        # 8. Create label version
+        labels = {sid: np.random.randint(0, 3) for sid in sample_ids}
+        version_control.create_version(
+            version_name="v1.0",
+            labels=labels,
+            metadata={'strategy': 'uncertainty_sampling', 'kappa': kappa}
+        )
+
+        print(f"Label statistics: {version_control.get_label_statistics()}")
+    ```
+
+    ## Quality Metrics
+
+    | Metric | Formula | Good Threshold | Use Case |
+    |--------|---------|---------------|----------|
+    | **Cohen's Kappa** | (P_o - P_e) / (1 - P_e) | >0.6 | 2 annotators agreement |
+    | **Fleiss' Kappa** | Multi-rater version | >0.6 | 3+ annotators agreement |
+    | **Accuracy** | Correct / Total | >90% | vs gold standard |
+    | **Precision** | TP / (TP + FP) | >85% | Label quality (avoid FP) |
+    | **Recall** | TP / (TP + FN) | >85% | Label coverage (avoid FN) |
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **Unclear Guidelines** | Low IAA, inconsistent labels | Detailed examples, edge cases, iterative refinement |
+    | **Annotator Fatigue** | Quality degrades over time | Break tasks into batches, monitor time-per-label |
+    | **Label Imbalance** | Biased model | Stratified sampling, oversampling rare classes |
+    | **No Gold Standard** | Can't measure quality | Create expert-labeled test set (1-5% of data) |
+    | **Single Annotator** | No consensus, high error rate | 3+ annotators per sample, majority vote |
+    | **Ignoring Hard Examples** | Model fails on edge cases | Active learning focuses on uncertain/hard examples |
+    | **Static Labeling** | Waste effort on easy examples | Continuous active learning loop |
+    | **No Version Control** | Can't reproduce experiments | Track all label changes with timestamps |
+
+    ## Real-World Examples
+
+    **Google's Data Labeling:**
+    - **Scale:** 10M+ images labeled for ImageNet, COCO
+    - **Quality:** Multiple annotators + expert review
+    - **Tools:** Internal tools (Crowdsource, reCAPTCHA for free labels)
+    - **Innovation:** Consensus via majority vote + outlier detection
+    - **Impact:** Enabled breakthrough in computer vision (AlexNet, ResNet)
+
+    **Tesla's Autopilot Labeling:**
+    - **Scale:** Billions of video frames
+    - **Strategy:** Active learning (corner cases from fleet)
+    - **Process:** Auto-labeling + human review for uncertain cases
+    - **Quality:** 99.9%+ accuracy via multi-stage QA
+    - **Impact:** Continuous improvement from real-world data
+
+    **Scale AI:**
+    - **Business:** Labeling-as-a-Service
+    - **Scale:** 1M+ labeled samples/month for customers
+    - **Quality:** Consensus (3-5 labelers) + expert review
+    - **Tools:** Task-specific UIs, quality dashboards
+    - **Customers:** OpenAI (RLHF for ChatGPT), autonomous vehicle companies
 
     !!! tip "Interviewer's Insight"
-        Includes quality control and active learning.
+        Emphasizes active learning to reduce labeling cost by 50-70%, multi-annotator consensus for quality (Fleiss' Kappa >0.6), and gold standard test sets for ongoing quality monitoring. Discusses trade-offs between labeling cost and model performance, and can explain how Google/Tesla use active learning at scale.
 
 ---
 
@@ -5006,18 +6794,504 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Hyperparameter Search:**
-    - Grid search → Random search → Bayesian
-    - Neural Architecture Search (NAS)
-    
-    **Infrastructure:**
-    - Ray Tune, Optuna
-    - Distributed trials
-    - Early stopping
-    - Checkpoint management
+    ## Scale Requirements
+
+    - **Search Space:** 10-100 hyperparameters
+    - **Trials:** 100-10K training runs
+    - **Parallel Trials:** 10-1K concurrent workers
+    - **Cost:** $1K-$1M compute budget
+    - **Time:** Hours to weeks
+    - **Improvement:** 5-30% accuracy gain vs random
+    - **GPUs:** 10-1000 GPUs/TPUs
+
+    ## Architecture
+
+    ```
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  Hyperparameter Search Space                     │
+    │                                                                  │
+    │  Model Architecture:          Training:                          │
+    │  - num_layers: [2, 3, 4, 5]  - learning_rate: [1e-5, 1e-1]     │
+    │  - hidden_size: [64, 512]    - batch_size: [16, 32, 64, 128]   │
+    │  - activation: [relu, gelu]  - optimizer: [adam, sgd, adamw]   │
+    │  - dropout: [0.0, 0.5]       - weight_decay: [0, 1e-4]         │
+    │                                                                  │
+    │  Data Aug: [cutout, mixup, randaugment]                         │
+    │  Scheduler: [cosine, step, exponential]                         │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │              Optimization Strategy Selector                      │
+    │                                                                  │
+    │  Stage 1: Random/Grid (baseline, 10-20 trials)                  │
+    │  Stage 2: Bayesian Optimization (100-500 trials)                │
+    │  Stage 3: Hyperband/ASHA (early stopping, 1K+ trials)           │
+    │  Stage 4: Neural Architecture Search (if needed)                │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │            Bayesian Optimization (Primary Method)                │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │         Surrogate Model (Gaussian Process)                │  │
+    │  │                                                            │  │
+    │  │  P(accuracy | hyperparameters)                            │  │
+    │  │  - Mean: expected accuracy                                │  │
+    │  │  - Variance: uncertainty                                  │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │       Acquisition Function (Next Trial Selector)          │  │
+    │  │                                                            │  │
+    │  │  Methods:                                                 │  │
+    │  │  - Expected Improvement (EI)                              │  │
+    │  │  - Upper Confidence Bound (UCB)                           │  │
+    │  │  - Probability of Improvement (PI)                        │  │
+    │  │                                                            │  │
+    │  │  Balance: Exploitation (high mean) vs                     │  │
+    │  │            Exploration (high variance)                    │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │              Early Stopping (Hyperband/ASHA)                     │
+    │                                                                  │
+    │  Idea: Stop unpromising trials early to save compute            │
+    │                                                                  │
+    │  ASHA (Asynchronous Successive Halving):                        │
+    │  - Start 1000 trials with 1 epoch each                          │
+    │  - Keep top 50% → train 2 epochs                                │
+    │  - Keep top 50% → train 4 epochs                                │
+    │  - Keep top 50% → train 8 epochs                                │
+    │  - ...until 1 winner at 64 epochs                               │
+    │                                                                  │
+    │  Savings: ~10x less compute vs full training                    │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │              Distributed Trial Execution (Ray)                   │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │               Scheduler (Ray Tune)                        │  │
+    │  │                                                            │  │
+    │  │  - Generates hyperparameter configs                       │  │
+    │  │  - Dispatches to workers                                  │  │
+    │  │  - Collects results                                       │  │
+    │  │  - Updates Bayesian model                                 │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │           Workers (100+ GPUs in parallel)                 │  │
+    │  │                                                            │  │
+    │  │  Worker 1: lr=1e-3, batch=64 → val_acc=0.85              │  │
+    │  │  Worker 2: lr=1e-4, batch=32 → val_acc=0.87              │  │
+    │  │  ...                                                       │  │
+    │  │  Worker N: lr=3e-4, batch=128 → val_acc=0.91             │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   Best Configuration                             │
+    │                                                                  │
+    │  {lr: 3e-4, batch_size: 128, hidden_size: 512,                  │
+    │   dropout: 0.2, optimizer: 'adamw', ...}                        │
+    │                                                                  │
+    │  Final validation: 92.3% accuracy                               │
+    └─────────────────────────────────────────────────────────────────┘
+    ```
+
+    ## Production Implementation (260 lines)
+
+    ```python
+    # hyperparameter_optimization.py
+    from ray import tune
+    from ray.tune import CLIReporter
+    from ray.tune.schedulers import ASHAScheduler
+    from ray.tune.search.optuna import OptunaSearch
+    from ray.tune.search import ConcurrencyLimiter
+    import optuna
+    import numpy as np
+    from typing import Dict, Any, Optional
+    from dataclasses import dataclass
+    import torch
+    import torch.nn as nn
+    import logging
+
+    # ============= Configuration =============
+    @dataclass
+    class OptimizationConfig:
+        """Hyperparameter optimization configuration"""
+        num_samples: int = 100  # Number of trials
+        max_concurrent: int = 10  # Parallel trials
+        max_epochs_per_trial: int = 64
+        grace_period: int = 4  # Min epochs before early stopping
+        reduction_factor: int = 2  # For ASHA
+        gpus_per_trial: float = 0.5
+
+    config = OptimizationConfig()
+
+    # ============= Search Space Definition =============
+    def get_search_space() -> Dict:
+        """
+        Define hyperparameter search space
+
+        Ray Tune supports:
+        - tune.choice() for categorical
+        - tune.uniform() for continuous
+        - tune.loguniform() for log-scale
+        - tune.grid_search() for grid
+        """
+        return {
+            # Model architecture
+            'num_layers': tune.choice([2, 3, 4, 5]),
+            'hidden_size': tune.choice([128, 256, 512, 1024]),
+            'activation': tune.choice(['relu', 'gelu', 'silu']),
+            'dropout': tune.uniform(0.0, 0.5),
+
+            # Training hyperparameters
+            'learning_rate': tune.loguniform(1e-5, 1e-1),
+            'batch_size': tune.choice([16, 32, 64, 128, 256]),
+            'optimizer': tune.choice(['adam', 'adamw', 'sgd']),
+            'weight_decay': tune.loguniform(1e-6, 1e-2),
+
+            # Scheduler
+            'scheduler': tune.choice(['cosine', 'step', 'exponential']),
+            'warmup_epochs': tune.choice([0, 5, 10]),
+
+            # Data augmentation
+            'mixup_alpha': tune.uniform(0.0, 1.0),
+            'label_smoothing': tune.uniform(0.0, 0.2),
+        }
+
+    # ============= Training Function =============
+    def train_model(config_dict: Dict, checkpoint_dir: Optional[str] = None):
+        """
+        Training function for a single trial
+
+        Ray Tune will call this function for each hyperparameter config
+        """
+        import torch.optim as optim
+        from torch.utils.data import DataLoader
+
+        # Build model based on config
+        model = build_model(config_dict)
+
+        # Setup optimizer
+        if config_dict['optimizer'] == 'adam':
+            optimizer = optim.Adam(
+                model.parameters(),
+                lr=config_dict['learning_rate'],
+                weight_decay=config_dict['weight_decay']
+            )
+        elif config_dict['optimizer'] == 'adamw':
+            optimizer = optim.AdamW(
+                model.parameters(),
+                lr=config_dict['learning_rate'],
+                weight_decay=config_dict['weight_decay']
+            )
+        else:  # sgd
+            optimizer = optim.SGD(
+                model.parameters(),
+                lr=config_dict['learning_rate'],
+                weight_decay=config_dict['weight_decay'],
+                momentum=0.9
+            )
+
+        # Setup scheduler
+        if config_dict['scheduler'] == 'cosine':
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(
+                optimizer,
+                T_max=config.max_epochs_per_trial
+            )
+        elif config_dict['scheduler'] == 'step':
+            scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+        else:  # exponential
+            scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
+
+        # Load checkpoint if resuming
+        if checkpoint_dir:
+            checkpoint = torch.load(checkpoint_dir + "/checkpoint")
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            start_epoch = checkpoint['epoch']
+        else:
+            start_epoch = 0
+
+        # Training loop
+        for epoch in range(start_epoch, config.max_epochs_per_trial):
+            # Train
+            train_loss, train_acc = train_epoch(model, train_loader, optimizer, config_dict)
+
+            # Validate
+            val_loss, val_acc = validate(model, val_loader)
+
+            # Scheduler step
+            scheduler.step()
+
+            # Report metrics to Ray Tune
+            tune.report(
+                loss=val_loss,
+                accuracy=val_acc,
+                epoch=epoch
+            )
+
+            # Checkpoint
+            if epoch % 10 == 0:
+                with tune.checkpoint_dir(epoch) as checkpoint_dir:
+                    torch.save({
+                        'epoch': epoch,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                    }, checkpoint_dir + "/checkpoint")
+
+    # ============= Bayesian Optimization =============
+    class BayesianOptimizer:
+        """Bayesian optimization using Optuna"""
+
+        def __init__(self):
+            self.study = optuna.create_study(
+                direction='maximize',
+                sampler=optuna.samplers.TPESampler(),  # Tree-structured Parzen Estimator
+                pruner=optuna.pruners.MedianPruner()   # Early stopping
+            )
+
+        def objective(self, trial: optuna.Trial) -> float:
+            """
+            Objective function for Optuna
+
+            trial.suggest_* methods sample from search space
+            """
+            # Sample hyperparameters
+            config = {
+                'num_layers': trial.suggest_int('num_layers', 2, 5),
+                'hidden_size': trial.suggest_categorical('hidden_size', [128, 256, 512, 1024]),
+                'learning_rate': trial.suggest_loguniform('learning_rate', 1e-5, 1e-1),
+                'batch_size': trial.suggest_categorical('batch_size', [16, 32, 64, 128]),
+                'dropout': trial.suggest_uniform('dropout', 0.0, 0.5),
+                'optimizer': trial.suggest_categorical('optimizer', ['adam', 'adamw', 'sgd']),
+            }
+
+            # Train model with this config
+            accuracy = train_and_evaluate(config)
+
+            # Optuna will maximize this value
+            return accuracy
+
+        def optimize(self, n_trials: int = 100):
+            """Run optimization"""
+            self.study.optimize(self.objective, n_trials=n_trials)
+
+            print(f"Best trial: {self.study.best_trial.number}")
+            print(f"Best accuracy: {self.study.best_value:.4f}")
+            print(f"Best params: {self.study.best_params}")
+
+            return self.study.best_params
+
+    # ============= Ray Tune Orchestration =============
+    def run_ray_tune_optimization():
+        """
+        Main optimization workflow using Ray Tune
+
+        Combines:
+        - Optuna for Bayesian search
+        - ASHA for early stopping
+        - Ray for distributed execution
+        """
+        # Configure ASHA scheduler for early stopping
+        scheduler = ASHAScheduler(
+            metric="accuracy",
+            mode="max",
+            max_t=config.max_epochs_per_trial,
+            grace_period=config.grace_period,
+            reduction_factor=config.reduction_factor
+        )
+
+        # Configure Optuna search algorithm
+        search_alg = OptunaSearch(
+            metric="accuracy",
+            mode="max"
+        )
+
+        # Limit concurrent trials
+        search_alg = ConcurrencyLimiter(
+            search_alg,
+            max_concurrent=config.max_concurrent
+        )
+
+        # Configure reporting
+        reporter = CLIReporter(
+            metric_columns=["loss", "accuracy", "epoch"],
+            max_report_frequency=60  # seconds
+        )
+
+        # Run optimization
+        analysis = tune.run(
+            train_model,
+            resources_per_trial={"gpu": config.gpus_per_trial},
+            config=get_search_space(),
+            num_samples=config.num_samples,
+            scheduler=scheduler,
+            search_alg=search_alg,
+            progress_reporter=reporter,
+            local_dir="./ray_results",
+            name="hyperparam_search"
+        )
+
+        # Get best config
+        best_trial = analysis.get_best_trial("accuracy", "max", "last")
+        print(f"Best trial config: {best_trial.config}")
+        print(f"Best trial final validation accuracy: {best_trial.last_result['accuracy']:.4f}")
+
+        return best_trial.config
+
+    # ============= Neural Architecture Search (NAS) =============
+    class NeuralArchitectureSearch:
+        """
+        Simple NAS using evolutionary algorithm
+
+        More advanced: DARTS, ENAS, NASNet
+        """
+
+        def __init__(self, population_size: int = 20, generations: int = 10):
+            self.population_size = population_size
+            self.generations = generations
+
+        def sample_architecture(self) -> Dict:
+            """Sample a random architecture"""
+            return {
+                'num_layers': np.random.randint(2, 6),
+                'layer_configs': [
+                    {
+                        'type': np.random.choice(['conv', 'depthwise_conv', 'skip']),
+                        'channels': np.random.choice([64, 128, 256]),
+                        'kernel_size': np.random.choice([3, 5, 7])
+                    }
+                    for _ in range(np.random.randint(2, 6))
+                ]
+            }
+
+        def mutate(self, architecture: Dict) -> Dict:
+            """Mutate an architecture"""
+            mutated = architecture.copy()
+
+            # Random mutation
+            if np.random.rand() < 0.3:
+                mutated['num_layers'] = np.clip(
+                    mutated['num_layers'] + np.random.randint(-1, 2),
+                    2, 5
+                )
+
+            return mutated
+
+        def search(self) -> Dict:
+            """Run evolutionary search"""
+            # Initialize population
+            population = [self.sample_architecture() for _ in range(self.population_size)]
+            fitness = [self.evaluate_architecture(arch) for arch in population]
+
+            for generation in range(self.generations):
+                # Selection: keep top 50%
+                sorted_indices = np.argsort(fitness)[::-1]
+                survivors = [population[i] for i in sorted_indices[:self.population_size // 2]]
+
+                # Crossover & Mutation: create offspring
+                offspring = []
+                for _ in range(self.population_size // 2):
+                    parent = np.random.choice(survivors)
+                    child = self.mutate(parent)
+                    offspring.append(child)
+
+                # New population
+                population = survivors + offspring
+                fitness = [self.evaluate_architecture(arch) for arch in population]
+
+                print(f"Generation {generation}: Best fitness = {max(fitness):.4f}")
+
+            # Return best architecture
+            best_idx = np.argmax(fitness)
+            return population[best_idx]
+
+        def evaluate_architecture(self, architecture: Dict) -> float:
+            """Train and evaluate an architecture"""
+            # Simplified - in practice, use weight sharing or early stopping
+            model = build_model_from_architecture(architecture)
+            accuracy = quick_train_and_evaluate(model)
+            return accuracy
+
+    # ============= Helper Functions =============
+    def build_model(config: Dict) -> nn.Module:
+        """Build PyTorch model from config"""
+        # Simplified example
+        layers = []
+        for i in range(config['num_layers']):
+            layers.append(nn.Linear(config['hidden_size'], config['hidden_size']))
+            if config['activation'] == 'relu':
+                layers.append(nn.ReLU())
+            elif config['activation'] == 'gelu':
+                layers.append(nn.GELU())
+            layers.append(nn.Dropout(config['dropout']))
+
+        return nn.Sequential(*layers)
+
+    # ============= Example Usage =============
+    if __name__ == "__main__":
+        # Option 1: Ray Tune (recommended for scale)
+        best_config = run_ray_tune_optimization()
+
+        # Option 2: Pure Optuna
+        # optimizer = BayesianOptimizer()
+        # best_params = optimizer.optimize(n_trials=100)
+
+        # Option 3: NAS
+        # nas = NeuralArchitectureSearch()
+        # best_architecture = nas.search()
+    ```
+
+    ## Method Comparison
+
+    | Method | Efficiency | Compute Cost | When to Use |
+    |--------|-----------|--------------|-------------|
+    | **Grid Search** | ❌ Worst | Very High | <5 hyperparams, unlimited budget |
+    | **Random Search** | ⭕ Baseline | High | Quick baseline, 10-100 trials |
+    | **Bayesian Opt** | ✅ Good | Medium | 10-20 hyperparams, 100-1K trials |
+    | **Hyperband/ASHA** | ✅✅ Best | Low | 1K+ trials, early stopping critical |
+    | **NAS** | ⭕ Varies | Very High | Architecture matters more than hyperparams |
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **No Early Stopping** | Waste 90%+ compute | Use ASHA/Hyperband (10x speedup) |
+    | **Optimizing on Test Set** | Overfitting to test | Use separate validation set |
+    | **Ignoring Cost** | Optimize accuracy only | Multi-objective: accuracy vs latency/FLOPs |
+    | **Small Search Space** | Miss better configs | Start wide, then refine |
+    | **Large Batch Sizes Only** | Miss small batch benefits | Include [16, 32, 64] in search |
+    | **No Warmup** | Unstable early training | Add warmup_epochs parameter |
+    | **Single Seed** | High variance | Run best config with 3-5 seeds |
+    | **Forgetting Checkpoints** | Can't resume | Checkpoint every N epochs |
+
+    ## Real-World Examples
+
+    **Google's AutoML:**
+    - **Scale:** 100K+ trials on 800 GPUs for ImageNet
+    - **Method:** Neural Architecture Search (NASNet, EfficientNet)
+    - **Result:** EfficientNet: 8.4x smaller, 6.1x faster than previous best
+    - **Impact:** Achieved SOTA with automated architecture design
+
+    **OpenAI's GPT-3:**
+    - **Scale:** Thousands of scaling law experiments
+    - **Method:** Grid search over model size, dataset size, compute
+    - **Finding:** Predictable scaling laws (power laws)
+    - **Impact:** Informed decision to train 175B parameter model
+
+    **DeepMind's AlphaGo:**
+    - **Method:** Bayesian optimization for RL hyperparameters
+    - **Params:** Learning rate, batch size, exploration constant
+    - **Trials:** 100s of full training runs on TPUs
+    - **Impact:** Beat world champion with optimized training
 
     !!! tip "Interviewer's Insight"
-        Uses Bayesian optimization for efficiency.
+        Emphasizes Bayesian optimization for sample efficiency (10x better than random), ASHA/Hyperband for early stopping (10x compute savings), and distributed execution with Ray Tune. Discusses acquisition functions (EI vs UCB), exploration-exploitation trade-off, and can explain how Google's AutoML achieves SOTA through NAS at scale.
 
 ---
 
@@ -5027,20 +7301,548 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Triggers:**
-    - Scheduled (daily/weekly)
-    - Drift-based (data/concept drift)
-    - Performance-based (accuracy drop)
-    
-    **Pipeline:**
+    ## Scale Requirements
+
+    - **Models:** 10-1K models to manage
+    - **Retraining Frequency:** Daily to monthly per model
+    - **Data Volume:** 1GB-1TB new data per retrain
+    - **Training Time:** 1h-24h per model
+    - **Deployment:** <1h from trigger to production
+    - **Monitoring:** Real-time drift detection
+    - **Rollback:** <5min if issues detected
+
+    ## Architecture
+
     ```
-    [Trigger] → [Data] → [Train] → [Validate] → [Deploy]
-                                        ↓
-                              [Shadow Mode/Canary]
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   Trigger Detection System                       │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │          1. Scheduled Trigger (Cron-based)                │  │
+    │  │                                                            │  │
+    │  │  - Daily: 00:00 UTC                                       │  │
+    │  │  - Weekly: Sunday midnight                                │  │
+    │  │  - Monthly: 1st of month                                  │  │
+    │  │  Use: Baseline refresh, seasonal updates                  │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │          2. Data Drift Trigger (Statistical)              │  │
+    │  │                                                            │  │
+    │  │  Metrics:                                                 │  │
+    │  │  - PSI > 0.25 (population stability index)                │  │
+    │  │  - KL divergence > threshold                              │  │
+    │  │  - Feature distribution shifts (KS test)                  │  │
+    │  │                                                            │  │
+    │  │  Check: Every hour on recent data vs training data        │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │        3. Performance Degradation Trigger                 │  │
+    │  │                                                            │  │
+    │  │  Conditions:                                              │  │
+    │  │  - Accuracy drop > 5% (e.g., 90% → 85%)                   │  │
+    │  │  - Precision/Recall < threshold                           │  │
+    │  │  - Business metric impact (e.g., revenue loss)            │  │
+    │  │                                                            │  │
+    │  │  Alert: Immediate if drop > 10%                           │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │          4. Concept Drift Trigger (Label shift)           │  │
+    │  │                                                            │  │
+    │  │  - True labels differ from predictions                    │  │
+    │  │  - Feedback loop detects pattern changes                  │  │
+    │  │  Example: Fraud patterns evolve, user preferences change  │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓ (Trigger fired)
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  Data Preparation Pipeline                       │
+    │                                                                  │
+    │  1. Fetch new data (last N days since previous training)        │
+    │  2. Combine with historical data (sliding window)               │
+    │  3. Data quality checks (schema, nulls, outliers)               │
+    │  4. Feature engineering (same transformations as before)        │
+    │  5. Train/validation split (temporal split for time-series)     │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   Training Pipeline (Airflow/Kubeflow)           │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────────┐  │
+    │  │              Incremental vs Full Retrain                  │  │
+    │  │                                                            │  │
+    │  │  Incremental (warm start):                                │  │
+    │  │  - Load existing model weights                            │  │
+    │  │  - Fine-tune on new data                                  │  │
+    │  │  - Faster (10x), but risk of catastrophic forgetting      │  │
+    │  │                                                            │  │
+    │  │  Full retrain (from scratch):                             │  │
+    │  │  - Train on all data (new + historical window)            │  │
+    │  │  - Slower, but more robust                                │  │
+    │  │                                                            │  │
+    │  │  Decision: Full if drift severe, else incremental         │  │
+    │  └──────────────────────────────────────────────────────────┘  │
+    │                                                                  │
+    │  Training job → GPU cluster → Checkpoints to S3                 │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  Validation & Testing                            │
+    │                                                                  │
+    │  1. Offline metrics (validation set):                           │
+    │     - Accuracy, precision, recall, AUC                          │
+    │     - Must exceed minimum thresholds                            │
+    │                                                                  │
+    │  2. Backtesting (historical data):                              │
+    │     - Test on last 30 days of actual data                       │
+    │     - Compare vs old model performance                          │
+    │                                                                  │
+    │  3. Shadow mode (parallel deployment):                          │
+    │     - Run new model alongside old model                         │
+    │     - Log predictions, compare results                          │
+    │     - Duration: 24-48 hours                                     │
+    │                                                                  │
+    │  4. Approval gate:                                              │
+    │     - Auto-approve if metrics > baseline + 2%                   │
+    │     - Human review if 0-2% improvement                          │
+    │     - Block if < baseline                                       │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓ (Approved)
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  Deployment Strategy                             │
+    │                                                                  │
+    │  Option 1: Blue-Green Deployment                                │
+    │  - Deploy new model to "green" environment                      │
+    │  - Switch traffic 100% → green instantly                        │
+    │  - Keep "blue" (old) ready for instant rollback                 │
+    │                                                                  │
+    │  Option 2: Canary Deployment (recommended)                      │
+    │  - 5% traffic → new model (1 hour)                              │
+    │  - 25% traffic → new model (6 hours)                            │
+    │  - 50% traffic → new model (12 hours)                           │
+    │  - 100% traffic → new model (24 hours)                          │
+    │  - Rollback if error rate spikes or latency > SLA               │
+    │                                                                  │
+    │  Option 3: A/B Test                                             │
+    │  - 50/50 split for 1 week                                       │
+    │  - Statistical test for significance                            │
+    │  - Gradual rollout after significance                           │
+    └────────────────┬────────────────────────────────────────────────┘
+                     ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                Production Monitoring                             │
+    │                                                                  │
+    │  - Model version tracking (e.g., v23 in production)             │
+    │  - Performance metrics dashboard                                │
+    │  - Automated rollback if:                                       │
+    │    * Error rate > 1%                                            │
+    │    * Latency p99 > 2x baseline                                  │
+    │    * Accuracy drop > 5% (from online feedback)                  │
+    │                                                                  │
+    │  - Alert on-call team via PagerDuty                             │
+    └─────────────────────────────────────────────────────────────────┘
     ```
 
+    ## Production Implementation (240 lines)
+
+    ```python
+    # model_retraining.py
+    from typing import Dict, Any, Optional, Tuple
+    from dataclasses import dataclass
+    from datetime import datetime, timedelta
+    import numpy as np
+    from scipy import stats
+    import logging
+
+    # ============= Configuration =============
+    @dataclass
+    class RetrainingConfig:
+        """Model retraining configuration"""
+        # Trigger thresholds
+        psi_threshold: float = 0.25
+        accuracy_drop_threshold: float = 0.05
+
+        # Retraining settings
+        retrain_window_days: int = 90  # Use last 90 days of data
+        min_new_samples: int = 10000
+
+        # Deployment
+        canary_percentages: list = None
+        shadow_mode_hours: int = 24
+
+        def __post_init__(self):
+            if self.canary_percentages is None:
+                self.canary_percentages = [5, 25, 50, 100]
+
+    config = RetrainingConfig()
+
+    # ============= Drift Detection =============
+    class DriftDetector:
+        """Detect data and concept drift"""
+
+        def __init__(self):
+            self.logger = logging.getLogger(__name__)
+
+        def compute_psi(
+            self,
+            expected: np.ndarray,
+            actual: np.ndarray,
+            bins: int = 10
+        ) -> float:
+            """
+            Population Stability Index (PSI)
+
+            PSI = Σ (actual% - expected%) * ln(actual% / expected%)
+
+            Thresholds:
+            - PSI < 0.1: No change
+            - 0.1 < PSI < 0.25: Moderate change
+            - PSI > 0.25: Significant change (retrain recommended)
+            """
+            # Bin the data
+            breakpoints = np.linspace(
+                min(expected.min(), actual.min()),
+                max(expected.max(), actual.max()),
+                bins + 1
+            )
+
+            expected_percents = np.histogram(expected, bins=breakpoints)[0] / len(expected)
+            actual_percents = np.histogram(actual, bins=breakpoints)[0] / len(actual)
+
+            # Avoid log(0)
+            expected_percents = np.where(expected_percents == 0, 0.0001, expected_percents)
+            actual_percents = np.where(actual_percents == 0, 0.0001, actual_percents)
+
+            psi = np.sum(
+                (actual_percents - expected_percents) *
+                np.log(actual_percents / expected_percents)
+            )
+
+            return psi
+
+        def detect_feature_drift(
+            self,
+            train_data: Dict[str, np.ndarray],
+            production_data: Dict[str, np.ndarray]
+        ) -> Dict[str, float]:
+            """
+            Check drift for all features
+            Returns: {feature_name: psi_value}
+            """
+            drift_scores = {}
+
+            for feature in train_data.keys():
+                psi = self.compute_psi(
+                    train_data[feature],
+                    production_data[feature]
+                )
+                drift_scores[feature] = psi
+
+                if psi > config.psi_threshold:
+                    self.logger.warning(
+                        f"Feature '{feature}' has significant drift: PSI={psi:.3f}"
+                    )
+
+            return drift_scores
+
+        def kolmogorov_smirnov_test(
+            self,
+            expected: np.ndarray,
+            actual: np.ndarray,
+            alpha: float = 0.05
+        ) -> Tuple[bool, float]:
+            """
+            Two-sample KS test for distribution shift
+
+            Returns: (is_different, p_value)
+            """
+            statistic, p_value = stats.ks_2samp(expected, actual)
+            is_different = p_value < alpha
+
+            return is_different, p_value
+
+    # ============= Performance Monitor =============
+    class PerformanceMonitor:
+        """Monitor model performance in production"""
+
+        def __init__(self, baseline_metrics: Dict[str, float]):
+            self.baseline = baseline_metrics
+            self.logger = logging.getLogger(__name__)
+
+        def check_performance_degradation(
+            self,
+            current_metrics: Dict[str, float]
+        ) -> Tuple[bool, Dict[str, float]]:
+            """
+            Check if performance has degraded
+
+            Returns: (should_retrain, degradation_report)
+            """
+            degradation = {}
+            should_retrain = False
+
+            for metric, baseline_value in self.baseline.items():
+                if metric in current_metrics:
+                    current_value = current_metrics[metric]
+                    drop = baseline_value - current_value
+                    drop_percent = drop / baseline_value if baseline_value > 0 else 0
+
+                    degradation[metric] = {
+                        'baseline': baseline_value,
+                        'current': current_value,
+                        'drop': drop,
+                        'drop_percent': drop_percent
+                    }
+
+                    if drop_percent > config.accuracy_drop_threshold:
+                        should_retrain = True
+                        self.logger.warning(
+                            f"{metric} degraded by {drop_percent:.1%}: "
+                            f"{baseline_value:.3f} → {current_value:.3f}"
+                        )
+
+            return should_retrain, degradation
+
+    # ============= Retraining Orchestrator =============
+    class RetrainingOrchestrator:
+        """Orchestrate the retraining process"""
+
+        def __init__(self):
+            self.drift_detector = DriftDetector()
+            self.logger = logging.getLogger(__name__)
+
+        def should_retrain(
+            self,
+            trigger_type: str,
+            **kwargs
+        ) -> Tuple[bool, str]:
+            """
+            Decide whether to trigger retraining
+
+            Returns: (should_retrain, reason)
+            """
+            if trigger_type == 'scheduled':
+                return True, "Scheduled retrain"
+
+            elif trigger_type == 'data_drift':
+                drift_scores = kwargs.get('drift_scores', {})
+                max_drift = max(drift_scores.values()) if drift_scores else 0
+
+                if max_drift > config.psi_threshold:
+                    return True, f"Data drift detected: max PSI={max_drift:.3f}"
+                return False, "No significant drift"
+
+            elif trigger_type == 'performance':
+                degradation = kwargs.get('degradation', {})
+
+                for metric, info in degradation.items():
+                    if info['drop_percent'] > config.accuracy_drop_threshold:
+                        return True, f"{metric} degraded by {info['drop_percent']:.1%}"
+
+                return False, "Performance within acceptable range"
+
+            else:
+                return False, "Unknown trigger type"
+
+        def execute_retraining(
+            self,
+            model_id: str,
+            retrain_type: str = 'full'  # 'full' or 'incremental'
+        ) -> Dict[str, Any]:
+            """
+            Execute the retraining pipeline
+
+            Returns: training metadata
+            """
+            self.logger.info(f"Starting {retrain_type} retraining for model {model_id}")
+
+            # 1. Data preparation
+            data = self._prepare_data(model_id)
+
+            # 2. Training
+            if retrain_type == 'incremental':
+                new_model = self._incremental_train(model_id, data)
+            else:
+                new_model = self._full_retrain(model_id, data)
+
+            # 3. Validation
+            validation_metrics = self._validate_model(new_model, data['validation'])
+
+            # 4. Decision: deploy or reject
+            if self._should_deploy(validation_metrics):
+                deployment_info = self._deploy_model(model_id, new_model)
+
+                return {
+                    'status': 'deployed',
+                    'model_version': deployment_info['version'],
+                    'metrics': validation_metrics,
+                    'deployment': deployment_info
+                }
+            else:
+                return {
+                    'status': 'rejected',
+                    'reason': 'Failed validation checks',
+                    'metrics': validation_metrics
+                }
+
+        def _prepare_data(self, model_id: str) -> Dict:
+            """Fetch and prepare training data"""
+            # Fetch new data from last N days
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=config.retrain_window_days)
+
+            # Placeholder - actual implementation would query database
+            return {
+                'train': None,
+                'validation': None,
+                'metadata': {
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'num_samples': 100000
+                }
+            }
+
+        def _incremental_train(self, model_id: str, data: Dict) -> Any:
+            """Incremental training (warm start)"""
+            # Load existing model
+            # Fine-tune on new data
+            # Return updated model
+            pass
+
+        def _full_retrain(self, model_id: str, data: Dict) -> Any:
+            """Full retraining from scratch"""
+            # Train new model on all data
+            # Return new model
+            pass
+
+        def _validate_model(self, model: Any, validation_data: Any) -> Dict:
+            """Validate new model"""
+            # Compute metrics on validation set
+            return {
+                'accuracy': 0.92,
+                'precision': 0.90,
+                'recall': 0.88,
+                'f1': 0.89
+            }
+
+        def _should_deploy(self, metrics: Dict) -> bool:
+            """Decide if model should be deployed"""
+            # Check against minimum thresholds
+            min_thresholds = {
+                'accuracy': 0.85,
+                'precision': 0.80,
+                'recall': 0.80
+            }
+
+            for metric, min_value in min_thresholds.items():
+                if metrics.get(metric, 0) < min_value:
+                    self.logger.warning(
+                        f"{metric}={metrics[metric]:.3f} below threshold {min_value}"
+                    )
+                    return False
+
+            return True
+
+        def _deploy_model(self, model_id: str, model: Any) -> Dict:
+            """Deploy model with canary strategy"""
+            version = f"v{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+            self.logger.info(f"Deploying {model_id} {version} with canary rollout")
+
+            # Canary deployment
+            for percentage in config.canary_percentages:
+                self.logger.info(f"Routing {percentage}% traffic to new model")
+                # Monitor for 1 hour at each stage
+                # If errors spike, rollback
+
+            return {
+                'version': version,
+                'strategy': 'canary',
+                'deployed_at': datetime.now()
+            }
+
+    # ============= Example Usage =============
+    def example_retraining_workflow():
+        """Example: Complete retraining workflow"""
+
+        # Initialize
+        orchestrator = RetrainingOrchestrator()
+        drift_detector = DriftDetector()
+
+        # Simulate training and production data
+        train_features = {'age': np.random.normal(35, 10, 10000)}
+        prod_features = {'age': np.random.normal(40, 10, 1000)}  # Distribution shifted
+
+        # Check for drift
+        drift_scores = drift_detector.detect_feature_drift(train_features, prod_features)
+        print(f"Drift scores: {drift_scores}")
+
+        # Decide if retraining needed
+        should_retrain, reason = orchestrator.should_retrain(
+            trigger_type='data_drift',
+            drift_scores=drift_scores
+        )
+
+        if should_retrain:
+            print(f"Retraining triggered: {reason}")
+            result = orchestrator.execute_retraining(
+                model_id='fraud_detector',
+                retrain_type='full'
+            )
+            print(f"Retraining result: {result}")
+        else:
+            print(f"No retraining needed: {reason}")
+    ```
+
+    ## Trigger Strategy Comparison
+
+    | Trigger Type | Frequency | Pros | Cons | Best For |
+    |--------------|-----------|------|------|----------|
+    | **Scheduled** | Fixed (daily/weekly) | Predictable, simple | May retrain unnecessarily | Stable models, routine refresh |
+    | **Data Drift** | Event-driven | Adaptive, efficient | Requires monitoring | Models sensitive to distribution shifts |
+    | **Performance** | Event-driven | Directly targets quality | Reactive (damage done) | Critical models, fast feedback |
+    | **Hybrid** | Combines above | Best of all worlds | More complex | Production systems |
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **Catastrophic Forgetting** | Incremental training loses old knowledge | Full retrain or experience replay |
+    | **No Validation** | Deploy broken models | Multi-stage validation + shadow mode |
+    | **Training-Serving Skew** | Features differ train vs prod | Feature store with consistency |
+    | **Instant Rollout** | Risk of widespread failure | Canary deployment (5%→25%→100%) |
+    | **No Rollback Plan** | Stuck with bad model | Keep old model live, instant rollback |
+    | **Stale Data** | Train on old data | Real-time data pipeline, short windows |
+    | **Too Frequent Retraining** | Waste compute, instability | Set minimum intervals (e.g., 1 day) |
+    | **Ignoring Business Impact** | Optimize wrong metrics | Monitor business KPIs (revenue, churn) |
+
+    ## Real-World Examples
+
+    **Uber's Michelangelo:**
+    - **Retraining:** Daily for surge pricing models
+    - **Trigger:** Scheduled + performance monitoring
+    - **Strategy:** Canary deployment with 5%→100% rollout
+    - **Rollback:** Automated if latency > 10ms or errors > 0.1%
+    - **Impact:** Keep pricing models current with demand patterns
+
+    **Netflix's Recommendation:**
+    - **Retraining:** Weekly for personalization models
+    - **Trigger:** A/B test performance + scheduled
+    - **Data:** Last 90 days of viewing history
+    - **Validation:** Shadow mode for 24h before full rollout
+    - **Impact:** Maintains 80% engagement from recommendations
+
+    **Airbnb's Pricing Model:**
+    - **Retraining:** Daily updates for dynamic pricing
+    - **Trigger:** Scheduled + market events (holidays, etc.)
+    - **Strategy:** Blue-green deployment
+    - **Monitoring:** Revenue impact, booking rate
+    - **Impact:** $1B+ annual revenue from optimized pricing
+
     !!! tip "Interviewer's Insight"
-        Uses drift detection for smart retraining.
+        Emphasizes drift detection (PSI, KS test) to trigger smart retraining rather than blind scheduling, canary deployment for safe rollout (5%→100%), and shadow mode for validation. Discusses trade-offs between incremental vs full retraining (speed vs quality), and can explain how Uber/Netflix/Airbnb implement continuous retraining at scale.
 
 ---
 
@@ -5050,18 +7852,515 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **ANN (Approximate Nearest Neighbor) Options:**
-    
-    | Algorithm | Pros | Cons |
-    |-----------|------|------|
-    | HNSW | Fast, good recall | Memory |
-    | IVF | Scalable | Slower |
-    | PQ | Memory efficient | Lower recall |
-    
-    **Systems:** Faiss, Pinecone, Weaviate, Milvus.
+    ## Scale Requirements
+
+    - **Index Size:** 1 billion+ vectors (768-dim embeddings)
+    - **QPS:** 10,000+ queries/second
+    - **Latency:** p50 < 20ms, p99 < 100ms
+    - **Recall@10:** > 95% (vs brute-force)
+    - **Throughput:** 50K+ inserts/second
+    - **Availability:** 99.99% uptime
+
+    ## Architecture
+
+    ```
+    ┌─────────────────────────────────────────────────────────┐
+    │                    Vector Search System                  │
+    ├─────────────────────────────────────────────────────────┤
+    │                                                           │
+    │  Query Vector (768-dim)                                  │
+    │         ↓                                                 │
+    │  ┌─────────────┐                                         │
+    │  │ Query API   │ ← Rate limiting, auth                   │
+    │  └─────┬───────┘                                         │
+    │        │                                                  │
+    │  ┌─────▼────────────────────────────────────────┐       │
+    │  │        Embedding Normalization                │       │
+    │  │  (L2 normalize, dimension check)              │       │
+    │  └─────┬────────────────────────────────────────┘       │
+    │        │                                                  │
+    │  ┌─────▼─────────────────────────────────────────┐      │
+    │  │           Index Router (Sharding)              │      │
+    │  │  - Hash-based sharding (1B vectors → 10 shards)│     │
+    │  │  - Replicas for availability (3x replication)  │      │
+    │  └─────┬────────────────────────────────────────┘       │
+    │        │                                                  │
+    │        ├──────┬──────┬──────┬──────┬──────┐            │
+    │        ↓      ↓      ↓      ↓      ↓      ↓             │
+    │   ┌────────────────────────────────────────┐            │
+    │   │   HNSW Index Shards (In-Memory)        │            │
+    │   │                                          │            │
+    │   │  Shard 1    Shard 2    ...   Shard 10   │           │
+    │   │  100M vec  100M vec         100M vec    │           │
+    │   │                                          │            │
+    │   │  Layer 0: Full graph (ef=200)           │            │
+    │   │  Layer 1: Skip connections (ef=100)     │            │
+    │   │  Layer 2-N: Hierarchical shortcuts      │            │
+    │   └────────┬──────────────────────────────┘             │
+    │            │                                              │
+    │     ┌──────▼──────────┐                                 │
+    │     │  Result Merger  │                                  │
+    │     │  (Top-k heap)   │                                  │
+    │     └──────┬──────────┘                                  │
+    │            │                                              │
+    │     ┌──────▼──────────────────────────┐                 │
+    │     │   Post-processing & Filtering   │                 │
+    │     │  - Deduplication                 │                 │
+    │     │  - Metadata filtering            │                 │
+    │     │  - Re-ranking (optional)         │                 │
+    │     └──────┬──────────────────────────┘                  │
+    │            │                                              │
+    │     ┌──────▼──────────┐                                 │
+    │     │  Response (k=10)│                                  │
+    │     │  [{id, score}]  │                                  │
+    │     └─────────────────┘                                  │
+    │                                                           │
+    │  ┌────────────────────────────────────────────┐         │
+    │  │        Background Services                  │         │
+    │  ├────────────────────────────────────────────┤         │
+    │  │  • Index Builder (batch inserts)           │         │
+    │  │  • Compaction (merge segments)             │         │
+    │  │  • Snapshot & Backup (hourly)              │         │
+    │  │  • Monitoring (latency, recall, QPS)       │         │
+    │  └────────────────────────────────────────────┘         │
+    └─────────────────────────────────────────────────────────┘
+
+    Storage Layer:
+    ┌──────────────────────────────────────┐
+    │  Index Storage (SSD)                 │
+    │  - HNSW graph snapshots              │
+    │  - Metadata (filters, timestamps)    │
+    │  - Write-ahead log (WAL)             │
+    └──────────────────────────────────────┘
+    ```
+
+    ## Production Implementation (280 lines)
+
+    ```python
+    # vector_search.py
+    from typing import List, Tuple, Dict, Any, Optional
+    from dataclasses import dataclass
+    import numpy as np
+    from scipy.spatial.distance import cosine
+    import heapq
+    from collections import defaultdict
+    import pickle
+    import logging
+
+    @dataclass
+    class SearchConfig:
+        """Vector search configuration"""
+        dimension: int = 768
+        index_type: str = "hnsw"  # hnsw, ivf, pq
+        ef_construction: int = 200  # HNSW: connections during build
+        ef_search: int = 100  # HNSW: connections during search
+        M: int = 16  # HNSW: max connections per node
+        num_clusters: int = 1000  # IVF: number of clusters
+        num_subvectors: int = 8  # PQ: subvector count
+        metric: str = "cosine"  # cosine, euclidean, dot_product
+
+    class HNSWIndex:
+        """
+        Hierarchical Navigable Small World (HNSW) index
+
+        Time Complexity:
+        - Insert: O(M * log(N))
+        - Search: O(ef * log(N))
+
+        Space: O(N * M * d) where d=dimension
+
+        Best for: High recall, fast search (< 10ms)
+        """
+
+        def __init__(self, config: SearchConfig):
+            self.config = config
+            self.dimension = config.dimension
+            self.M = config.M  # Max edges per node
+            self.ef_construction = config.ef_construction
+            self.ef_search = config.ef_search
+            self.metric = config.metric
+
+            # Graph structure: level -> node_id -> neighbors
+            self.graph: Dict[int, Dict[int, set]] = defaultdict(lambda: defaultdict(set))
+            self.vectors: Dict[int, np.ndarray] = {}
+            self.metadata: Dict[int, Dict] = {}
+            self.entry_point = None
+            self.max_level = 0
+
+        def _distance(self, v1: np.ndarray, v2: np.ndarray) -> float:
+            """Compute distance between vectors"""
+            if self.metric == "cosine":
+                return 1 - np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+            elif self.metric == "euclidean":
+                return np.linalg.norm(v1 - v2)
+            elif self.metric == "dot_product":
+                return -np.dot(v1, v2)  # Negative for max-heap
+
+        def _get_random_level(self) -> int:
+            """Probabilistically assign level (exponential decay)"""
+            ml = 1.0 / np.log(2.0)
+            level = int(-np.log(np.random.uniform(0, 1)) * ml)
+            return min(level, 16)  # Cap at 16 levels
+
+        def _search_layer(
+            self,
+            query: np.ndarray,
+            entry_points: set,
+            num_to_return: int,
+            level: int
+        ) -> set:
+            """Search at a specific layer using greedy best-first"""
+            visited = set()
+            candidates = []
+            w = set()
+
+            # Initialize with entry points
+            for point in entry_points:
+                dist = self._distance(query, self.vectors[point])
+                heapq.heappush(candidates, (-dist, point))
+                visited.add(point)
+
+            while candidates:
+                current_dist, current = heapq.heappop(candidates)
+                current_dist = -current_dist
+
+                # Check if we should continue
+                if len(w) >= num_to_return:
+                    furthest_dist = max(
+                        self._distance(query, self.vectors[p]) for p in w
+                    )
+                    if current_dist > furthest_dist:
+                        break
+
+                w.add(current)
+
+                # Explore neighbors
+                for neighbor in self.graph[level].get(current, set()):
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        dist = self._distance(query, self.vectors[neighbor])
+                        heapq.heappush(candidates, (-dist, neighbor))
+
+            return w
+
+        def insert(
+            self,
+            vector_id: int,
+            vector: np.ndarray,
+            metadata: Optional[Dict] = None
+        ) -> None:
+            """Insert vector into HNSW index"""
+            if vector.shape[0] != self.dimension:
+                raise ValueError(f"Vector dimension {vector.shape[0]} != {self.dimension}")
+
+            # Normalize for cosine similarity
+            if self.metric == "cosine":
+                vector = vector / np.linalg.norm(vector)
+
+            self.vectors[vector_id] = vector
+            self.metadata[vector_id] = metadata or {}
+
+            # Assign level
+            level = self._get_random_level()
+
+            if self.entry_point is None:
+                self.entry_point = vector_id
+                self.max_level = level
+                return
+
+            # Search for nearest neighbors at each level
+            nearest = {self.entry_point}
+            for lc in range(self.max_level, level, -1):
+                nearest = self._search_layer(vector, nearest, 1, lc)
+
+            # Insert at all levels from level down to 0
+            for lc in range(level, -1, -1):
+                candidates = self._search_layer(
+                    vector, nearest, self.ef_construction, lc
+                )
+
+                # Select M nearest neighbors
+                M = self.M if lc > 0 else 2 * self.M
+                neighbors = sorted(
+                    candidates,
+                    key=lambda x: self._distance(vector, self.vectors[x])
+                )[:M]
+
+                # Add bidirectional edges
+                self.graph[lc][vector_id] = set(neighbors)
+                for neighbor in neighbors:
+                    self.graph[lc][neighbor].add(vector_id)
+
+                    # Prune if exceeds M
+                    if len(self.graph[lc][neighbor]) > M:
+                        pruned = sorted(
+                            self.graph[lc][neighbor],
+                            key=lambda x: self._distance(
+                                self.vectors[neighbor], self.vectors[x]
+                            )
+                        )[:M]
+                        self.graph[lc][neighbor] = set(pruned)
+
+                nearest = candidates
+
+            # Update entry point if new level is higher
+            if level > self.max_level:
+                self.max_level = level
+                self.entry_point = vector_id
+
+        def search(
+            self,
+            query: np.ndarray,
+            k: int = 10,
+            ef: Optional[int] = None
+        ) -> List[Tuple[int, float]]:
+            """
+            Search for k nearest neighbors
+
+            Args:
+                query: Query vector (dimension d)
+                k: Number of results
+                ef: Search width (default: self.ef_search)
+
+            Returns:
+                List of (vector_id, distance) tuples
+            """
+            if ef is None:
+                ef = self.ef_search
+
+            if self.entry_point is None:
+                return []
+
+            # Normalize query
+            if self.metric == "cosine":
+                query = query / np.linalg.norm(query)
+
+            # Search from top layer down to layer 0
+            nearest = {self.entry_point}
+            for level in range(self.max_level, 0, -1):
+                nearest = self._search_layer(query, nearest, 1, level)
+
+            # Search layer 0 with larger ef
+            candidates = self._search_layer(query, nearest, max(ef, k), 0)
+
+            # Return top k with distances
+            results = [
+                (vid, self._distance(query, self.vectors[vid]))
+                for vid in candidates
+            ]
+            results.sort(key=lambda x: x[1])
+            return results[:k]
+
+    class VectorSearchSystem:
+        """Production vector search system with sharding and filtering"""
+
+        def __init__(self, config: SearchConfig, num_shards: int = 10):
+            self.config = config
+            self.num_shards = num_shards
+            self.shards = [HNSWIndex(config) for _ in range(num_shards)]
+            self.total_vectors = 0
+
+        def _get_shard(self, vector_id: int) -> int:
+            """Hash-based sharding"""
+            return vector_id % self.num_shards
+
+        def insert(
+            self,
+            vector_id: int,
+            vector: np.ndarray,
+            metadata: Optional[Dict] = None
+        ) -> None:
+            """Insert vector into appropriate shard"""
+            shard_idx = self._get_shard(vector_id)
+            self.shards[shard_idx].insert(vector_id, vector, metadata)
+            self.total_vectors += 1
+
+        def batch_insert(
+            self,
+            vectors: List[Tuple[int, np.ndarray, Dict]]
+        ) -> None:
+            """Batch insert for efficiency"""
+            for vector_id, vector, metadata in vectors:
+                self.insert(vector_id, vector, metadata)
+
+        def search(
+            self,
+            query: np.ndarray,
+            k: int = 10,
+            filters: Optional[Dict[str, Any]] = None
+        ) -> List[Tuple[int, float, Dict]]:
+            """
+            Search across all shards and merge results
+
+            Args:
+                query: Query vector
+                k: Number of results
+                filters: Metadata filters (e.g., {"category": "sports"})
+
+            Returns:
+                List of (vector_id, distance, metadata)
+            """
+            # Search each shard in parallel (simplified here)
+            all_results = []
+            for shard in self.shards:
+                shard_results = shard.search(query, k * 2)  # Over-fetch
+                all_results.extend(shard_results)
+
+            # Apply metadata filters
+            if filters:
+                filtered = []
+                for vid, dist in all_results:
+                    shard_idx = self._get_shard(vid)
+                    metadata = self.shards[shard_idx].metadata.get(vid, {})
+
+                    # Check all filter conditions
+                    match = all(
+                        metadata.get(key) == value
+                        for key, value in filters.items()
+                    )
+                    if match:
+                        filtered.append((vid, dist, metadata))
+            else:
+                filtered = [
+                    (vid, dist, self.shards[self._get_shard(vid)].metadata.get(vid, {}))
+                    for vid, dist in all_results
+                ]
+
+            # Merge and return top k
+            filtered.sort(key=lambda x: x[1])
+            return filtered[:k]
+
+        def save(self, path: str) -> None:
+            """Save index to disk"""
+            with open(path, 'wb') as f:
+                pickle.dump({
+                    'config': self.config,
+                    'shards': self.shards,
+                    'total_vectors': self.total_vectors
+                }, f)
+
+        @classmethod
+        def load(cls, path: str) -> 'VectorSearchSystem':
+            """Load index from disk"""
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+
+            system = cls(data['config'], len(data['shards']))
+            system.shards = data['shards']
+            system.total_vectors = data['total_vectors']
+            return system
+
+    # Example usage
+    if __name__ == "__main__":
+        # Initialize system
+        config = SearchConfig(
+            dimension=768,
+            index_type="hnsw",
+            ef_construction=200,
+            ef_search=100,
+            M=16,
+            metric="cosine"
+        )
+
+        search_system = VectorSearchSystem(config, num_shards=10)
+
+        # Insert 1M vectors (simulated)
+        print("Inserting vectors...")
+        for i in range(1_000_000):
+            vector = np.random.randn(768).astype(np.float32)
+            metadata = {
+                "category": np.random.choice(["tech", "sports", "news"]),
+                "timestamp": "2025-01-15"
+            }
+            search_system.insert(i, vector, metadata)
+
+            if (i + 1) % 100_000 == 0:
+                print(f"Inserted {i + 1} vectors")
+
+        # Search
+        print("\nSearching...")
+        query = np.random.randn(768).astype(np.float32)
+        results = search_system.search(
+            query,
+            k=10,
+            filters={"category": "tech"}
+        )
+
+        print(f"\nTop 10 results:")
+        for vid, dist, metadata in results:
+            print(f"  ID: {vid}, Distance: {dist:.4f}, Metadata: {metadata}")
+    ```
+
+    ## ANN Algorithm Comparison
+
+    | Algorithm | Build Time | Search Latency | Memory | Recall@10 | Best For |
+    |-----------|------------|----------------|--------|-----------|----------|
+    | **HNSW** | O(N log N) | **5-20ms** | **High** (2-4x vectors) | **95-99%** | Low latency, high recall |
+    | **IVF** | O(N) | 20-50ms | Medium (1.5x) | 90-95% | Large-scale, cost-sensitive |
+    | **PQ** | O(N) | 10-30ms | **Low** (0.5x) | 85-92% | Memory-constrained |
+    | **LSH** | **O(N)** | 50-100ms | Low | 80-90% | Streaming inserts |
+    | **ScaNN** | O(N log N) | 10-25ms | Medium | 92-97% | Google-scale (1B+ vectors) |
+
+    **Hybrid Approach (Best for Production):**
+    - **IVF + PQ:** Cluster with IVF, compress with PQ → 10x memory reduction
+    - **HNSW + PQ:** Fast search + compression → 3x memory reduction
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **Cold Start** | First queries slow (loading index) | Pre-warm cache, keep index in memory |
+    | **High-Dimensional Curse** | Distances become similar | Dimensionality reduction (PCA, UMAP) |
+    | **Unbalanced Shards** | Some shards overloaded | Consistent hashing, dynamic rebalancing |
+    | **Stale Vectors** | Old embeddings don't match new model | Versioning, incremental re-embedding |
+    | **No Filtering** | Post-filtering slow | Pre-filtering with inverted index |
+    | **Single Index** | No A/B testing of embeddings | Multi-index support, traffic splitting |
+    | **Ignoring Quantization** | 4x memory overhead (float32) | Use float16 or int8 (minimal quality loss) |
+    | **Sequential Inserts** | Slow indexing | Batch inserts (10K-100K at a time) |
+
+    ## Real-World Examples
+
+    **Google Vertex AI Matching Engine:**
+    - **Scale:** 10 billion+ vectors, 768-1536 dimensions
+    - **Algorithm:** ScaNN (Google's HNSW variant)
+    - **Latency:** p50 < 10ms, p99 < 50ms at 10K QPS
+    - **Features:** Auto-sharding, streaming updates, metadata filtering
+    - **Use Cases:** YouTube recommendations, Google Shopping
+
+    **Meta FAISS:**
+    - **Scale:** 1 billion vectors, 512-2048 dimensions
+    - **Algorithm:** IVF + PQ (memory-optimized)
+    - **Throughput:** 100K QPS on single server
+    - **Optimization:** GPU acceleration (10x faster than CPU)
+    - **Use Cases:** Instagram Explore, Facebook Search
+
+    **OpenAI Vector Search:**
+    - **Scale:** 100M+ embeddings (text-embedding-ada-002)
+    - **Algorithm:** Custom HNSW with caching
+    - **Latency:** < 20ms p99 for GPT retrieval
+    - **Features:** Hybrid search (dense + sparse), re-ranking
+    - **Use Cases:** ChatGPT memory, code search
+
+    **Pinecone (SaaS):**
+    - **Scale:** Multi-tenant, 10B+ vectors across customers
+    - **Algorithm:** Proprietary (HNSW-based)
+    - **Latency:** p50 < 30ms globally
+    - **Features:** Serverless, auto-scaling, namespaces
+    - **Customers:** Shopify, Gong, Jasper
+
+    ## Key Metrics to Monitor
+
+    | Metric | Target | Alert Threshold |
+    |--------|--------|-----------------|
+    | **Search Latency (p99)** | < 100ms | > 150ms |
+    | **Recall@10** | > 95% | < 90% |
+    | **QPS** | 10K+ | Capacity planning at 80% |
+    | **Index Build Time** | < 1 hour (10M vectors) | > 2 hours |
+    | **Memory Usage** | < 80% of available | > 90% |
+    | **Error Rate** | < 0.1% | > 1% |
 
     !!! tip "Interviewer's Insight"
-        Knows HNSW vs IVF tradeoffs.
+        Discusses HNSW for low-latency search (< 20ms p99) with 95%+ recall, explains sharding strategy for billion-scale indexes, and understands trade-offs between memory (HNSW > IVF > PQ), speed (HNSW > PQ > IVF), and recall (HNSW > IVF > PQ). Can explain how Google/Meta/OpenAI use hybrid approaches (IVF+PQ) for 10x memory reduction while maintaining 90%+ recall.
 
 ---
 
@@ -5071,20 +8370,537 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Requirements:**
-    - Low latency (< 50ms)
-    - High throughput
-    - Batching for efficiency
-    
-    **Architecture:**
+    ## Scale Requirements
+
+    - **QPS:** 50,000+ requests/second
+    - **Latency:** p50 < 20ms, p99 < 50ms (single request)
+    - **Batch Latency:** p99 < 100ms (batch of 100)
+    - **Throughput:** 5M+ embeddings/second
+    - **Model Size:** BERT-base (110M params), Sentence-BERT (330M params)
+    - **GPU Utilization:** > 80% (cost efficiency)
+    - **Cache Hit Rate:** > 70% (for repeat queries)
+
+    ## Architecture
+
     ```
-    [Request] → [Batch Collector] → [GPU Inference] → [Cache]
+    ┌────────────────────────────────────────────────────────┐
+    │               Embedding Service Architecture            │
+    ├────────────────────────────────────────────────────────┤
+    │                                                          │
+    │  Client Requests (text → embeddings)                    │
+    │         ↓                                                │
+    │  ┌──────────────────┐                                   │
+    │  │   Load Balancer  │ ← Rate limiting (per-user)        │
+    │  │   (NGINX/Envoy)  │                                   │
+    │  └────────┬─────────┘                                   │
+    │           │                                              │
+    │           ├──────────┬──────────┬──────────┐           │
+    │           ↓          ↓          ↓          ↓            │
+    │      ┌─────────────────────────────────────────┐       │
+    │      │       API Servers (FastAPI/gRPC)        │       │
+    │      │  - Request validation                   │       │
+    │      │  - Input preprocessing                  │       │
+    │      │  - Cache lookup (Redis)                 │       │
+    │      └─────────┬───────────────────────────────┘       │
+    │                │                                         │
+    │         ┌──────▼──────────────┐                        │
+    │         │  Cache Layer (Redis)│                        │
+    │         │  - LRU eviction     │                        │
+    │         │  - TTL: 24h         │                        │
+    │         │  - Key: hash(text)  │                        │
+    │         └──────┬──────────────┘                        │
+    │                │ (cache miss)                           │
+    │         ┌──────▼──────────────────────────┐            │
+    │         │  Dynamic Batch Collector         │           │
+    │         │  - Max wait: 10ms                │           │
+    │         │  - Max batch: 128                │           │
+    │         │  - Timeout: adaptive             │           │
+    │         └──────┬──────────────────────────┘            │
+    │                │                                         │
+    │                ↓                                         │
+    │         ┌──────────────────────────────────┐           │
+    │         │  Model Inference Servers (GPU)   │           │
+    │         │                                   │           │
+    │         │  ┌─────────────────────────────┐ │           │
+    │         │  │  GPU 1: BERT (TensorRT)     │ │           │
+    │         │  │  - Mixed precision (FP16)   │ │           │
+    │         │  │  - Batch size: 128          │ │           │
+    │         │  │  - Throughput: 2K req/s     │ │           │
+    │         │  └─────────────────────────────┘ │           │
+    │         │                                   │           │
+    │         │  ┌─────────────────────────────┐ │           │
+    │         │  │  GPU 2-N: Replicas          │ │           │
+    │         │  │  - Auto-scaling (K8s HPA)   │ │           │
+    │         │  │  - GPU utilization > 80%    │ │           │
+    │         │  └─────────────────────────────┘ │           │
+    │         └──────┬──────────────────────────┘            │
+    │                │                                         │
+    │         ┌──────▼──────────────────────────┐            │
+    │         │  Response Aggregator             │           │
+    │         │  - Unbatch results               │           │
+    │         │  - Update cache (async)          │           │
+    │         │  - Logging & metrics             │           │
+    │         └──────┬──────────────────────────┘            │
+    │                │                                         │
+    │         ┌──────▼──────────────┐                        │
+    │         │  Response            │                        │
+    │         │  {embedding: [768]}  │                        │
+    │         └─────────────────────┘                         │
+    │                                                          │
+    │  ┌──────────────────────────────────────────┐          │
+    │  │       Background Services                 │          │
+    │  ├──────────────────────────────────────────┤          │
+    │  │  • Model Warmup (preload GPU)            │          │
+    │  │  • Metrics Export (Prometheus)           │          │
+    │  │  • Health Checks (liveness/readiness)    │          │
+    │  │  • A/B Testing (model versions)          │          │
+    │  └──────────────────────────────────────────┘          │
+    └────────────────────────────────────────────────────────┘
+
+    Model Storage:
+    ┌──────────────────────────────────┐
+    │  S3 / GCS                        │
+    │  - Model weights (versioned)     │
+    │  - TensorRT engines              │
+    │  - Tokenizer configs             │
+    └──────────────────────────────────┘
     ```
-    
-    **Optimization:** Model quantization, TensorRT.
+
+    ## Production Implementation (290 lines)
+
+    ```python
+    # embedding_service.py
+    from typing import List, Dict, Optional, Tuple
+    from dataclasses import dataclass
+    import asyncio
+    import time
+    import hashlib
+    import numpy as np
+    import torch
+    from transformers import AutoTokenizer, AutoModel
+    from fastapi import FastAPI, HTTPException
+    from pydantic import BaseModel
+    import redis
+    import logging
+    from prometheus_client import Counter, Histogram, Gauge
+
+    # Metrics
+    REQUESTS = Counter('embedding_requests_total', 'Total requests')
+    LATENCY = Histogram('embedding_latency_seconds', 'Request latency')
+    CACHE_HITS = Counter('cache_hits_total', 'Cache hits')
+    CACHE_MISSES = Counter('cache_misses_total', 'Cache misses')
+    BATCH_SIZE = Histogram('batch_size', 'Batch size distribution')
+    GPU_UTIL = Gauge('gpu_utilization', 'GPU utilization %')
+
+    @dataclass
+    class EmbeddingConfig:
+        """Embedding service configuration"""
+        model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+        max_batch_size: int = 128
+        max_batch_wait_ms: int = 10
+        cache_ttl_hours: int = 24
+        device: str = "cuda" if torch.cuda.is_available() else "cpu"
+        use_fp16: bool = True  # Mixed precision
+        max_seq_length: int = 512
+
+    class EmbeddingRequest(BaseModel):
+        """API request schema"""
+        texts: List[str]
+        normalize: bool = True
+
+    class EmbeddingResponse(BaseModel):
+        """API response schema"""
+        embeddings: List[List[float]]
+        cached: List[bool]
+        latency_ms: float
+
+    class DynamicBatcher:
+        """
+        Dynamic batching for GPU efficiency
+
+        Accumulates requests until:
+        1. Batch size reaches max_batch_size, OR
+        2. Wait time exceeds max_batch_wait_ms
+
+        This increases GPU utilization from ~30% → 80%+
+        """
+
+        def __init__(self, config: EmbeddingConfig):
+            self.config = config
+            self.queue: List[Tuple[str, asyncio.Future]] = []
+            self.lock = asyncio.Lock()
+            self.timer_task = None
+
+        async def add_request(self, text: str) -> np.ndarray:
+            """Add request to batch queue"""
+            future = asyncio.Future()
+
+            async with self.lock:
+                self.queue.append((text, future))
+
+                # Start timer on first request in batch
+                if len(self.queue) == 1:
+                    self.timer_task = asyncio.create_task(
+                        self._wait_and_flush()
+                    )
+
+                # Flush if batch is full
+                if len(self.queue) >= self.config.max_batch_size:
+                    if self.timer_task:
+                        self.timer_task.cancel()
+                    await self._flush_batch()
+
+            # Wait for batch to complete
+            embedding = await future
+            return embedding
+
+        async def _wait_and_flush(self):
+            """Wait for max_batch_wait_ms, then flush"""
+            await asyncio.sleep(self.config.max_batch_wait_ms / 1000.0)
+            async with self.lock:
+                await self._flush_batch()
+
+        async def _flush_batch(self):
+            """Process accumulated batch"""
+            if not self.queue:
+                return
+
+            batch = self.queue
+            self.queue = []
+
+            # Record batch size
+            BATCH_SIZE.observe(len(batch))
+
+            # This will be filled by the inference engine
+            # For now, we just signal the batch is ready
+            # (actual inference handled by EmbeddingModel)
+            pass
+
+    class EmbeddingModel:
+        """
+        GPU-optimized embedding model
+
+        Optimizations:
+        - TorchScript compilation
+        - Mixed precision (FP16)
+        - Dynamic batching
+        - Model warmup
+        """
+
+        def __init__(self, config: EmbeddingConfig):
+            self.config = config
+            self.device = torch.device(config.device)
+
+            logging.info(f"Loading model {config.model_name} on {self.device}")
+
+            # Load model and tokenizer
+            self.tokenizer = AutoTokenizer.from_pretrained(config.model_name)
+            self.model = AutoModel.from_pretrained(config.model_name)
+            self.model.to(self.device)
+            self.model.eval()
+
+            # Enable mixed precision (FP16) for 2x speedup
+            if config.use_fp16 and config.device == "cuda":
+                self.model.half()
+
+            # Warmup (avoid cold start latency)
+            self._warmup()
+
+        def _warmup(self):
+            """Warmup model with dummy inputs"""
+            logging.info("Warming up model...")
+            dummy_texts = ["hello world"] * 32
+            with torch.no_grad():
+                self.encode(dummy_texts)
+            logging.info("Warmup complete")
+
+        @torch.no_grad()
+        def encode(
+            self,
+            texts: List[str],
+            normalize: bool = True
+        ) -> np.ndarray:
+            """
+            Encode texts to embeddings
+
+            Args:
+                texts: List of text strings
+                normalize: L2 normalize embeddings
+
+            Returns:
+                np.ndarray of shape (len(texts), embedding_dim)
+            """
+            # Tokenize
+            encoded = self.tokenizer(
+                texts,
+                padding=True,
+                truncation=True,
+                max_length=self.config.max_seq_length,
+                return_tensors='pt'
+            )
+
+            # Move to GPU
+            encoded = {k: v.to(self.device) for k, v in encoded.items()}
+
+            # Forward pass
+            outputs = self.model(**encoded)
+
+            # Mean pooling (use attention mask for proper averaging)
+            attention_mask = encoded['attention_mask']
+            token_embeddings = outputs.last_hidden_state
+
+            input_mask_expanded = (
+                attention_mask.unsqueeze(-1)
+                .expand(token_embeddings.size())
+                .float()
+            )
+
+            embeddings = torch.sum(
+                token_embeddings * input_mask_expanded, dim=1
+            ) / torch.clamp(input_mask_expanded.sum(dim=1), min=1e-9)
+
+            # L2 normalization (for cosine similarity)
+            if normalize:
+                embeddings = torch.nn.functional.normalize(
+                    embeddings, p=2, dim=1
+                )
+
+            # Move to CPU and convert to numpy
+            embeddings = embeddings.cpu().numpy()
+
+            return embeddings
+
+    class EmbeddingCache:
+        """Redis-based embedding cache"""
+
+        def __init__(self, redis_client: redis.Redis, ttl_hours: int = 24):
+            self.redis = redis_client
+            self.ttl_seconds = ttl_hours * 3600
+
+        def _get_key(self, text: str) -> str:
+            """Generate cache key from text hash"""
+            return f"emb:{hashlib.md5(text.encode()).hexdigest()}"
+
+        def get(self, text: str) -> Optional[np.ndarray]:
+            """Get cached embedding"""
+            key = self._get_key(text)
+            cached = self.redis.get(key)
+
+            if cached:
+                CACHE_HITS.inc()
+                # Deserialize numpy array
+                return np.frombuffer(cached, dtype=np.float32)
+            else:
+                CACHE_MISSES.inc()
+                return None
+
+        def set(self, text: str, embedding: np.ndarray):
+            """Cache embedding"""
+            key = self._get_key(text)
+            # Serialize numpy array
+            self.redis.setex(
+                key,
+                self.ttl_seconds,
+                embedding.astype(np.float32).tobytes()
+            )
+
+        def get_batch(self, texts: List[str]) -> List[Optional[np.ndarray]]:
+            """Batch get for efficiency"""
+            keys = [self._get_key(text) for text in texts]
+            cached = self.redis.mget(keys)
+
+            results = []
+            for c in cached:
+                if c:
+                    CACHE_HITS.inc()
+                    results.append(np.frombuffer(c, dtype=np.float32))
+                else:
+                    CACHE_MISSES.inc()
+                    results.append(None)
+
+            return results
+
+    class EmbeddingService:
+        """Production embedding service"""
+
+        def __init__(self, config: EmbeddingConfig):
+            self.config = config
+            self.model = EmbeddingModel(config)
+            self.cache = EmbeddingCache(
+                redis.Redis(host='localhost', port=6379, db=0),
+                ttl_hours=config.cache_ttl_hours
+            )
+            self.batcher = DynamicBatcher(config)
+
+        async def embed(
+            self,
+            texts: List[str],
+            normalize: bool = True
+        ) -> Tuple[List[np.ndarray], List[bool]]:
+            """
+            Get embeddings for texts (with caching)
+
+            Returns:
+                (embeddings, cached_flags)
+            """
+            # Check cache first
+            cached_embeddings = self.cache.get_batch(texts)
+
+            # Separate cached vs uncached
+            uncached_indices = [
+                i for i, emb in enumerate(cached_embeddings) if emb is None
+            ]
+            uncached_texts = [texts[i] for i in uncached_indices]
+
+            # Compute embeddings for uncached texts
+            if uncached_texts:
+                new_embeddings = self.model.encode(uncached_texts, normalize)
+
+                # Update cache (async)
+                for text, emb in zip(uncached_texts, new_embeddings):
+                    self.cache.set(text, emb)
+
+                # Merge cached + new embeddings
+                result_embeddings = []
+                new_idx = 0
+                for i, cached in enumerate(cached_embeddings):
+                    if cached is not None:
+                        result_embeddings.append(cached)
+                    else:
+                        result_embeddings.append(new_embeddings[new_idx])
+                        new_idx += 1
+            else:
+                result_embeddings = cached_embeddings
+
+            # Cached flags
+            cached_flags = [emb is not None for emb in cached_embeddings]
+
+            return result_embeddings, cached_flags
+
+    # FastAPI application
+    app = FastAPI(title="Embedding Service")
+
+    # Global service instance
+    config = EmbeddingConfig()
+    service = EmbeddingService(config)
+
+    @app.post("/embed", response_model=EmbeddingResponse)
+    async def embed_endpoint(request: EmbeddingRequest):
+        """Embed texts endpoint"""
+        REQUESTS.inc()
+
+        start_time = time.time()
+
+        try:
+            embeddings, cached = await service.embed(
+                request.texts,
+                normalize=request.normalize
+            )
+
+            latency_ms = (time.time() - start_time) * 1000
+            LATENCY.observe(latency_ms / 1000)
+
+            return EmbeddingResponse(
+                embeddings=[emb.tolist() for emb in embeddings],
+                cached=cached,
+                latency_ms=latency_ms
+            )
+
+        except Exception as e:
+            logging.error(f"Embedding failed: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get("/health")
+    async def health_check():
+        """Health check endpoint"""
+        return {"status": "healthy", "device": str(service.model.device)}
+
+    # Example usage
+    if __name__ == "__main__":
+        import uvicorn
+
+        # Start service
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8000,
+            workers=4,  # Multi-process
+            log_level="info"
+        )
+    ```
+
+    ## Optimization Strategies Comparison
+
+    | Strategy | Latency Improvement | Throughput Improvement | Implementation Cost |
+    |----------|---------------------|------------------------|---------------------|
+    | **Dynamic Batching** | 1.5x (amortize overhead) | **10x** | Low |
+    | **Mixed Precision (FP16)** | **2x** | 2x | Very Low |
+    | **TensorRT Optimization** | **3x** | 3x | High |
+    | **Quantization (INT8)** | 4x | 4x | Medium (1-2% quality loss) |
+    | **Model Distillation** | 5x | 5x | Very High (retrain smaller model) |
+    | **Caching (70% hit rate)** | **5x** (cached requests) | 3x | Low |
+    | **GPU vs CPU** | **10x** | 10x | Medium (infrastructure) |
+
+    **Best Combo for Production:**
+    - Dynamic batching + FP16 + Caching → **20-30x improvement** over naive CPU implementation
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **Cold Start** | First request 5-10s slow | Model warmup on startup |
+    | **Small Batches** | GPU utilization < 30% | Dynamic batching (wait 10ms) |
+    | **OOM Errors** | Large batches crash GPU | Max batch size + gradient checkpointing |
+    | **Stale Cache** | Serve old embeddings after model update | Version cache keys with model version |
+    | **No Rate Limiting** | Abuse/DDoS | Per-user rate limits (1K/min) |
+    | **Blocking I/O** | Slow cache lookups block service | Async Redis client |
+    | **No Monitoring** | Silent failures | Prometheus metrics + alerting |
+    | **Single GPU** | No redundancy | Multi-GPU with load balancing |
+
+    ## Real-World Examples
+
+    **OpenAI Embedding API:**
+    - **Scale:** Billions of requests/month
+    - **Model:** text-embedding-ada-002 (1536-dim)
+    - **Latency:** p50 < 100ms, p99 < 500ms
+    - **Pricing:** $0.0001 per 1K tokens (~750 words)
+    - **Optimization:** TensorRT, multi-GPU, aggressive caching
+    - **Throughput:** 100K+ embeddings/second per region
+
+    **Google Vertex AI Embeddings:**
+    - **Models:** textembedding-gecko (768-dim)
+    - **Latency:** p50 < 50ms, p99 < 200ms
+    - **Features:** Multi-lingual, batch API (up to 250 texts)
+    - **Optimization:** TPU acceleration, dynamic batching
+    - **SLA:** 99.9% uptime
+
+    **Cohere Embed:**
+    - **Models:** embed-english-v3.0 (1024-dim)
+    - **Latency:** p50 < 30ms, p99 < 100ms
+    - **Features:** Compression (256-dim), semantic search mode
+    - **Optimization:** Custom CUDA kernels, quantization
+    - **Throughput:** 10K+ req/s per instance
+
+    **HuggingFace Inference API:**
+    - **Scale:** 1M+ models served
+    - **Infrastructure:** AWS Inferentia, NVIDIA GPUs
+    - **Latency:** p99 < 500ms (shared), < 50ms (dedicated)
+    - **Features:** Auto-scaling, cold start optimization
+    - **Pricing:** $0.60/hour (dedicated GPU)
+
+    ## Key Metrics to Monitor
+
+    | Metric | Target | Alert Threshold |
+    |--------|--------|-----------------|
+    | **Latency (p99)** | < 50ms (single), < 100ms (batch) | > 100ms |
+    | **Throughput** | > 5K req/s per GPU | < 2K req/s |
+    | **GPU Utilization** | > 80% | < 50% (under-utilized) |
+    | **Cache Hit Rate** | > 70% | < 50% |
+    | **Error Rate** | < 0.1% | > 1% |
+    | **Model Load Time** | < 10s | > 30s |
 
     !!! tip "Interviewer's Insight"
-        Uses batching and caching for efficiency.
+        Explains dynamic batching to increase GPU utilization from 30% → 80%+ (10x throughput gain), discusses FP16 mixed precision for 2x speedup with minimal quality loss, and implements Redis caching with 70%+ hit rate for 5x latency improvement on repeat queries. Understands trade-offs between batch size (throughput) vs latency, and can explain how OpenAI/Cohere/Google optimize embedding services at billion-request scale.
 
 ---
 
@@ -5094,16 +8910,543 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Multi-stage Pipeline:**
-    1. **Fast filters:** Hashes, blocklists
-    2. **ML classifiers:** Text, image, video
-    3. **Human review:** Edge cases
-    4. **Appeals:** User feedback loop
-    
-    **Metrics:** Precision (avoid false positives), latency.
+    ## Scale Requirements
+
+    - **Volume:** 500M+ pieces of content/day
+    - **Latency:** < 100ms (fast filters), < 1s (ML), < 24h (human review)
+    - **Precision:** > 95% (minimize false positives - bad UX)
+    - **Recall:** > 90% (catch most violations)
+    - **Human Review Capacity:** 10K+ moderators globally
+    - **Appeals:** Process 1M+ appeals/day
+    - **Languages:** 100+ languages supported
+
+    ## Architecture
+
+    ```
+    ┌──────────────────────────────────────────────────────────┐
+    │           Content Moderation System (Multi-Layer)         │
+    ├──────────────────────────────────────────────────────────┤
+    │                                                            │
+    │  User-Generated Content (text, image, video)              │
+    │         ↓                                                  │
+    │  ┌────────────────────────────────────────────┐          │
+    │  │     Layer 1: Fast Filters (< 10ms)         │          │
+    │  ├────────────────────────────────────────────┤          │
+    │  │  • Hash matching (PhotoDNA, PDQ)           │          │
+    │  │  • Blocklist (profanity, known bad actors) │          │
+    │  │  • Rate limiting (spam detection)          │          │
+    │  │  • Metadata checks (file size, format)     │          │
+    │  └────────┬───────────────────────────────────┘          │
+    │           │ (90% of violations caught here)               │
+    │           ↓                                                │
+    │  ┌────────────────────────────────────────────┐          │
+    │  │   Layer 2: ML Classifiers (< 1s)           │          │
+    │  ├────────────────────────────────────────────┤          │
+    │  │                                             │          │
+    │  │  Text: BERT/RoBERTa                        │          │
+    │  │  - Hate speech: toxicity score             │          │
+    │  │  - Spam: promotional content               │          │
+    │  │  - Misinformation: fact-check needed       │          │
+    │  │                                             │          │
+    │  │  Image: ResNet/EfficientNet                │          │
+    │  │  - NSFW detection (nudity, gore)           │          │
+    │  │  - Violence detection                      │          │
+    │  │  - Logo/trademark infringement             │          │
+    │  │                                             │          │
+    │  │  Video: 3D CNN + temporal models           │          │
+    │  │  - Frame sampling (1 fps)                  │          │
+    │  │  - Audio analysis (ASR + toxicity)         │          │
+    │  │  - Scene detection                         │          │
+    │  │                                             │          │
+    │  │  Multi-modal: CLIP/ALIGN                   │          │
+    │  │  - Text-image consistency                  │          │
+    │  │  - Context-aware moderation                │          │
+    │  └────────┬───────────────────────────────────┘          │
+    │           │ (confidence < 0.8 → human review)            │
+    │           ↓                                                │
+    │  ┌────────────────────────────────────────────┐          │
+    │  │   Layer 3: Human Review Queue              │          │
+    │  ├────────────────────────────────────────────┤          │
+    │  │  • Priority scoring (viral content first)  │          │
+    │  │  • Workload balancing (round-robin)        │          │
+    │  │  • Moderator specialization (NSFW, hate)   │          │
+    │  │  • Quality control (double-review)         │          │
+    │  │  • Moderator wellness (rotation, breaks)   │          │
+    │  └────────┬───────────────────────────────────┘          │
+    │           │                                                │
+    │           ↓                                                │
+    │  ┌────────────────────────────────────────────┐          │
+    │  │      Action Taken                           │          │
+    │  ├────────────────────────────────────────────┤          │
+    │  │  • Remove: Delete content                  │          │
+    │  │  • Restrict: Reduce distribution           │          │
+    │  │  • Warn: User notification                 │          │
+    │  │  • Ban: Suspend account (temp/permanent)   │          │
+    │  │  • Approve: Mark as safe                   │          │
+    │  └────────┬───────────────────────────────────┘          │
+    │           │                                                │
+    │           ↓                                                │
+    │  ┌────────────────────────────────────────────┐          │
+    │  │   Appeals System                            │          │
+    │  ├────────────────────────────────────────────┤          │
+    │  │  • User submits appeal                     │          │
+    │  │  • Senior moderator review                 │          │
+    │  │  • Overturn decision if error              │          │
+    │  │  • Feedback loop to ML models              │          │
+    │  └────────────────────────────────────────────┘          │
+    │                                                            │
+    │  ┌────────────────────────────────────────────┐          │
+    │  │   Feedback & Model Improvement              │          │
+    │  ├────────────────────────────────────────────┤          │
+    │  │  • Log all decisions                       │          │
+    │  │  • Disagreements → training data           │          │
+    │  │  • Retrain models weekly                   │          │
+    │  │  • A/B test new models (shadow mode)       │          │
+    │  └────────────────────────────────────────────┘          │
+    └──────────────────────────────────────────────────────────┘
+
+    Monitoring & Analytics:
+    ┌────────────────────────────────────┐
+    │  • Violation rate by category      │
+    │  • False positive rate (appeals)   │
+    │  • Moderator throughput & accuracy │
+    │  • Model performance drift         │
+    │  • SLA compliance (< 24h review)   │
+    └────────────────────────────────────┘
+    ```
+
+    ## Production Implementation (270 lines)
+
+    ```python
+    # content_moderation.py
+    from typing import List, Dict, Optional, Tuple
+    from dataclasses import dataclass
+    from enum import Enum
+    import hashlib
+    import numpy as np
+    from datetime import datetime
+    import logging
+
+    class ViolationType(Enum):
+        """Content violation types"""
+        HATE_SPEECH = "hate_speech"
+        HARASSMENT = "harassment"
+        NSFW = "nsfw"
+        VIOLENCE = "violence"
+        SPAM = "spam"
+        MISINFORMATION = "misinformation"
+        COPYRIGHT = "copyright"
+        SAFE = "safe"
+
+    class ModerationAction(Enum):
+        """Actions taken on violating content"""
+        REMOVE = "remove"
+        RESTRICT = "restrict"  # Reduce distribution
+        WARN = "warn"
+        BAN_USER = "ban_user"
+        APPROVE = "approve"
+        NEEDS_REVIEW = "needs_review"
+
+    @dataclass
+    class ModerationResult:
+        """Result of moderation check"""
+        violation_type: ViolationType
+        confidence: float
+        action: ModerationAction
+        explanation: str
+        model_version: str
+        flagged_by: str  # "hash", "ml", "human"
+
+    class HashMatcher:
+        """
+        Fast hash-based matching (Layer 1)
+
+        Uses perceptual hashing (PhotoDNA, PDQ) to match
+        against known violating content database
+
+        Time: O(1) lookup
+        """
+
+        def __init__(self):
+            # Database of known violation hashes
+            self.violation_hashes: set = set()
+            self.load_violation_database()
+
+        def load_violation_database(self):
+            """Load known violation hashes (from NCMEC, industry partners)"""
+            # In production, load from secure database
+            logging.info("Loading violation hash database...")
+
+        def compute_pdq_hash(self, image_bytes: bytes) -> str:
+            """
+            Compute PDQ (Perceptual Detection Quality) hash
+
+            PDQ is Meta's open-source perceptual hash for images
+            - Robust to minor edits (resize, crop, filter)
+            - 256-bit hash
+            """
+            # Simplified - actual PDQ uses DCT + quantization
+            return hashlib.md5(image_bytes).hexdigest()
+
+        def check(self, content_hash: str) -> Optional[ModerationResult]:
+            """Check if content matches known violations"""
+            if content_hash in self.violation_hashes:
+                return ModerationResult(
+                    violation_type=ViolationType.NSFW,
+                    confidence=1.0,
+                    action=ModerationAction.REMOVE,
+                    explanation="Matches known violating content",
+                    model_version="hash_v1",
+                    flagged_by="hash"
+                )
+            return None
+
+    class TextClassifier:
+        """ML-based text moderation (Layer 2)"""
+
+        def __init__(self):
+            # In production: Load BERT/RoBERTa model
+            self.model = None
+            self.thresholds = {
+                ViolationType.HATE_SPEECH: 0.7,
+                ViolationType.HARASSMENT: 0.75,
+                ViolationType.SPAM: 0.8,
+                ViolationType.MISINFORMATION: 0.6,
+            }
+
+        def predict(self, text: str) -> Dict[ViolationType, float]:
+            """
+            Predict violation probabilities
+
+            Returns:
+                {ViolationType: probability}
+            """
+            # Simplified - actual would use transformer model
+            scores = {
+                ViolationType.HATE_SPEECH: 0.15,
+                ViolationType.HARASSMENT: 0.05,
+                ViolationType.SPAM: 0.1,
+                ViolationType.MISINFORMATION: 0.02,
+            }
+
+            # Check for blocklisted terms
+            blocklist = ["badword1", "badword2"]
+            if any(term in text.lower() for term in blocklist):
+                scores[ViolationType.HATE_SPEECH] = 0.95
+
+            return scores
+
+        def check(self, text: str) -> Optional[ModerationResult]:
+            """Check text for violations"""
+            scores = self.predict(text)
+
+            # Find highest scoring violation
+            max_violation = max(scores.items(), key=lambda x: x[1])
+            violation_type, score = max_violation
+
+            if score > self.thresholds.get(violation_type, 0.8):
+                return ModerationResult(
+                    violation_type=violation_type,
+                    confidence=score,
+                    action=self._get_action(score),
+                    explanation=f"{violation_type.value} detected",
+                    model_version="text_bert_v2",
+                    flagged_by="ml"
+                )
+
+            return None
+
+        def _get_action(self, confidence: float) -> ModerationAction:
+            """Determine action based on confidence"""
+            if confidence > 0.95:
+                return ModerationAction.REMOVE
+            elif confidence > 0.8:
+                return ModerationAction.RESTRICT
+            else:
+                return ModerationAction.NEEDS_REVIEW
+
+    class ImageClassifier:
+        """ML-based image moderation (Layer 2)"""
+
+        def __init__(self):
+            # In production: Load ResNet/EfficientNet
+            self.nsfw_model = None
+            self.violence_model = None
+
+        def predict_nsfw(self, image_bytes: bytes) -> float:
+            """NSFW detection score"""
+            # Simplified - actual would use CNN
+            return 0.3
+
+        def predict_violence(self, image_bytes: bytes) -> float:
+            """Violence detection score"""
+            return 0.1
+
+        def check(self, image_bytes: bytes) -> Optional[ModerationResult]:
+            """Check image for violations"""
+            nsfw_score = self.predict_nsfw(image_bytes)
+            violence_score = self.predict_violence(image_bytes)
+
+            if nsfw_score > 0.8:
+                return ModerationResult(
+                    violation_type=ViolationType.NSFW,
+                    confidence=nsfw_score,
+                    action=ModerationAction.REMOVE,
+                    explanation="NSFW content detected",
+                    model_version="image_resnet_v3",
+                    flagged_by="ml"
+                )
+
+            if violence_score > 0.85:
+                return ModerationResult(
+                    violation_type=ViolationType.VIOLENCE,
+                    confidence=violence_score,
+                    action=ModerationAction.REMOVE,
+                    explanation="Violent content detected",
+                    model_version="image_resnet_v3",
+                    flagged_by="ml"
+                )
+
+            return None
+
+    class HumanReviewQueue:
+        """Human review queue management (Layer 3)"""
+
+        def __init__(self):
+            self.queue: List[Tuple[str, ModerationResult, float]] = []
+            # content_id, result, priority_score
+
+        def add(
+            self,
+            content_id: str,
+            result: ModerationResult,
+            metadata: Dict
+        ):
+            """Add content to human review queue"""
+            # Calculate priority score
+            priority = self._calculate_priority(result, metadata)
+
+            self.queue.append((content_id, result, priority))
+            self.queue.sort(key=lambda x: x[2], reverse=True)
+
+        def _calculate_priority(
+            self,
+            result: ModerationResult,
+            metadata: Dict
+        ) -> float:
+            """
+            Priority scoring for review queue
+
+            Higher priority:
+            - Viral content (high engagement)
+            - Low confidence (borderline cases)
+            - Sensitive categories (NSFW, violence)
+            """
+            priority = 0.0
+
+            # Virality score
+            views = metadata.get("views", 0)
+            priority += min(views / 1000, 100)  # Cap at 100
+
+            # Confidence (lower = higher priority)
+            priority += (1 - result.confidence) * 50
+
+            # Category severity
+            severity_weights = {
+                ViolationType.NSFW: 2.0,
+                ViolationType.VIOLENCE: 2.0,
+                ViolationType.HATE_SPEECH: 1.5,
+                ViolationType.HARASSMENT: 1.3,
+                ViolationType.SPAM: 0.5,
+            }
+            priority *= severity_weights.get(result.violation_type, 1.0)
+
+            return priority
+
+        def get_next(self, moderator_specialization: str) -> Optional[Tuple]:
+            """Get next item for moderator"""
+            # Filter by specialization
+            for i, (content_id, result, priority) in enumerate(self.queue):
+                if moderator_specialization == "all" or \
+                   result.violation_type.value == moderator_specialization:
+                    return self.queue.pop(i)
+
+            return None
+
+    class ModerationPipeline:
+        """End-to-end moderation pipeline"""
+
+        def __init__(self):
+            self.hash_matcher = HashMatcher()
+            self.text_classifier = TextClassifier()
+            self.image_classifier = ImageClassifier()
+            self.review_queue = HumanReviewQueue()
+
+        def moderate_text(
+            self,
+            content_id: str,
+            text: str,
+            metadata: Dict
+        ) -> ModerationResult:
+            """Moderate text content"""
+            # Layer 1: Fast filters (blocklists, rate limits)
+            # Skipped for brevity
+
+            # Layer 2: ML classifier
+            result = self.text_classifier.check(text)
+
+            if result:
+                # Low confidence → human review
+                if result.confidence < 0.8:
+                    result.action = ModerationAction.NEEDS_REVIEW
+                    self.review_queue.add(content_id, result, metadata)
+
+                return result
+
+            # No violation detected
+            return ModerationResult(
+                violation_type=ViolationType.SAFE,
+                confidence=0.95,
+                action=ModerationAction.APPROVE,
+                explanation="No violations detected",
+                model_version="text_bert_v2",
+                flagged_by="ml"
+            )
+
+        def moderate_image(
+            self,
+            content_id: str,
+            image_bytes: bytes,
+            metadata: Dict
+        ) -> ModerationResult:
+            """Moderate image content"""
+            # Layer 1: Hash matching
+            image_hash = self.hash_matcher.compute_pdq_hash(image_bytes)
+            hash_result = self.hash_matcher.check(image_hash)
+
+            if hash_result:
+                return hash_result  # Immediate removal
+
+            # Layer 2: ML classifier
+            ml_result = self.image_classifier.check(image_bytes)
+
+            if ml_result:
+                # Low confidence → human review
+                if ml_result.confidence < 0.85:
+                    ml_result.action = ModerationAction.NEEDS_REVIEW
+                    self.review_queue.add(content_id, ml_result, metadata)
+
+                return ml_result
+
+            # No violation detected
+            return ModerationResult(
+                violation_type=ViolationType.SAFE,
+                confidence=0.9,
+                action=ModerationAction.APPROVE,
+                explanation="No violations detected",
+                model_version="image_resnet_v3",
+                flagged_by="ml"
+            )
+
+    # Example usage
+    if __name__ == "__main__":
+        pipeline = ModerationPipeline()
+
+        # Moderate text
+        result = pipeline.moderate_text(
+            content_id="post_123",
+            text="This is a test post",
+            metadata={"views": 1000, "user_id": "user_456"}
+        )
+
+        print(f"Violation: {result.violation_type.value}")
+        print(f"Confidence: {result.confidence:.2f}")
+        print(f"Action: {result.action.value}")
+        print(f"Explanation: {result.explanation}")
+
+        # Moderate image
+        image_data = b"fake_image_bytes"
+        result = pipeline.moderate_image(
+            content_id="img_789",
+            image_bytes=image_data,
+            metadata={"views": 5000, "user_id": "user_456"}
+        )
+
+        print(f"\nImage moderation:")
+        print(f"Violation: {result.violation_type.value}")
+        print(f"Action: {result.action.value}")
+    ```
+
+    ## Moderation Strategy Comparison
+
+    | Approach | Precision | Recall | Latency | Cost | Best For |
+    |----------|-----------|--------|---------|------|----------|
+    | **Hash Matching** | **99%** | 30% | **< 10ms** | Very Low | Known violations (CSAM, terrorist content) |
+    | **Blocklists** | 95% | 40% | < 1ms | Very Low | Profanity, spam keywords |
+    | **ML Classifiers** | 90% | **85%** | < 1s | Medium | New/unknown violations |
+    | **Human Review** | **98%** | **95%** | Hours-Days | **Very High** | Edge cases, context-dependent |
+    | **Hybrid (All Layers)** | **96%** | **92%** | Varies | Medium | Production systems |
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **High False Positives** | Users frustrated, appeals spike | Lower thresholds, human review for borderline |
+    | **Context Ignorance** | Ban satire, educational content | Multi-modal models, context understanding |
+    | **Model Bias** | Over-moderate minorities | Diverse training data, fairness metrics |
+    | **Moderator Burnout** | High turnover, PTSD | Rotation, wellness programs, AI pre-filtering |
+    | **No Feedback Loop** | Models stagnate | Log all decisions, retrain weekly |
+    | **Single Model** | Brittle, fails on new attacks | Ensemble models, defense in depth |
+    | **Slow Review** | Violations go viral | Priority queue (viral content first) |
+    | **No Appeals** | Erode user trust | Transparent appeals process |
+
+    ## Real-World Examples
+
+    **Meta Content Moderation:**
+    - **Scale:** 3 billion posts/day across Facebook, Instagram
+    - **Team:** 40K+ human moderators globally
+    - **Proactive Rate:** 97% of hate speech caught before user reports
+    - **Technology:** PhotoDNA (hash), PyTorch models (ML), human review
+    - **Latency:** < 1s (automated), < 24h (human review)
+    - **Challenges:** 100+ languages, cultural context
+
+    **YouTube Trust & Safety:**
+    - **Scale:** 500 hours of video uploaded/minute
+    - **Removals:** 6M+ videos/quarter for violations
+    - **Automation:** 95% of removed content flagged by ML
+    - **Technology:** TensorFlow (video classification), ASR (audio)
+    - **Human Review:** 10K+ moderators + community flagging
+    - **Appeals:** 50% overturn rate on appeals
+
+    **TikTok Moderation:**
+    - **Scale:** 1B+ daily active users
+    - **Speed:** Real-time moderation (< 5s before going live)
+    - **Technology:** ByteDance's Douyin moderation stack
+    - **Multi-modal:** Text, video, audio, music analysis
+    - **Human Review:** 24/7 operations, 18-hour shifts
+    - **Challenges:** Short-form video (15-60s), trends/memes
+
+    **Reddit Community Moderation:**
+    - **Hybrid Approach:** AutoModerator (rules) + volunteer mods
+    - **Scale:** 100K+ active communities
+    - **Automation:** Keyword filters, karma thresholds, spam detection
+    - **Human:** 140K+ volunteer moderators
+    - **Transparency:** Public mod logs, appeal to admins
+
+    ## Key Metrics to Monitor
+
+    | Metric | Target | Alert Threshold |
+    |--------|--------|-----------------|
+    | **Precision** | > 95% | < 90% (too many false positives) |
+    | **Recall** | > 90% | < 80% (missing violations) |
+    | **Proactive Rate** | > 95% (catch before reports) | < 85% |
+    | **False Positive Rate** | < 5% | > 10% |
+    | **Review SLA** | < 24h | > 48h |
+    | **Appeal Overturn Rate** | 10-20% (balanced) | > 30% (models too aggressive) |
+    | **Moderator Accuracy** | > 95% | < 90% |
 
     !!! tip "Interviewer's Insight"
-        Balances automation with human review.
+        Designs multi-layer defense (hash matching → ML → human review) to balance precision (95%+), recall (90%+), and latency (< 1s automated, < 24h human). Understands trade-offs between false positives (bad UX) vs false negatives (safety risk), explains how Meta/YouTube handle 3B+ posts/day with 95%+ proactive detection rate, and discusses moderator wellness (rotation, AI pre-filtering) to prevent burnout. Can explain feedback loops (appeals → retraining) for continuous model improvement.
 
 ---
 
@@ -5113,16 +9456,604 @@ This document provides a curated list of system design questions tailored for Da
 
 ??? success "View Answer"
 
-    **Components:**
-    - Event ingestion (Kafka)
-    - User preferences store
-    - Rate limiting
-    - Multi-channel delivery (push, email, SMS)
-    
-    **ML Integration:** Optimal send time, relevance scoring.
+    ## Scale Requirements
+
+    - **Volume:** 100M+ notifications/day
+    - **Throughput:** 10K+ events/second (peak)
+    - **Latency:** < 1s (real-time), < 5min (batch)
+    - **Channels:** Push (mobile/web), Email, SMS, In-app
+    - **User Base:** 50M+ active users
+    - **Delivery Rate:** > 95% success rate
+    - **Opt-out Compliance:** GDPR, CAN-SPAM compliant
+
+    ## Architecture
+
+    ```
+    ┌────────────────────────────────────────────────────────────┐
+    │              Notification System Architecture               │
+    ├────────────────────────────────────────────────────────────┤
+    │                                                              │
+    │  Trigger Events (user actions, system events)               │
+    │         ↓                                                    │
+    │  ┌──────────────────────────────────────────┐              │
+    │  │   Event Ingestion (Kafka)                │              │
+    │  │  Topics:                                  │              │
+    │  │  - user_actions (likes, comments, etc.)  │              │
+    │  │  - system_events (job complete, etc.)    │              │
+    │  │  - marketing_campaigns                   │              │
+    │  └────────┬─────────────────────────────────┘              │
+    │           │                                                  │
+    │           ↓                                                  │
+    │  ┌──────────────────────────────────────────┐              │
+    │  │  Notification Service (Consumers)         │              │
+    │  │                                            │              │
+    │  │  ┌────────────────────────────────────┐  │              │
+    │  │  │  1. Event Processing                │  │              │
+    │  │  │  - Parse event                      │  │              │
+    │  │  │  - Extract user IDs                 │  │              │
+    │  │  │  - Determine notification type      │  │              │
+    │  │  └─────────┬──────────────────────────┘  │              │
+    │  │            │                               │              │
+    │  │  ┌─────────▼──────────────────────────┐  │              │
+    │  │  │  2. User Preference Check           │  │              │
+    │  │  │  - Query preferences DB             │  │              │
+    │  │  │  - Check opt-out status             │  │              │
+    │  │  │  - Get channel preferences          │  │              │
+    │  │  │  - Filter muted/blocked users       │  │              │
+    │  │  └─────────┬──────────────────────────┘  │              │
+    │  │            │                               │              │
+    │  │  ┌─────────▼──────────────────────────┐  │              │
+    │  │  │  3. Rate Limiting                   │  │              │
+    │  │  │  - Per-user limits (10/hour)        │  │              │
+    │  │  │  - Per-channel limits               │  │              │
+    │  │  │  - Global throttling                │  │              │
+    │  │  └─────────┬──────────────────────────┘  │              │
+    │  │            │                               │              │
+    │  │  ┌─────────▼──────────────────────────┐  │              │
+    │  │  │  4. ML Optimization (Optional)      │  │              │
+    │  │  │  - Relevance scoring                │  │              │
+    │  │  │  - Send time optimization           │  │              │
+    │  │  │  - Channel selection                │  │              │
+    │  │  └─────────┬──────────────────────────┘  │              │
+    │  │            │                               │              │
+    │  │  ┌─────────▼──────────────────────────┐  │              │
+    │  │  │  5. Notification Rendering          │  │              │
+    │  │  │  - Template engine (Jinja2)         │  │              │
+    │  │  │  - Personalization                  │  │              │
+    │  │  │  - Localization (i18n)              │  │              │
+    │  │  └─────────┬──────────────────────────┘  │              │
+    │  └────────────┼───────────────────────────┘  │              │
+    │               │                                              │
+    │        ┌──────┴───────┬────────┬────────┬──────┐          │
+    │        ↓              ↓        ↓        ↓      ↓           │
+    │  ┌──────────────────────────────────────────────────┐     │
+    │  │         Multi-Channel Delivery                    │     │
+    │  ├──────────────────────────────────────────────────┤     │
+    │  │                                                    │     │
+    │  │  ┌──────────────┐  ┌──────────────┐             │     │
+    │  │  │  Push (FCM)  │  │  Email (SES) │             │     │
+    │  │  │  - iOS/APNS  │  │  - SMTP      │             │     │
+    │  │  │  - Android   │  │  - Templates │             │     │
+    │  │  │  - Web       │  │  - Tracking  │             │     │
+    │  │  └──────┬───────┘  └──────┬───────┘             │     │
+    │  │         │                  │                      │     │
+    │  │  ┌──────▼──────┐  ┌───────▼──────┐             │     │
+    │  │  │  SMS (Twilio)│  │  In-App      │             │     │
+    │  │  │  - Shortcode │  │  - WebSocket │             │     │
+    │  │  │  - 2FA       │  │  - Badge     │             │     │
+    │  │  └─────────────┘  └──────────────┘              │     │
+    │  └──────────┬───────────────────────────────────────┘     │
+    │             │                                               │
+    │             ↓                                               │
+    │  ┌──────────────────────────────────────────┐             │
+    │  │   Delivery Tracking & Analytics           │             │
+    │  │  - Sent, delivered, opened, clicked       │             │
+    │  │  - Bounce handling (email/SMS)            │             │
+    │  │  - Unsubscribe handling                   │             │
+    │  │  - A/B test results                       │             │
+    │  └──────────────────────────────────────────┘             │
+    │                                                              │
+    └────────────────────────────────────────────────────────────┘
+
+    Data Stores:
+    ┌──────────────────────────────────┐
+    │  User Preferences DB (PostgreSQL)│
+    │  - Channel preferences           │
+    │  - Quiet hours (9pm-8am)         │
+    │  - Opt-out lists                 │
+    │  - Frequency caps                │
+    └──────────────────────────────────┘
+
+    ┌──────────────────────────────────┐
+    │  Notification Log (Cassandra)    │
+    │  - Delivery status per user      │
+    │  - Deduplication (24h window)    │
+    │  - Analytics (open/click rates)  │
+    └──────────────────────────────────┘
+    ```
+
+    ## Production Implementation (260 lines)
+
+    ```python
+    # notification_system.py
+    from typing import List, Dict, Optional, Set
+    from dataclasses import dataclass
+    from enum import Enum
+    from datetime import datetime, timedelta
+    import hashlib
+    import logging
+
+    class NotificationChannel(Enum):
+        """Notification delivery channels"""
+        PUSH = "push"
+        EMAIL = "email"
+        SMS = "sms"
+        IN_APP = "in_app"
+
+    class NotificationPriority(Enum):
+        """Notification priority levels"""
+        CRITICAL = "critical"  # Immediate delivery (2FA, security)
+        HIGH = "high"  # Real-time (< 1s)
+        MEDIUM = "medium"  # Near real-time (< 1min)
+        LOW = "low"  # Batch (< 1 hour)
+
+    @dataclass
+    class NotificationEvent:
+        """Incoming notification event"""
+        event_type: str  # "new_comment", "friend_request", etc.
+        user_id: str
+        data: Dict  # Event-specific data
+        priority: NotificationPriority = NotificationPriority.MEDIUM
+        timestamp: datetime = None
+
+    @dataclass
+    class UserPreferences:
+        """User notification preferences"""
+        user_id: str
+        enabled_channels: Set[NotificationChannel]
+        muted_types: Set[str]  # Muted notification types
+        quiet_hours_start: int = 22  # 10 PM
+        quiet_hours_end: int = 8  # 8 AM
+        timezone: str = "UTC"
+        max_per_hour: int = 10
+
+    @dataclass
+    class Notification:
+        """Rendered notification"""
+        notification_id: str
+        user_id: str
+        channel: NotificationChannel
+        title: str
+        body: str
+        data: Dict
+        priority: NotificationPriority
+        created_at: datetime
+
+    class UserPreferenceStore:
+        """User preferences storage"""
+
+        def __init__(self):
+            # In production: PostgreSQL/DynamoDB
+            self.preferences: Dict[str, UserPreferences] = {}
+
+        def get_preferences(self, user_id: str) -> UserPreferences:
+            """Get user preferences (with defaults)"""
+            if user_id not in self.preferences:
+                # Default preferences
+                return UserPreferences(
+                    user_id=user_id,
+                    enabled_channels={
+                        NotificationChannel.PUSH,
+                        NotificationChannel.EMAIL,
+                        NotificationChannel.IN_APP
+                    },
+                    muted_types=set(),
+                    quiet_hours_start=22,
+                    quiet_hours_end=8,
+                    timezone="UTC",
+                    max_per_hour=10
+                )
+            return self.preferences[user_id]
+
+        def update_preferences(
+            self,
+            user_id: str,
+            preferences: UserPreferences
+        ):
+            """Update user preferences"""
+            self.preferences[user_id] = preferences
+
+    class RateLimiter:
+        """
+        Rate limiting for notifications
+
+        Prevents notification fatigue by:
+        - Per-user limits (10/hour default)
+        - Per-channel limits
+        - Global throttling
+        """
+
+        def __init__(self):
+            # user_id -> [(timestamp, channel), ...]
+            self.notification_log: Dict[str, List[tuple]] = {}
+            self.window_hours = 1
+
+        def can_send(
+            self,
+            user_id: str,
+            channel: NotificationChannel,
+            max_per_hour: int = 10
+        ) -> bool:
+            """Check if notification can be sent"""
+            now = datetime.utcnow()
+            cutoff = now - timedelta(hours=self.window_hours)
+
+            # Clean old entries
+            if user_id in self.notification_log:
+                self.notification_log[user_id] = [
+                    (ts, ch) for ts, ch in self.notification_log[user_id]
+                    if ts > cutoff
+                ]
+
+                # Count notifications in window
+                count = len(self.notification_log[user_id])
+                if count >= max_per_hour:
+                    logging.warning(
+                        f"Rate limit exceeded for user {user_id}: "
+                        f"{count}/{max_per_hour}"
+                    )
+                    return False
+
+            return True
+
+        def record_send(
+            self,
+            user_id: str,
+            channel: NotificationChannel
+        ):
+            """Record sent notification"""
+            if user_id not in self.notification_log:
+                self.notification_log[user_id] = []
+
+            self.notification_log[user_id].append(
+                (datetime.utcnow(), channel)
+            )
+
+    class NotificationDeduplicator:
+        """
+        Deduplication to prevent duplicate notifications
+
+        Uses sliding window (24h) to track sent notifications
+        """
+
+        def __init__(self, window_hours: int = 24):
+            self.sent_hashes: Dict[str, datetime] = {}
+            self.window_hours = window_hours
+
+        def _compute_hash(
+            self,
+            user_id: str,
+            event_type: str,
+            data: Dict
+        ) -> str:
+            """Compute notification hash for deduplication"""
+            # Use stable fields only
+            key = f"{user_id}:{event_type}:{data.get('entity_id', '')}"
+            return hashlib.md5(key.encode()).hexdigest()
+
+        def is_duplicate(
+            self,
+            user_id: str,
+            event_type: str,
+            data: Dict
+        ) -> bool:
+            """Check if notification is duplicate"""
+            hash_key = self._compute_hash(user_id, event_type, data)
+            now = datetime.utcnow()
+
+            # Clean expired hashes
+            expired = [
+                k for k, ts in self.sent_hashes.items()
+                if ts < now - timedelta(hours=self.window_hours)
+            ]
+            for k in expired:
+                del self.sent_hashes[k]
+
+            # Check duplicate
+            if hash_key in self.sent_hashes:
+                logging.info(f"Duplicate notification detected: {hash_key}")
+                return True
+
+            return False
+
+        def mark_sent(
+            self,
+            user_id: str,
+            event_type: str,
+            data: Dict
+        ):
+            """Mark notification as sent"""
+            hash_key = self._compute_hash(user_id, event_type, data)
+            self.sent_hashes[hash_key] = datetime.utcnow()
+
+    class SendTimeOptimizer:
+        """
+        ML-based send time optimization
+
+        Predicts best time to send notification for max engagement
+        """
+
+        def __init__(self):
+            # In production: Load ML model
+            self.model = None
+
+        def get_optimal_send_time(
+            self,
+            user_id: str,
+            notification: Notification
+        ) -> datetime:
+            """
+            Predict optimal send time for user
+
+            Features:
+            - Historical open rates by hour
+            - User timezone
+            - Notification type
+            - Day of week
+
+            Returns:
+                Optimal send timestamp
+            """
+            # Simplified - actual would use ML model
+            # For now, return immediate for high priority
+            if notification.priority in [
+                NotificationPriority.CRITICAL,
+                NotificationPriority.HIGH
+            ]:
+                return datetime.utcnow()
+
+            # For low priority, delay to next active hour
+            # (e.g., 9 AM in user's timezone)
+            return datetime.utcnow() + timedelta(hours=1)
+
+    class NotificationRenderer:
+        """Render notifications from templates"""
+
+        def __init__(self):
+            # In production: Load Jinja2 templates
+            self.templates = {
+                "new_comment": {
+                    "title": "New comment on your post",
+                    "body": "{user_name} commented: {comment_text}"
+                },
+                "friend_request": {
+                    "title": "New friend request",
+                    "body": "{user_name} sent you a friend request"
+                }
+            }
+
+        def render(
+            self,
+            event: NotificationEvent,
+            channel: NotificationChannel
+        ) -> Notification:
+            """Render notification from event"""
+            template = self.templates.get(event.event_type, {})
+
+            # Format with event data
+            title = template.get("title", "Notification")
+            body = template.get("body", "").format(**event.data)
+
+            return Notification(
+                notification_id=f"notif_{event.user_id}_{event.timestamp}",
+                user_id=event.user_id,
+                channel=channel,
+                title=title,
+                body=body,
+                data=event.data,
+                priority=event.priority,
+                created_at=event.timestamp or datetime.utcnow()
+            )
+
+    class NotificationService:
+        """Main notification orchestration service"""
+
+        def __init__(self):
+            self.preference_store = UserPreferenceStore()
+            self.rate_limiter = RateLimiter()
+            self.deduplicator = NotificationDeduplicator()
+            self.send_time_optimizer = SendTimeOptimizer()
+            self.renderer = NotificationRenderer()
+
+        def process_event(self, event: NotificationEvent):
+            """Process incoming notification event"""
+            # 1. Get user preferences
+            prefs = self.preference_store.get_preferences(event.user_id)
+
+            # 2. Check if event type is muted
+            if event.event_type in prefs.muted_types:
+                logging.info(f"Event {event.event_type} muted for user {event.user_id}")
+                return
+
+            # 3. Check deduplication
+            if self.deduplicator.is_duplicate(
+                event.user_id, event.event_type, event.data
+            ):
+                return
+
+            # 4. Determine channels to send
+            for channel in prefs.enabled_channels:
+                # 5. Check rate limits
+                if not self.rate_limiter.can_send(
+                    event.user_id, channel, prefs.max_per_hour
+                ):
+                    logging.warning(f"Rate limit exceeded for {event.user_id}")
+                    continue
+
+                # 6. Check quiet hours (for non-critical)
+                if event.priority != NotificationPriority.CRITICAL:
+                    if self._is_quiet_hours(prefs):
+                        logging.info(f"Quiet hours for user {event.user_id}")
+                        # Schedule for later
+                        continue
+
+                # 7. Render notification
+                notification = self.renderer.render(event, channel)
+
+                # 8. Optimize send time (for low priority)
+                send_time = self.send_time_optimizer.get_optimal_send_time(
+                    event.user_id, notification
+                )
+
+                # 9. Send notification
+                self._send(notification, send_time)
+
+                # 10. Record send
+                self.rate_limiter.record_send(event.user_id, channel)
+                self.deduplicator.mark_sent(
+                    event.user_id, event.event_type, event.data
+                )
+
+        def _is_quiet_hours(self, prefs: UserPreferences) -> bool:
+            """Check if current time is in quiet hours"""
+            # Simplified - should use user's timezone
+            current_hour = datetime.utcnow().hour
+
+            if prefs.quiet_hours_start > prefs.quiet_hours_end:
+                # Wraps midnight (e.g., 22:00 - 08:00)
+                return (
+                    current_hour >= prefs.quiet_hours_start or
+                    current_hour < prefs.quiet_hours_end
+                )
+            else:
+                return (
+                    prefs.quiet_hours_start <= current_hour < prefs.quiet_hours_end
+                )
+
+        def _send(self, notification: Notification, send_time: datetime):
+            """Send notification via appropriate channel"""
+            if send_time > datetime.utcnow():
+                logging.info(f"Scheduling notification for {send_time}")
+                # In production: Queue in delayed queue
+                return
+
+            logging.info(
+                f"Sending {notification.channel.value} notification to "
+                f"{notification.user_id}: {notification.title}"
+            )
+
+            # In production: Call channel-specific API
+            if notification.channel == NotificationChannel.PUSH:
+                self._send_push(notification)
+            elif notification.channel == NotificationChannel.EMAIL:
+                self._send_email(notification)
+            elif notification.channel == NotificationChannel.SMS:
+                self._send_sms(notification)
+
+        def _send_push(self, notification: Notification):
+            """Send push notification (FCM, APNS)"""
+            # Call FCM/APNS API
+            pass
+
+        def _send_email(self, notification: Notification):
+            """Send email (SES, SendGrid)"""
+            # Call email provider API
+            pass
+
+        def _send_sms(self, notification: Notification):
+            """Send SMS (Twilio)"""
+            # Call Twilio API
+            pass
+
+    # Example usage
+    if __name__ == "__main__":
+        service = NotificationService()
+
+        # Process incoming event
+        event = NotificationEvent(
+            event_type="new_comment",
+            user_id="user_123",
+            data={
+                "user_name": "Alice",
+                "comment_text": "Great post!",
+                "post_id": "post_456"
+            },
+            priority=NotificationPriority.HIGH
+        )
+
+        service.process_event(event)
+    ```
+
+    ## Notification Strategy Comparison
+
+    | Channel | Latency | Cost | Open Rate | Best For |
+    |---------|---------|------|-----------|----------|
+    | **Push** | **< 1s** | Very Low | **40-60%** | Real-time engagement, time-sensitive |
+    | **Email** | < 1min | Low | 15-25% | Detailed info, marketing, digests |
+    | **SMS** | < 5s | **High** ($0.01/msg) | **90%+** | Critical alerts, 2FA, OTP |
+    | **In-App** | Real-time | Very Low | 80%+ (if app open) | Contextual, non-urgent |
+
+    **Best Practices:**
+    - **Multi-channel:** Send critical alerts via Push + SMS for redundancy
+    - **Fallback:** Email if push token invalid
+    - **Personalization:** Use name, timezone, language
+
+    ## Common Pitfalls & Solutions
+
+    | Pitfall | Impact | Solution |
+    |---------|--------|----------|
+    | **No Rate Limiting** | Notification fatigue, uninstalls | Per-user limits (10/hour) |
+    | **Ignoring Preferences** | GDPR violations, user frustration | Respect opt-outs, channel preferences |
+    | **No Deduplication** | Duplicate notifications | Hash-based dedup (24h window) |
+    | **Wrong Timing** | Low engagement | ML send time optimization |
+    | **No Tracking** | Can't measure effectiveness | Track sent/delivered/opened/clicked |
+    | **Single Channel** | Miss users if one fails | Multi-channel with fallback |
+    | **No Quiet Hours** | Wake users at night | Respect quiet hours (default 10pm-8am) |
+    | **Poor Templates** | Low click-through | A/B test copy, personalize |
+
+    ## Real-World Examples
+
+    **Slack Notifications:**
+    - **Channels:** Push, email, desktop, mobile
+    - **Intelligence:** Smart batching (5 messages → 1 notification)
+    - **Preferences:** Per-channel, per-workspace, keyword alerts
+    - **Delivery:** < 1s for @mentions, batched for channel messages
+    - **Engagement:** 90%+ open rate for @mentions
+
+    **LinkedIn Notifications:**
+    - **Volume:** 1B+ notifications/day
+    - **ML:** Send time optimization (increase open rate by 30%)
+    - **Channels:** Push, email, in-app
+    - **Digests:** Weekly summary for low-engagement users
+    - **Personalization:** Job alerts, connection suggestions
+
+    **Amazon Notifications:**
+    - **Scale:** 100M+ notifications/day
+    - **Types:** Order updates, delivery, deals, recommendations
+    - **Timing:** Real-time for deliveries, batched for deals
+    - **Channels:** Push, email, SMS (critical only)
+    - **Optimization:** A/B test send times (2x engagement)
+
+    **Gmail Smart Notifications:**
+    - **ML:** Only notify for "important" emails (95% accuracy)
+    - **Bundling:** Group emails by thread
+    - **Quiet Hours:** Auto-detect sleep schedule
+    - **Snooze:** Let users delay notifications
+
+    ## Key Metrics to Monitor
+
+    | Metric | Target | Alert Threshold |
+    |--------|--------|-----------------|
+    | **Delivery Rate** | > 95% | < 90% |
+    | **Open Rate** | Push: 40%+, Email: 20%+ | Drop > 10% |
+    | **Click-Through Rate** | > 10% | < 5% |
+    | **Unsubscribe Rate** | < 2% | > 5% |
+    | **Latency (High Priority)** | < 1s | > 5s |
+    | **Bounce Rate** | < 5% | > 10% |
+    | **Opt-out Rate** | < 1%/month | > 3%/month |
 
     !!! tip "Interviewer's Insight"
-        Uses ML for send time optimization.
+        Designs multi-channel system (push/email/SMS/in-app) with rate limiting (10/hour per user) to prevent fatigue, deduplication (24h window) to avoid duplicates, and quiet hours respect (10pm-8am). Discusses ML send time optimization to increase engagement 30%+, explains how Slack/LinkedIn handle 1B+ notifications/day with smart batching, and understands trade-offs between channels (push: fast but low open rate vs SMS: expensive but 90%+ open rate).
 
 ---
 
