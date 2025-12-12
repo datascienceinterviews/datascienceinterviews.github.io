@@ -1,7 +1,7 @@
 ---
 comments: true
-title: Data Science
-description: Home page for the platform for Data Science Interview Questions
+title: Data Science Interview Prep - Free Questions & Answers
+description: 500+ free data science interview questions with detailed answers. Master Python, SQL, machine learning, NLP, pandas, and system design for FAANG and top tech company interviews.
 hide:
   - toc
 ---

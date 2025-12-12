@@ -1,6 +1,6 @@
 ---
-title: Home
-description: Home page for the platform for Data Science Interview Questions 
+title: Deploying Machine Learning Models to Production
+description: Complete guide to ML deployment - Docker containerization, Kubernetes orchestration, Flask/FastAPI APIs, AWS/GCP/Azure cloud deployment, CI/CD pipelines, and MLOps best practices.
 ---
 
 # Home

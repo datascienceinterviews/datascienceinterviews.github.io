@@ -4565,6 +4565,11253 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
+### What are Python Descriptors? - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `OOP`, `Advanced`, `Descriptors`, `Properties` | **Asked by:** Google, Meta, Dropbox, Stripe
+
+??? success "View Answer"
+
+    **Descriptors** are objects that define how attribute access is handled through `__get__`, `__set__`, and `__delete__` methods. They're the mechanism behind properties, methods, static methods, and class methods.
+
+    **Descriptor Protocol:**
+    ```python
+    class Descriptor:
+        def __get__(self, obj, objtype=None):
+            # Called when attribute is accessed
+            pass
+        
+        def __set__(self, obj, value):
+            # Called when attribute is set
+            pass
+        
+        def __delete__(self, obj):
+            # Called when attribute is deleted
+            pass
+    ```
+
+    **Types:**
+    - **Data Descriptor**: Defines `__get__` and `__set__` (higher priority)
+    - **Non-data Descriptor**: Only `__get__` (lower priority)
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Validation Descriptor
+    class ValidatedAttribute:
+        """Descriptor that validates values."""
+        
+        def __init__(self, validator=None, default=None):
+            self.validator = validator
+            self.default = default
+            self.data = {}
+        
+        def __set_name__(self, owner, name):
+            self.name = name
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            return self.data.get(id(obj), self.default)
+        
+        def __set__(self, obj, value):
+            if self.validator and not self.validator(value):
+                raise ValueError(f"Invalid value for {self.name}: {value}")
+            self.data[id(obj)] = value
+        
+        def __delete__(self, obj):
+            del self.data[id(obj)]
+    
+    # 2. Type-checking Descriptor
+    class TypedProperty:
+        """Descriptor enforcing type checking."""
+        
+        def __init__(self, expected_type, default=None):
+            self.expected_type = expected_type
+            self.default = default
+            self.data = {}
+        
+        def __set_name__(self, owner, name):
+            self.name = name
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            return self.data.get(id(obj), self.default)
+        
+        def __set__(self, obj, value):
+            if not isinstance(value, self.expected_type):
+                raise TypeError(
+                    f"{self.name} must be {self.expected_type.__name__}, "
+                    f"got {type(value).__name__}"
+                )
+            self.data[id(obj)] = value
+    
+    # 3. Lazy Property Descriptor
+    class LazyProperty:
+        """Descriptor that computes value once and caches it."""
+        
+        def __init__(self, function):
+            self.function = function
+            self.name = function.__name__
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            
+            # Cache value in instance __dict__
+            value = self.function(obj)
+            setattr(obj, self.name, value)
+            return value
+    
+    # Usage Examples
+    class Person:
+        # Type checking
+        name = TypedProperty(str, "")
+        age = TypedProperty(int, 0)
+        
+        # Validation
+        email = ValidatedAttribute(
+            validator=lambda x: "@" in x and "." in x
+        )
+        
+        def __init__(self, name, age, email):
+            self.name = name
+            self.age = age
+            self.email = email
+        
+        @LazyProperty
+        def full_profile(self):
+            """Expensive computation, cached after first access."""
+            print("Computing full profile...")
+            import time
+            time.sleep(1)  # Simulate expensive operation
+            return f"{self.name} ({self.age}): {self.email}"
+    
+    # Test
+    person = Person("Alice", 30, "alice@example.com")
+    print(person.name)  # Alice
+    
+    try:
+        person.age = "thirty"  # TypeError
+    except TypeError as e:
+        print(f"Error: {e}")
+    
+    try:
+        person.email = "invalid"  # ValueError
+    except ValueError as e:
+        print(f"Error: {e}")
+    
+    # Lazy property - computed once
+    print(person.full_profile)  # Computes
+    print(person.full_profile)  # Cached, no computation
+    
+    # 4. Range Validator Descriptor
+    class RangeValidator:
+        """Descriptor ensuring value is within range."""
+        
+        def __init__(self, min_value=None, max_value=None):
+            self.min_value = min_value
+            self.max_value = max_value
+            self.data = {}
+        
+        def __set_name__(self, owner, name):
+            self.name = name
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            return self.data.get(id(obj))
+        
+        def __set__(self, obj, value):
+            if self.min_value is not None and value < self.min_value:
+                raise ValueError(
+                    f"{self.name} must be >= {self.min_value}, got {value}"
+                )
+            if self.max_value is not None and value > self.max_value:
+                raise ValueError(
+                    f"{self.name} must be <= {self.max_value}, got {value}"
+                )
+            self.data[id(obj)] = value
+    
+    class Product:
+        price = RangeValidator(min_value=0)
+        quantity = RangeValidator(min_value=0, max_value=1000)
+        
+        def __init__(self, name, price, quantity):
+            self.name = name
+            self.price = price
+            self.quantity = quantity
+    
+    product = Product("Laptop", 999.99, 50)
+    print(f"Price: ${product.price}, Quantity: {product.quantity}")
+    
+    try:
+        product.price = -100  # ValueError
+    except ValueError as e:
+        print(f"Error: {e}")
+    ```
+
+    **How Properties Work (Built on Descriptors):**
+    
+    ```python
+    # Properties are descriptors!
+    class Temperature:
+        def __init__(self, celsius=0):
+            self._celsius = celsius
+        
+        @property
+        def celsius(self):
+            """Get temperature in Celsius."""
+            return self._celsius
+        
+        @celsius.setter
+        def celsius(self, value):
+            if value < -273.15:
+                raise ValueError("Temperature below absolute zero!")
+            self._celsius = value
+        
+        @property
+        def fahrenheit(self):
+            """Get temperature in Fahrenheit."""
+            return self._celsius * 9/5 + 32
+        
+        @fahrenheit.setter
+        def fahrenheit(self, value):
+            self.celsius = (value - 32) * 5/9
+    
+    temp = Temperature(25)
+    print(f"{temp.celsius}°C = {temp.fahrenheit}°F")
+    temp.fahrenheit = 98.6
+    print(f"{temp.celsius}°C = {temp.fahrenheit}°F")
+    ```
+
+    **Descriptor Lookup Order:**
+    
+    1. Data descriptors from type(obj)
+    2. Instance __dict__
+    3. Non-data descriptors from type(obj)
+    4. Class variables from type(obj)
+    5. Raise AttributeError
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Descriptors: control attribute access"
+        - "`__get__`, `__set__`, `__delete__` methods"
+        - "Data vs non-data descriptors"
+        - "Properties built on descriptors"
+        - "Used for validation, type checking, caching"
+        - "Lookup priority: data descriptor > instance dict"
+        - Real-world use cases (ORMs, validation frameworks)
+
+---
+
+### Explain Python's `*args` and `**kwargs` - Amazon, Microsoft Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Functions`, `Arguments`, `Unpacking` | **Asked by:** Amazon, Microsoft, Google, Meta
+
+??? success "View Answer"
+
+    **`*args`**: Captures variable number of positional arguments as a tuple
+    
+    **`**kwargs`**: Captures variable number of keyword arguments as a dictionary
+
+    **Complete Guide:**
+
+    ```python
+    # 1. Basic Usage
+    def basic_function(a, b, *args, **kwargs):
+        """
+        a, b: regular positional arguments
+        *args: additional positional arguments (tuple)
+        **kwargs: keyword arguments (dict)
+        """
+        print(f"a={a}, b={b}")
+        print(f"args={args}")
+        print(f"kwargs={kwargs}")
+    
+    basic_function(1, 2, 3, 4, 5, x=10, y=20)
+    # Output:
+    # a=1, b=2
+    # args=(3, 4, 5)
+    # kwargs={'x': 10, 'y': 20}
+    
+    # 2. Unpacking Arguments
+    def add(a, b, c):
+        return a + b + c
+    
+    numbers = [1, 2, 3]
+    result = add(*numbers)  # Unpacks list
+    print(result)  # 6
+    
+    kwargs_dict = {'a': 1, 'b': 2, 'c': 3}
+    result = add(**kwargs_dict)  # Unpacks dict
+    print(result)  # 6
+    
+    # 3. Wrapper Functions (Decorators)
+    def logging_decorator(func):
+        """Decorator that logs function calls."""
+        def wrapper(*args, **kwargs):
+            print(f"Calling {func.__name__} with args={args}, kwargs={kwargs}")
+            result = func(*args, **kwargs)
+            print(f"{func.__name__} returned {result}")
+            return result
+        return wrapper
+    
+    @logging_decorator
+    def multiply(a, b):
+        return a * b
+    
+    multiply(5, 10)
+    
+    # 4. Combining Regular, *args, and **kwargs
+    def complex_function(required, *args, default=None, **kwargs):
+        """Shows all argument types together."""
+        print(f"Required: {required}")
+        print(f"Args: {args}")
+        print(f"Default: {default}")
+        print(f"Kwargs: {kwargs}")
+    
+    complex_function(1, 2, 3, default="test", x=10, y=20)
+    
+    # 5. Practical Example: Flexible API Client
+    class APIClient:
+        """HTTP client with flexible request methods."""
+        
+        def __init__(self, base_url):
+            self.base_url = base_url
+        
+        def request(self, method, endpoint, *args, **kwargs):
+            """
+            Generic request method.
+            *args: positional arguments for requests library
+            **kwargs: keyword arguments (headers, params, json, etc.)
+            """
+            url = f"{self.base_url}{endpoint}"
+            print(f"{method} {url}")
+            print(f"Additional args: {args}")
+            print(f"Options: {kwargs}")
+            # In reality: return requests.request(method, url, *args, **kwargs)
+        
+        def get(self, endpoint, **kwargs):
+            return self.request("GET", endpoint, **kwargs)
+        
+        def post(self, endpoint, **kwargs):
+            return self.request("POST", endpoint, **kwargs)
+    
+    client = APIClient("https://api.example.com")
+    client.get("/users", params={"page": 1}, headers={"Auth": "token"})
+    client.post("/users", json={"name": "Alice"}, timeout=30)
+    
+    # 6. Variable Length Arguments in Different Positions
+    def function_with_all_types(a, b=2, *args, c=3, d=4, **kwargs):
+        """
+        a: required positional
+        b: optional positional with default
+        *args: variable positional
+        c, d: keyword-only arguments
+        **kwargs: variable keyword
+        """
+        print(f"a={a}, b={b}, args={args}")
+        print(f"c={c}, d={d}, kwargs={kwargs}")
+    
+    function_with_all_types(1, 10, 20, 30, c=100, d=200, x=1000, y=2000)
+    
+    # 7. Forwarding Arguments
+    class Parent:
+        def __init__(self, name, age):
+            self.name = name
+            self.age = age
+            print(f"Parent: {name}, {age}")
+    
+    class Child(Parent):
+        def __init__(self, *args, grade, **kwargs):
+            # Forward all args/kwargs to parent
+            super().__init__(*args, **kwargs)
+            self.grade = grade
+            print(f"Child grade: {grade}")
+    
+    child = Child("Alice", age=10, grade="5th")
+    
+    # 8. Merging Dictionaries with **
+    def merge_configs(*configs, **overrides):
+        """Merge multiple config dicts with overrides."""
+        result = {}
+        for config in configs:
+            result.update(config)
+        result.update(overrides)
+        return result
+    
+    config1 = {"host": "localhost", "port": 8000}
+    config2 = {"debug": True, "port": 9000}
+    final_config = merge_configs(config1, config2, timeout=30)
+    print(final_config)
+    # {'host': 'localhost', 'port': 9000, 'debug': True, 'timeout': 30}
+    ```
+
+    **Common Patterns:**
+
+    | Pattern | Example | Use Case |
+    |---------|---------|----------|
+    | **Wrapper** | `wrapper(*args, **kwargs)` | Decorators, proxies |
+    | **Forwarding** | `super().__init__(*args, **kwargs)` | Inheritance |
+    | **Flexible API** | `request(method, **options)` | HTTP clients, configs |
+    | **Unpacking** | `func(*list, **dict)` | Dynamic function calls |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`*args`: variable positional arguments (tuple)"
+        - "`**kwargs`: variable keyword arguments (dict)"
+        - "Used in decorators to forward arguments"
+        - "Unpacking: `*list` expands to positional args"
+        - "Unpacking: `**dict` expands to keyword args"
+        - "Order: positional, *args, keyword-only, **kwargs"
+        - Practical applications (wrappers, inheritance)
+
+---
+
+### How Does Python Memory Management Work? - Google, Netflix Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Memory`, `Garbage Collection`, `Internals` | **Asked by:** Google, Netflix, Meta, Dropbox
+
+??? success "View Answer"
+
+    Python uses **automatic memory management** with reference counting and generational garbage collection.
+
+    **Key Components:**
+
+    **1. Private Heap Space:**
+    - All Python objects stored in private heap
+    - Memory manager handles heap internally
+    - Programmer cannot directly access
+
+    **2. Reference Counting:**
+    - Each object has reference count
+    - Count increases: assignment, argument passing, appending to list
+    - Count decreases: del, reassignment, out of scope
+    - Object deleted when count reaches 0
+
+    **3. Generational Garbage Collection:**
+    - Handles reference cycles
+    - Three generations (0, 1, 2)
+    - Younger objects collected more frequently
+
+    **Detailed Examples:**
+
+    ```python
+    import sys
+    import gc
+    import weakref
+    
+    # 1. Reference Counting
+    class MyClass:
+        def __init__(self, name):
+            self.name = name
+            print(f"Created {name}")
+        
+        def __del__(self):
+            print(f"Destroyed {self.name}")
+    
+    # Create object
+    obj1 = MyClass("Object1")
+    print(f"Ref count: {sys.getrefcount(obj1) - 1}")  # -1 for getrefcount's own ref
+    
+    # Increase ref count
+    obj2 = obj1
+    print(f"Ref count: {sys.getrefcount(obj1) - 1}")
+    
+    # Decrease ref count
+    del obj2
+    print(f"Ref count: {sys.getrefcount(obj1) - 1}")
+    
+    # 2. Reference Cycles Problem
+    class Node:
+        def __init__(self, name):
+            self.name = name
+            self.next = None
+        
+        def __del__(self):
+            print(f"Deleting {self.name}")
+    
+    # Create circular reference
+    node1 = Node("Node1")
+    node2 = Node("Node2")
+    node1.next = node2
+    node2.next = node1  # Circular!
+    
+    print(f"Node1 refs: {sys.getrefcount(node1) - 1}")
+    print(f"Node2 refs: {sys.getrefcount(node2) - 1}")
+    
+    # Delete references
+    del node1, node2
+    # Objects not immediately deleted due to circular reference!
+    
+    # Force garbage collection
+    collected = gc.collect()
+    print(f"Collected {collected} objects")
+    
+    # 3. Weak References (Avoid Cycles)
+    class CacheEntry:
+        def __init__(self, key, value):
+            self.key = key
+            self.value = value
+    
+    # Strong reference cache (can cause memory leaks)
+    cache = {}
+    entry = CacheEntry("key1", "value1")
+    cache["key1"] = entry  # Strong reference
+    
+    # Weak reference cache (allows garbage collection)
+    weak_cache = weakref.WeakValueDictionary()
+    entry2 = CacheEntry("key2", "value2")
+    weak_cache["key2"] = entry2  # Weak reference
+    
+    print("Before deletion:")
+    print(f"cache: {cache.get('key1')}")
+    print(f"weak_cache: {weak_cache.get('key2')}")
+    
+    # Delete original references
+    del entry2
+    gc.collect()
+    
+    print("\nAfter deletion:")
+    print(f"cache: {cache.get('key1')}")  # Still exists
+    print(f"weak_cache: {weak_cache.get('key2')}")  # None (collected)
+    
+    # 4. Generational GC Stats
+    print("\nGarbage Collection Stats:")
+    print(f"GC counts: {gc.get_count()}")  # (gen0, gen1, gen2)
+    print(f"GC thresholds: {gc.get_threshold()}")
+    
+    # Create many objects to trigger GC
+    for i in range(1000):
+        temp = [i] * 100
+    
+    print(f"GC counts after allocation: {gc.get_count()}")
+    
+    # 5. Memory Profiling
+    import tracemalloc
+    
+    def memory_intensive_function():
+        """Function that allocates lots of memory."""
+        # Start tracing
+        tracemalloc.start()
+        
+        # Allocate memory
+        big_list = [i for i in range(1000000)]
+        big_dict = {i: str(i) for i in range(100000)}
+        
+        # Get memory usage
+        current, peak = tracemalloc.get_traced_memory()
+        print(f"\nCurrent memory: {current / 1024 / 1024:.2f} MB")
+        print(f"Peak memory: {peak / 1024 / 1024:.2f} MB")
+        
+        # Get top memory allocations
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        
+        print("\nTop 3 memory allocations:")
+        for stat in top_stats[:3]:
+            print(stat)
+        
+        tracemalloc.stop()
+        
+        return big_list, big_dict
+    
+    data = memory_intensive_function()
+    del data
+    gc.collect()
+    
+    # 6. Memory Optimization: __slots__
+    class WithoutSlots:
+        """Regular class with __dict__"""
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    class WithSlots:
+        """Optimized class with __slots__"""
+        __slots__ = ['x', 'y']
+        
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    # Compare memory usage
+    import sys
+    obj1 = WithoutSlots(1, 2)
+    obj2 = WithSlots(1, 2)
+    
+    print(f"\nWithout slots: {sys.getsizeof(obj1.__dict__)} bytes")
+    print(f"With slots: {sys.getsizeof(obj2)} bytes")
+    
+    # 7. Context Manager for Resource Management
+    class ManagedResource:
+        """Ensures resource cleanup."""
+        
+        def __init__(self, name):
+            self.name = name
+            print(f"Acquiring {name}")
+        
+        def __enter__(self):
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            print(f"Releasing {self.name}")
+            return False  # Don't suppress exceptions
+    
+    with ManagedResource("Database Connection") as resource:
+        print(f"Using {resource.name}")
+        # Automatic cleanup even if exception occurs
+    ```
+
+    **Memory Management Best Practices:**
+
+    | Practice | Why | Example |
+    |----------|-----|---------|
+    | **Use context managers** | Automatic cleanup | `with open()` |
+    | **Break circular refs** | Enable GC | Use `weakref` |
+    | **Use `__slots__`** | Reduce memory | Fixed attributes |
+    | **Delete large objects** | Free memory | `del large_list` |
+    | **Use generators** | Lazy evaluation | `(x for x in range())` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Reference counting: track object references"
+        - "Ref count = 0 → immediate deletion"
+        - "GC handles circular references"
+        - "Three generations: 0, 1, 2"
+        - "`weakref` for caches to avoid memory leaks"
+        - "`__slots__` reduces memory for many objects"
+        - "Context managers ensure cleanup"
+        - Memory profiling with `tracemalloc`
+
+---
+
+### What are Python Metaclasses? - Meta, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `OOP`, `Advanced`, `Metaclasses`, `Meta-programming` | **Asked by:** Meta, Google, Dropbox
+
+??? success "View Answer"
+
+    **Metaclasses** are classes of classes. They define how classes behave, just as classes define how instances behave.
+
+    **Key Concept:**
+    ```python
+    # Everything is an object
+    instance = MyClass()  # instance is an object of MyClass
+    MyClass = type(...)   # MyClass is an object of type (metaclass)
+    type = type(type)     # type is its own metaclass!
+    ```
+
+    **Complete Guide:**
+
+    ```python
+    # 1. Basic Metaclass
+    class SimpleMeta(type):
+        """Simple metaclass that modifies class creation."""
+        
+        def __new__(mcs, name, bases, namespace):
+            print(f"Creating class {name}")
+            print(f"Bases: {bases}")
+            print(f"Namespace keys: {list(namespace.keys())}")
+            
+            # Modify class before creation
+            namespace['created_by'] = 'SimpleMeta'
+            
+            # Create the class
+            cls = super().__new__(mcs, name, bases, namespace)
+            return cls
+        
+        def __init__(cls, name, bases, namespace):
+            print(f"Initializing class {name}")
+            super().__init__(name, bases, namespace)
+    
+    class MyClass(metaclass=SimpleMeta):
+        def method(self):
+            return "Hello"
+    
+    print(f"Created by: {MyClass.created_by}")
+    
+    # 2. Singleton Metaclass
+    class SingletonMeta(type):
+        """Metaclass that creates singleton classes."""
+        
+        _instances = {}
+        
+        def __call__(cls, *args, **kwargs):
+            if cls not in cls._instances:
+                cls._instances[cls] = super().__call__(*args, **kwargs)
+            return cls._instances[cls]
+    
+    class Database(metaclass=SingletonMeta):
+        def __init__(self, connection_string):
+            self.connection_string = connection_string
+            print(f"Creating connection: {connection_string}")
+    
+    # Same instance returned
+    db1 = Database("mysql://localhost")
+    db2 = Database("postgres://localhost")  # Ignored!
+    print(f"Same instance? {db1 is db2}")  # True
+    
+    # 3. Validation Metaclass
+    class ValidatedMeta(type):
+        """Metaclass that validates class attributes."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Check required attributes
+            required = namespace.get('__required__', [])
+            for attr in required:
+                if attr not in namespace:
+                    raise TypeError(
+                        f"Class {name} must define attribute '{attr}'"
+                    )
+            
+            return super().__new__(mcs, name, bases, namespace)
+    
+    class APIEndpoint(metaclass=ValidatedMeta):
+        __required__ = ['route', 'method']
+        
+        route = '/api/users'
+        method = 'GET'
+        
+        def handler(self):
+            return "Handling request"
+    
+    # This would raise TypeError:
+    # class InvalidEndpoint(metaclass=ValidatedMeta):
+    #     __required__ = ['route', 'method']
+    #     route = '/api/posts'
+    #     # Missing 'method'!
+    
+    # 4. ORM-like Metaclass
+    class Field:
+        """Represents a database field."""
+        def __init__(self, field_type):
+            self.field_type = field_type
+        
+        def __repr__(self):
+            return f"Field({self.field_type})"
+    
+    class ModelMeta(type):
+        """Metaclass for ORM models."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Collect Field definitions
+            fields = {}
+            for key, value in list(namespace.items()):
+                if isinstance(value, Field):
+                    fields[key] = value
+                    # Remove from namespace
+                    del namespace[key]
+            
+            # Store fields
+            namespace['_fields'] = fields
+            
+            cls = super().__new__(mcs, name, bases, namespace)
+            return cls
+        
+        def __init__(cls, name, bases, namespace):
+            super().__init__(name, bases, namespace)
+            
+            # Register model (like Django does)
+            if name != 'Model' and hasattr(cls, '_fields'):
+                print(f"Registered model: {name}")
+                print(f"  Fields: {list(cls._fields.keys())}")
+    
+    class Model(metaclass=ModelMeta):
+        """Base model class."""
+        pass
+    
+    class User(Model):
+        """User model with fields."""
+        id = Field(int)
+        name = Field(str)
+        email = Field(str)
+    
+    print(f"\nUser fields: {User._fields}")
+    
+    # 5. Method Decorator Metaclass
+    class AutoLogMeta(type):
+        """Metaclass that auto-decorates all methods."""
+        
+        def __new__(mcs, name, bases, namespace):
+            for key, value in namespace.items():
+                if callable(value) and not key.startswith('_'):
+                    namespace[key] = mcs.log_wrapper(value, key)
+            
+            return super().__new__(mcs, name, bases, namespace)
+        
+        @staticmethod
+        def log_wrapper(func, name):
+            def wrapper(*args, **kwargs):
+                print(f"Calling {name}()")
+                result = func(*args, **kwargs)
+                print(f"{name}() returned {result}")
+                return result
+            return wrapper
+    
+    class Calculator(metaclass=AutoLogMeta):
+        def add(self, a, b):
+            return a + b
+        
+        def multiply(self, a, b):
+            return a * b
+    
+    calc = Calculator()
+    calc.add(5, 3)
+    calc.multiply(4, 2)
+    
+    # 6. Abstract Base Class Metaclass
+    class ABCMeta(type):
+        """Simple implementation of abstract base class."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Collect abstract methods
+            abstract_methods = set()
+            for key, value in namespace.items():
+                if getattr(value, '__isabstractmethod__', False):
+                    abstract_methods.add(key)
+            
+            # Check if all abstract methods are implemented
+            for base in bases:
+                if hasattr(base, '__abstractmethods__'):
+                    abstract_methods.update(base.__abstractmethods__)
+            
+            namespace['__abstractmethods__'] = frozenset(abstract_methods)
+            
+            cls = super().__new__(mcs, name, bases, namespace)
+            return cls
+        
+        def __call__(cls, *args, **kwargs):
+            if cls.__abstractmethods__:
+                raise TypeError(
+                    f"Can't instantiate abstract class {cls.__name__} "
+                    f"with abstract methods: {', '.join(cls.__abstractmethods__)}"
+                )
+            return super().__call__(*args, **kwargs)
+    
+    def abstractmethod(func):
+        """Mark method as abstract."""
+        func.__isabstractmethod__ = True
+        return func
+    
+    class Shape(metaclass=ABCMeta):
+        @abstractmethod
+        def area(self):
+            pass
+        
+        @abstractmethod
+        def perimeter(self):
+            pass
+    
+    class Rectangle(Shape):
+        def __init__(self, width, height):
+            self.width = width
+            self.height = height
+        
+        def area(self):
+            return self.width * self.height
+        
+        def perimeter(self):
+            return 2 * (self.width + self.height)
+    
+    # This works
+    rect = Rectangle(5, 3)
+    print(f"Area: {rect.area()}")
+    
+    # This would raise TypeError:
+    # shape = Shape()  # Can't instantiate abstract class
+    
+    # 7. Registry Metaclass
+    class PluginMeta(type):
+        """Metaclass that maintains plugin registry."""
+        
+        plugins = {}
+        
+        def __new__(mcs, name, bases, namespace):
+            cls = super().__new__(mcs, name, bases, namespace)
+            
+            # Register plugin
+            if name != 'Plugin':
+                plugin_name = namespace.get('name', name)
+                mcs.plugins[plugin_name] = cls
+                print(f"Registered plugin: {plugin_name}")
+            
+            return cls
+    
+    class Plugin(metaclass=PluginMeta):
+        """Base plugin class."""
+        pass
+    
+    class JSONPlugin(Plugin):
+        name = 'json'
+        
+        def process(self, data):
+            return f"Processing JSON: {data}"
+    
+    class XMLPlugin(Plugin):
+        name = 'xml'
+        
+        def process(self, data):
+            return f"Processing XML: {data}"
+    
+    print(f"\nAvailable plugins: {list(PluginMeta.plugins.keys())}")
+    
+    # Get plugin by name
+    plugin = PluginMeta.plugins['json']()
+    print(plugin.process("data"))
+    ```
+
+    **When to Use Metaclasses:**
+
+    | Use Case | Example | Alternative |
+    |----------|---------|-------------|
+    | **Singleton** | Database connection | Module-level instance |
+    | **ORM** | Django models | Class decorators |
+    | **Plugin system** | Auto-registration | Manual registration |
+    | **API validation** | Enforce schema | Pydantic, dataclasses |
+    | **AOP** | Method logging | Decorators |
+
+    **Quote:**
+    > "Metaclasses are deeper magic than 99% of users should ever worry about. If you wonder whether you need them, you don't." - Tim Peters
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Metaclasses: classes that create classes"
+        - "`type` is the default metaclass"
+        - "`__new__` creates class, `__init__` initializes"
+        - "Used in ORMs (Django), ABCs, singletons"
+        - "Modify class creation, add attributes/methods"
+        - "Usually better alternatives exist (decorators)"
+        - "Famous quote: If you wonder if you need them, you don't"
+
+---
+
+### Explain Decorators with Multiple Examples - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Decorators`, `Functions`, `Closures` | **Asked by:** Google, Meta, Amazon, Netflix
+
+??? success "View Answer"
+
+    **Decorators** are functions that modify the behavior of other functions or classes without changing their source code.
+
+    **Syntax:**
+    ```python
+    @decorator
+    def function():
+        pass
+    # Equivalent to: function = decorator(function)
+    ```
+
+    **Comprehensive Examples:**
+
+    ```python
+    import time
+    import functools
+    from typing import Callable
+    
+    # 1. Basic Decorator
+    def simple_decorator(func):
+        """Basic decorator that wraps a function."""
+        def wrapper(*args, **kwargs):
+            print(f"Before {func.__name__}")
+            result = func(*args, **kwargs)
+            print(f"After {func.__name__}")
+            return result
+        return wrapper
+    
+    @simple_decorator
+    def greet(name):
+        print(f"Hello, {name}!")
+        return f"Greeted {name}"
+    
+    result = greet("Alice")
+    
+    # 2. Decorator with Arguments
+    def repeat(times=1):
+        """Decorator that repeats function execution."""
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                results = []
+                for _ in range(times):
+                    result = func(*args, **kwargs)
+                    results.append(result)
+                return results if times > 1 else results[0]
+            return wrapper
+        return decorator
+    
+    @repeat(times=3)
+    def say_hello():
+        print("Hello!")
+        return "Done"
+    
+    say_hello()
+    
+    # 3. Timing Decorator
+    def timing_decorator(func):
+        """Measure execution time."""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start = time.time()
+            result = func(*args, **kwargs)
+            end = time.time()
+            print(f"{func.__name__} took {end - start:.4f}s")
+            return result
+        return wrapper
+    
+    @timing_decorator
+    def slow_function():
+        time.sleep(0.1)
+        return "Done"
+    
+    slow_function()
+    
+    # 4. Memoization Decorator
+    def memoize(func):
+        """Cache function results."""
+        cache = {}
+        
+        @functools.wraps(func)
+        def wrapper(*args):
+            if args not in cache:
+                cache[args] = func(*args)
+            return cache[args]
+        
+        wrapper.cache = cache  # Expose cache
+        return wrapper
+    
+    @memoize
+    def fibonacci(n):
+        if n < 2:
+            return n
+        return fibonacci(n-1) + fibonacci(n-2)
+    
+    print(fibonacci(100))  # Fast due to caching
+    print(f"Cache size: {len(fibonacci.cache)}")
+    
+    # 5. Validation Decorator
+    def validate_types(**type_checks):
+        """Validate function argument types."""
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                # Get function signature
+                import inspect
+                sig = inspect.signature(func)
+                bound = sig.bind(*args, **kwargs)
+                bound.apply_defaults()
+                
+                # Validate types
+                for param_name, expected_type in type_checks.items():
+                    if param_name in bound.arguments:
+                        value = bound.arguments[param_name]
+                        if not isinstance(value, expected_type):
+                            raise TypeError(
+                                f"{param_name} must be {expected_type.__name__}, "
+                                f"got {type(value).__name__}"
+                            )
+                
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+    
+    @validate_types(name=str, age=int)
+    def create_user(name, age):
+        return f"Created user: {name}, {age}"
+    
+    print(create_user("Alice", 30))
+    # create_user("Alice", "30")  # TypeError!
+    
+    # 6. Retry Decorator
+    def retry(max_attempts=3, delay=1):
+        """Retry function on exception."""
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                attempts = 0
+                while attempts < max_attempts:
+                    try:
+                        return func(*args, **kwargs)
+                    except Exception as e:
+                        attempts += 1
+                        if attempts >= max_attempts:
+                            raise
+                        print(f"Attempt {attempts} failed: {e}. Retrying...")
+                        time.sleep(delay)
+            return wrapper
+        return decorator
+    
+    attempt_count = 0
+    
+    @retry(max_attempts=3, delay=0.1)
+    def unreliable_function():
+        global attempt_count
+        attempt_count += 1
+        if attempt_count < 3:
+            raise ValueError("Temporary error")
+        return "Success!"
+    
+    print(unreliable_function())
+    
+    # 7. Rate Limiting Decorator
+    class RateLimiter:
+        """Rate limit decorator using class."""
+        
+        def __init__(self, max_calls, period):
+            self.max_calls = max_calls
+            self.period = period
+            self.calls = []
+        
+        def __call__(self, func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                now = time.time()
+                
+                # Remove old calls
+                self.calls = [call for call in self.calls 
+                             if now - call < self.period]
+                
+                if len(self.calls) >= self.max_calls:
+                    raise Exception(
+                        f"Rate limit exceeded: {self.max_calls} calls "
+                        f"per {self.period}s"
+                    )
+                
+                self.calls.append(now)
+                return func(*args, **kwargs)
+            return wrapper
+    
+    @RateLimiter(max_calls=3, period=5)
+    def api_call():
+        return "API response"
+    
+    # Test rate limiting
+    for i in range(3):
+        print(api_call())
+    
+    # try:
+    #     api_call()  # This would raise Exception
+    # except Exception as e:
+    #     print(e)
+    
+    # 8. Context Injection Decorator
+    def inject_context(context_factory):
+        """Inject context into function."""
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                context = context_factory()
+                kwargs['context'] = context
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+    
+    def create_db_context():
+        return {"db": "connection", "user": "admin"}
+    
+    @inject_context(create_db_context)
+    def query_database(query, context=None):
+        print(f"Executing {query} with context: {context}")
+        return "Results"
+    
+    query_database("SELECT * FROM users")
+    
+    # 9. Class Method Decorator
+    def class_method_decorator(func):
+        """Decorator for class methods."""
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            print(f"Calling {self.__class__.__name__}.{func.__name__}")
+            return func(self, *args, **kwargs)
+        return wrapper
+    
+    class Calculator:
+        @class_method_decorator
+        def add(self, a, b):
+            return a + b
+        
+        @class_method_decorator
+        def multiply(self, a, b):
+            return a * b
+    
+    calc = Calculator()
+    print(calc.add(5, 3))
+    
+    # 10. Chaining Decorators
+    @timing_decorator
+    @memoize
+    def expensive_fibonacci(n):
+        if n < 2:
+            return n
+        return expensive_fibonacci(n-1) + expensive_fibonacci(n-2)
+    
+    print(expensive_fibonacci(30))
+    ```
+
+    **Common Decorator Patterns:**
+
+    | Pattern | Use Case | Example |
+    |---------|----------|---------|
+    | **Timing** | Performance monitoring | `@timing_decorator` |
+    | **Caching** | Expensive computations | `@memoize`, `@lru_cache` |
+    | **Validation** | Input checking | `@validate_types` |
+    | **Retry** | Network calls | `@retry(max_attempts=3)` |
+    | **Rate Limiting** | API throttling | `@rate_limit` |
+    | **Logging** | Debugging | `@log_calls` |
+    | **Authentication** | Access control | `@require_auth` |
+
+    **Built-in Decorators:**
+    ```python
+    class MyClass:
+        @property
+        def value(self):
+            return self._value
+        
+        @staticmethod
+        def static_method():
+            return "Static"
+        
+        @classmethod
+        def class_method(cls):
+            return cls.__name__
+        
+        @functools.lru_cache(maxsize=128)
+        def cached_method(self, n):
+            return n ** 2
+    ```
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Decorators: modify function behavior"
+        - "`@decorator` is syntactic sugar for `func = decorator(func)`"
+        - "Use `functools.wraps` to preserve metadata"
+        - "Can take arguments via nested functions"
+        - "Common patterns: timing, caching, validation, retry"
+        - "Class-based decorators using `__call__`"
+        - "Can chain decorators (applied bottom-up)"
+        - Practical applications (web frameworks, testing)
+
+---
+
+### What is the Walrus Operator (:=)? - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Python 3.8+`, `Assignment`, `Expressions` | **Asked by:** Amazon, Google, Microsoft
+
+??? success "View Answer"
+
+    The **walrus operator** (`:=`) is an **assignment expression** introduced in Python 3.8 that assigns values to variables as part of an expression.
+
+    **Complete Examples:**
+
+    ```python
+    import re
+    import math
+    
+    # 1. While Loop - Most Common Use Case
+    # Before walrus operator
+    line = input("Enter text: ")
+    while line != "quit":
+        process(line)
+        line = input("Enter text: ")
+    
+    # With walrus operator - cleaner
+    while (line := input("Enter text: ")) != "quit":
+        process(line)
+    
+    # 2. List Comprehension - Avoid Double Computation
+    # Without walrus - calls sqrt twice per number!
+    numbers = [1, 4, 9, 16, 25, 36]
+    result = [math.sqrt(n) for n in numbers if math.sqrt(n) > 3]
+    
+    # With walrus - calls sqrt once
+    result = [root for n in numbers if (root := math.sqrt(n)) > 3]
+    print(result)  # [4.0, 5.0, 6.0]
+    
+    # 3. File Processing in Chunks
+    def process_file_chunks(filename, chunk_size=1024):
+        """Read and process file in chunks."""
+        with open(filename, 'rb') as f:
+            while (chunk := f.read(chunk_size)):
+                print(f"Processing {len(chunk)} bytes")
+                yield chunk
+    
+    # 4. Regex Matching
+    text = "Contact: john@example.com or call 555-1234"
+    
+    # Without walrus
+    email_match = re.search(r'\b[\w.-]+@[\w.-]+\.\w+\b', text)
+    if email_match:
+        email = email_match.group(0)
+        print(f"Found email: {email}")
+    
+    # With walrus - more concise
+    if (match := re.search(r'\b[\w.-]+@[\w.-]+\.\w+\b', text)):
+        print(f"Found email: {match.group(0)}")
+    
+    # Multiple patterns
+    if (match := re.search(r'\b[\w.-]+@[\w.-]+\.\w+\b', text)):
+        print(f"Email: {match.group(0)}")
+    elif (match := re.search(r'\b\d{3}-\d{4}\b', text)):
+        print(f"Phone: {match.group(0)}")
+    
+    # 5. API Response Handling
+    def fetch_user(user_id):
+        """Simulated API call."""
+        if user_id > 0:
+            return {"id": user_id, "name": f"User{user_id}", "active": True}
+        return None
+    
+    # Filter and transform in one comprehension
+    user_ids = [1, -1, 2, -2, 3, 4, -3, 5]
+    active_users = [
+        user["name"]
+        for uid in user_ids
+        if (user := fetch_user(uid)) and user.get("active")
+    ]
+    print(active_users)  # ['User1', 'User2', 'User3', 'User4', 'User5']
+    
+    # 6. Performance-Critical Code
+    import time
+    
+    def expensive_computation(n):
+        """Simulate expensive operation."""
+        time.sleep(0.001)
+        return n ** 2
+    
+    # BAD: Calls expensive_computation TWICE per number
+    # results = [n for n in range(20) 
+    #            if expensive_computation(n) > 100 
+    #            and expensive_computation(n) < 200]
+    
+    # GOOD: Calls once per number
+    results = [
+        value
+        for n in range(20)
+        if 100 < (value := expensive_computation(n)) < 200
+    ]
+    print(results)  # [121, 144, 169, 196]
+    
+    # 7. Complex Data Processing
+    data = [
+        {"name": "Alice", "scores": [85, 90, 88]},
+        {"name": "Bob", "scores": [70, 75, 72]},
+        {"name": "Carol", "scores": [95, 92, 98]},
+    ]
+    
+    # Calculate average and filter in one pass
+    high_performers = [
+        (person["name"], avg)
+        for person in data
+        if (avg := sum(person["scores"]) / len(person["scores"])) > 80
+    ]
+    print(high_performers)  # [('Alice', 87.67), ('Carol', 95.0)]
+    
+    # 8. Nested Loops with Early Exit
+    def find_pair_with_sum(numbers, target):
+        """Find first pair that sums to target."""
+        for i, x in enumerate(numbers):
+            for y in numbers[i+1:]:
+                if (total := x + y) == target:
+                    return (x, y, total)
+        return None
+    
+    result = find_pair_with_sum([1, 2, 3, 4, 5, 6], 9)
+    print(result)  # (3, 6, 9)
+    
+    # 9. Dictionary Comprehension
+    records = [
+        {"id": 1, "value": 100},
+        {"id": 2, "value": 50},
+        {"id": 3, "value": 150},
+    ]
+    
+    # Transform and filter
+    transformed = {
+        rec["id"]: doubled
+        for rec in records
+        if (doubled := rec["value"] * 2) > 100
+    }
+    print(transformed)  # {1: 200, 3: 300}
+    
+    # 10. State Machine Pattern
+    def process_state_machine(events):
+        """Process events through state machine."""
+        state = "IDLE"
+        results = []
+        
+        for event in events:
+            if state == "IDLE" and event == "START":
+                state = "RUNNING"
+            elif state == "RUNNING" and (duration := event.get("duration", 0)) > 0:
+                results.append(f"Processed for {duration}s")
+            elif state == "RUNNING" and event == "STOP":
+                state = "IDLE"
+        
+        return results
+    ```
+
+    **When to Use:**
+
+    | Scenario | Benefit | Example |
+    |----------|---------|---------|
+    | **While loops** | Avoid duplicate assignment | `while (x := f())` |
+    | **If conditions** | Reuse computed value | `if (m := re.match())` |
+    | **Comprehensions** | Avoid recalculation | `[y for x in l if (y := f(x)) > 0]` |
+    | **Performance** | Single expensive call | `if (data := fetch()) is not None` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Walrus `:=` assigns AND returns value"
+        - "Python 3.8+ (PEP 572)"
+        - "Reduces redundant function calls"
+        - "Common in while loops, comprehensions, if statements"
+        - "Performance: avoids expensive recalculation"
+        - "Use parentheses for clarity"
+
+---
+
+### Explain Python Context Managers - Meta, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Context Managers`, `with`, `Resources` | **Asked by:** Meta, Amazon, Google, Netflix
+
+??? success "View Answer"
+
+    **Context managers** handle setup and teardown of resources automatically using the `with` statement, ensuring cleanup even if exceptions occur.
+
+    **Protocol:** Define `__enter__` and `__exit__` methods.
+
+    **Complete Examples:**
+
+    ```python
+    from contextlib import contextmanager, suppress, ExitStack
+    import threading
+    import asyncio
+    
+    # 1. Basic Context Manager Class
+    class FileManager:
+        """Custom file context manager."""
+        
+        def __init__(self, filename, mode):
+            self.filename = filename
+            self.mode = mode
+            self.file = None
+        
+        def __enter__(self):
+            """Called when entering 'with' block."""
+            print(f"Opening {self.filename}")
+            self.file = open(self.filename, self.mode)
+            return self.file
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            """Called when exiting 'with' block."""
+            print(f"Closing {self.filename}")
+            if self.file:
+                self.file.close()
+            
+            # Return False to propagate exceptions
+            if exc_type is not None:
+                print(f"Exception: {exc_type.__name__}: {exc_val}")
+            return False  # Don't suppress exceptions
+    
+    # Usage
+    with FileManager('test.txt', 'w') as f:
+        f.write("Hello, World!")
+    # File automatically closed
+    
+    # 2. Database Transaction Manager
+    class DatabaseConnection:
+        """Manages database connection lifecycle."""
+        
+        def __init__(self, connection_string):
+            self.connection_string = connection_string
+            self.connection = None
+            self.transaction = None
+        
+        def __enter__(self):
+            print("Connecting to database...")
+            self.connection = {"connected": True, "db": self.connection_string}
+            print("Starting transaction...")
+            self.transaction = {"started": True}
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if exc_type is None:
+                print("Committing transaction...")
+                self.transaction["committed"] = True
+            else:
+                print("Rolling back transaction...")
+                self.transaction["rolled_back"] = True
+            
+            print("Closing database connection...")
+            self.connection["connected"] = False
+            return False  # Propagate exceptions
+        
+        def execute(self, query):
+            """Execute query."""
+            print(f"Executing: {query}")
+            return f"Results for {query}"
+    
+    # Successful transaction
+    with DatabaseConnection("postgresql://localhost") as db:
+        result = db.execute("SELECT * FROM users")
+        print(result)
+    
+    # Failed transaction (auto-rollback)
+    try:
+        with DatabaseConnection("postgresql://localhost") as db:
+            db.execute("INSERT INTO users VALUES (1, 'Alice')")
+            raise ValueError("Something went wrong!")
+    except ValueError:
+        print("Transaction was rolled back automatically")
+    
+    # 3. Context Manager using contextlib
+    @contextmanager
+    def timing_context(name):
+        """Time code execution."""
+        import time
+        print(f"Starting {name}...")
+        start = time.time()
+        try:
+            yield  # Control returns to 'with' block
+        finally:
+            end = time.time()
+            print(f"{name} took {end - start:.4f}s")
+    
+    with timing_context("Database Query"):
+        import time
+        time.sleep(0.1)
+        print("Executing query...")
+    
+    # 4. Multiple Context Managers
+    @contextmanager
+    def acquire_lock(lock_name):
+        """Simulate lock acquisition."""
+        print(f"Acquiring lock: {lock_name}")
+        try:
+            yield lock_name
+        finally:
+            print(f"Releasing lock: {lock_name}")
+    
+    # Multiple contexts in one statement (Python 3.1+)
+    with acquire_lock("lock1"), acquire_lock("lock2"):
+        print("Both locks acquired simultaneously")
+    
+    # 5. Suppress Exceptions
+    # Without suppress
+    try:
+        with open('nonexistent.txt') as f:
+            content = f.read()
+    except FileNotFoundError:
+        print("File not found")
+    
+    # With suppress - cleaner
+    with suppress(FileNotFoundError):
+        with open('nonexistent.txt') as f:
+            content = f.read()
+    print("Continued execution")
+    
+    # 6. Temporary State Changes
+    @contextmanager
+    def temporary_attribute(obj, attr, value):
+        """Temporarily change object attribute."""
+        original = getattr(obj, attr, None)
+        setattr(obj, attr, value)
+        try:
+            yield obj
+        finally:
+            if original is not None:
+                setattr(obj, attr, original)
+            else:
+                delattr(obj, attr)
+    
+    class Config:
+        debug = False
+    
+    config = Config()
+    print(f"Debug: {config.debug}")  # False
+    
+    with temporary_attribute(config, 'debug', True):
+        print(f"Debug (temp): {config.debug}")  # True
+    
+    print(f"Debug (restored): {config.debug}")  # False
+    
+    # 7. Resource Pool Manager
+    from collections import deque
+    
+    class ResourcePool:
+        """Pool of reusable resources."""
+        
+        def __init__(self, resource_factory, max_size=5):
+            self.resource_factory = resource_factory
+            self.max_size = max_size
+            self.pool = deque()
+            self.in_use = set()
+        
+        @contextmanager
+        def acquire(self):
+            """Acquire resource from pool."""
+            if self.pool:
+                resource = self.pool.popleft()
+                print(f"Reusing resource: {resource}")
+            else:
+                resource = self.resource_factory()
+                print(f"Creating new resource: {resource}")
+            
+            self.in_use.add(resource)
+            
+            try:
+                yield resource
+            finally:
+                self.in_use.remove(resource)
+                if len(self.pool) < self.max_size:
+                    self.pool.append(resource)
+                    print(f"Returned to pool: {resource}")
+    
+    pool = ResourcePool(lambda: f"Resource-{id(object())}", max_size=2)
+    
+    with pool.acquire() as r1:
+        print(f"Using {r1}")
+    
+    with pool.acquire() as r2:
+        print(f"Using {r2}")  # Reuses r1
+    
+    # 8. Thread-Safe Lock Manager
+    class ThreadSafeLock:
+        """Thread-safe lock context manager."""
+        
+        def __init__(self):
+            self._lock = threading.Lock()
+        
+        def __enter__(self):
+            self._lock.acquire()
+            print(f"Lock acquired by {threading.current_thread().name}")
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self._lock.release()
+            print(f"Lock released by {threading.current_thread().name}")
+            return False
+    
+    # 9. ExitStack for Dynamic Context Managers
+    def process_files(filenames):
+        """Open multiple files dynamically."""
+        with ExitStack() as stack:
+            files = [
+                stack.enter_context(open(fname, 'w'))
+                for fname in filenames
+            ]
+            
+            for i, f in enumerate(files):
+                f.write(f"File {i}\n")
+            # All files automatically closed on exit
+    
+    # 10. Async Context Manager
+    class AsyncResource:
+        """Async context manager example."""
+        
+        async def __aenter__(self):
+            print("Acquiring async resource...")
+            await asyncio.sleep(0.1)
+            return self
+        
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            print("Releasing async resource...")
+            await asyncio.sleep(0.1)
+            return False
+        
+        async def do_work(self):
+            print("Doing async work...")
+            await asyncio.sleep(0.05)
+    
+    async def main():
+        async with AsyncResource() as resource:
+            await resource.do_work()
+    ```
+
+    **Built-in Context Managers:**
+
+    | Context Manager | Purpose | Example |
+    |----------------|---------|---------|
+    | **file objects** | Auto-close files | `with open()` |
+    | **threading.Lock** | Thread synchronization | `with lock:` |
+    | **suppress** | Suppress exceptions | `with suppress(Exception)` |
+    | **ExitStack** | Dynamic contexts | `with ExitStack()` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Context managers: automatic resource cleanup"
+        - "`__enter__` returns resource, `__exit__` cleans up"
+        - "Guarantees cleanup even if exception occurs"
+        - "`@contextmanager` decorator for generators"
+        - "Common for files, locks, database connections"
+        - "`__exit__` return True to suppress exceptions"
+        - "Async context managers: `__aenter__`, `__aexit__`"
+        - "`ExitStack` for dynamic number of contexts"
+
+---
+
+### Explain Generators and yield - Google, Netflix Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Generators`, `yield`, `Iterators` | **Asked by:** Google, Netflix, Amazon, Meta
+
+??? success "View Answer"
+
+    **Generators** are functions that use `yield` to produce a sequence of values lazily (on-demand), maintaining state between calls.
+
+    **Benefits:**
+    - Memory efficient (don't store entire sequence)
+    - Can represent infinite sequences
+    - Lazy evaluation
+    - Simpler than iterator classes
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Generator
+    def count_up_to(n):
+        """Generate numbers from 1 to n."""
+        count = 1
+        while count <= n:
+            yield count
+            count += 1
+    
+    # Generator object (not evaluated yet)
+    gen = count_up_to(5)
+    print(type(gen))  # <class 'generator'>
+    
+    # Consume values
+    for num in gen:
+        print(num)  # 1, 2, 3, 4, 5
+    
+    # 2. Fibonacci Generator (Infinite)
+    def fibonacci():
+        """Generate infinite Fibonacci sequence."""
+        a, b = 0, 1
+        while True:
+            yield a
+            a, b = b, a + b
+    
+    # Take first 10 Fibonacci numbers
+    fib = fibonacci()
+    first_10 = [next(fib) for _ in range(10)]
+    print(first_10)  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+    
+    # 3. File Reading Generator (Memory Efficient)
+    def read_large_file(file_path, chunk_size=1024):
+        """Read file in chunks without loading entire file."""
+        with open(file_path, 'r') as file:
+            while True:
+                chunk = file.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+    
+    # Process huge file without memory issues
+    # for chunk in read_large_file('huge_file.txt'):
+    #     process(chunk)
+    
+    # 4. Generator Expression (Like List Comprehension)
+    # List comprehension - creates entire list in memory
+    squares_list = [x**2 for x in range(1000000)]  # Uses lots of memory
+    
+    # Generator expression - lazy evaluation
+    squares_gen = (x**2 for x in range(1000000))  # Minimal memory
+    
+    # Use in loop
+    for square in squares_gen:
+        if square > 100:
+            break
+        print(square)
+    
+    # 5. Data Processing Pipeline
+    def read_records(filename):
+        """Read records from file."""
+        with open(filename) as f:
+            for line in f:
+                yield line.strip()
+    
+    def parse_records(records):
+        """Parse raw records."""
+        for record in records:
+            fields = record.split(',')
+            if len(fields) == 3:
+                yield {
+                    'name': fields[0],
+                    'age': int(fields[1]),
+                    'city': fields[2]
+                }
+    
+    def filter_adults(records):
+        """Filter adult records."""
+        for record in records:
+            if record['age'] >= 18:
+                yield record
+    
+    # Chain generators - efficient pipeline
+    # records = read_records('data.csv')
+    # parsed = parse_records(records)
+    # adults = filter_adults(parsed)
+    # 
+    # for adult in adults:
+    #     print(adult)
+    
+    # 6. Generator with Send (Two-way Communication)
+    def running_average():
+        """Calculate running average."""
+        total = 0
+        count = 0
+        average = None
+        
+        while True:
+            value = yield average
+            if value is None:
+                break
+            total += value
+            count += 1
+            average = total / count
+    
+    avg = running_average()
+    next(avg)  # Prime the generator
+    
+    print(avg.send(10))  # 10.0
+    print(avg.send(20))  # 15.0
+    print(avg.send(30))  # 20.0
+    
+    # 7. yield from (Delegating Generator)
+    def generator1():
+        yield 1
+        yield 2
+        yield 3
+    
+    def generator2():
+        yield 'a'
+        yield 'b'
+        yield 'c'
+    
+    def combined():
+        """Combine multiple generators."""
+        yield from generator1()
+        yield from generator2()
+        yield from range(4, 7)
+    
+    for value in combined():
+        print(value)  # 1, 2, 3, 'a', 'b', 'c', 4, 5, 6
+    
+    # 8. Tree Traversal Generator
+    class TreeNode:
+        def __init__(self, value, left=None, right=None):
+            self.value = value
+            self.left = left
+            self.right = right
+    
+    def inorder_traversal(node):
+        """Inorder traversal using generator."""
+        if node:
+            yield from inorder_traversal(node.left)
+            yield node.value
+            yield from inorder_traversal(node.right)
+    
+    # Build tree
+    root = TreeNode(4,
+        TreeNode(2, TreeNode(1), TreeNode(3)),
+        TreeNode(6, TreeNode(5), TreeNode(7))
+    )
+    
+    # Traverse
+    values = list(inorder_traversal(root))
+    print(values)  # [1, 2, 3, 4, 5, 6, 7]
+    
+    # 9. Permutations Generator
+    def permutations(items):
+        """Generate all permutations."""
+        if len(items) <= 1:
+            yield items
+        else:
+            for i, item in enumerate(items):
+                remaining = items[:i] + items[i+1:]
+                for perm in permutations(remaining):
+                    yield [item] + perm
+    
+    perms = list(permutations([1, 2, 3]))
+    print(f"Permutations: {perms}")
+    print(f"Count: {len(perms)}")  # 6
+    
+    # 10. Generator State Machine
+    def traffic_light():
+        """Traffic light state machine."""
+        while True:
+            yield "Red"
+            yield "Yellow"
+            yield "Green"
+            yield "Yellow"
+    
+    light = traffic_light()
+    for _ in range(8):
+        print(next(light))
+    ```
+
+    **Generator vs List:**
+
+    | Aspect | Generator | List |
+    |--------|-----------|------|
+    | **Memory** | O(1) - stores state | O(n) - stores all items |
+    | **Speed** | Lazy - faster start | Eager - slower start |
+    | **Reusable** | ❌ No - consumed once | ✅ Yes - iterate multiple times |
+    | **Length** | Unknown (can be infinite) | Known |
+    | **Indexing** | ❌ No `gen[0]` | ✅ Yes `list[0]` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Generators: functions with `yield` keyword"
+        - "Lazy evaluation - values generated on-demand"
+        - "Memory efficient for large/infinite sequences"
+        - "State maintained between calls"
+        - "`next()` to get next value"
+        - "`yield from` delegates to another generator"
+        - "`send()` for two-way communication"
+        - "Generator expressions: `(x for x in range())`"
+        - "Use case: processing large files, infinite sequences"
+
+---
+
+### Explain Python dataclasses - Meta, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Python 3.7+`, `Classes`, `Data Structures` | **Asked by:** Meta, Google, Dropbox, Amazon
+
+??? success "View Answer"
+
+    **`dataclasses`** module (Python 3.7+) auto-generates special methods like `__init__`, `__repr__`, `__eq__`, etc. for classes that primarily store data.
+
+    **Complete Examples:**
+
+    ```python
+    from dataclasses import dataclass, field, asdict, astuple, FrozenInstanceError
+    from typing import List, Optional
+    import json
+    
+    # 1. Basic Dataclass
+    @dataclass
+    class Person:
+        """Simple person data class."""
+        name: str
+        age: int
+        email: str
+        
+        def is_adult(self) -> bool:
+            return self.age >= 18
+    
+    # Auto-generated __init__, __repr__, __eq__
+    person1 = Person("Alice", 30, "alice@example.com")
+    person2 = Person("Alice", 30, "alice@example.com")
+    
+    print(person1)  # Person(name='Alice', age=30, email='alice@example.com')
+    print(person1 == person2)  # True
+    
+    # 2. Default Values
+    @dataclass
+    class Product:
+        """Product with default values."""
+        name: str
+        price: float
+        quantity: int = 0
+        tags: List[str] = field(default_factory=list)  # Mutable default
+        
+        @property
+        def total_value(self) -> float:
+            return self.price * self.quantity
+    
+    product = Product("Laptop", 999.99, 5, ["electronics", "computers"])
+    print(f"Total value: ${product.total_value}")
+    
+    # 3. Frozen (Immutable) Dataclass
+    @dataclass(frozen=True)
+    class Point:
+        """Immutable point."""
+        x: float
+        y: float
+        
+        def distance_from_origin(self) -> float:
+            return (self.x ** 2 + self.y ** 2) ** 0.5
+    
+    point = Point(3.0, 4.0)
+    # point.x = 10  # FrozenInstanceError!
+    print(f"Distance: {point.distance_from_origin()}")
+    
+    # Frozen dataclasses are hashable
+    points_set = {Point(0, 0), Point(1, 1), Point(0, 0)}
+    print(f"Unique points: {len(points_set)}")  # 2
+    
+    # 4. Post-Initialization Processing
+    @dataclass
+    class Rectangle:
+        """Rectangle with computed area."""
+        width: float
+        height: float
+        area: float = field(init=False)  # Not in __init__
+        
+        def __post_init__(self):
+            """Called after __init__."""
+            self.area = self.width * self.height
+            if self.width <= 0 or self.height <= 0:
+                raise ValueError("Dimensions must be positive")
+    
+    rect = Rectangle(5.0, 3.0)
+    print(f"Rectangle area: {rect.area}")
+    
+    # 5. Field Customization
+    @dataclass(order=True)  # Enable comparison operators
+    class Task:
+        """Task with priority ordering."""
+        priority: int
+        name: str = field(compare=False)  # Don't include in comparison
+        description: str = field(default="", repr=False)  # Not in repr
+        internal_id: int = field(default=0, init=False, repr=False)
+        
+        def __post_init__(self):
+            Task._id_counter = getattr(Task, '_id_counter', 0) + 1
+            self.internal_id = Task._id_counter
+    
+    task1 = Task(priority=1, name="High priority")
+    task2 = Task(priority=2, name="Low priority")
+    task3 = Task(priority=1, name="Another high")
+    
+    print(task1 < task2)  # True (priority 1 < 2)
+    print(task1 == task3)  # True (same priority, name not compared)
+    
+    # Sorting by priority
+    tasks = [task2, task1, task3]
+    tasks.sort()
+    for task in tasks:
+        print(task)
+    
+    # 6. Conversion to Dict/Tuple
+    @dataclass
+    class User:
+        """User with conversion methods."""
+        username: str
+        email: str
+        age: int
+        active: bool = True
+    
+    user = User("alice", "alice@example.com", 30)
+    
+    # Convert to dictionary
+    user_dict = asdict(user)
+    print(user_dict)
+    # {'username': 'alice', 'email': 'alice@example.com', 'age': 30, 'active': True}
+    
+    # Convert to tuple
+    user_tuple = astuple(user)
+    print(user_tuple)  # ('alice', 'alice@example.com', 30, True)
+    
+    # JSON serialization
+    json_str = json.dumps(asdict(user))
+    print(json_str)
+    
+    # 7. Inheritance
+    @dataclass
+    class Employee:
+        """Base employee class."""
+        name: str
+        employee_id: int
+        
+    @dataclass
+    class Manager(Employee):
+        """Manager with additional fields."""
+        team_size: int
+        department: str = "Engineering"
+        
+        def get_info(self) -> str:
+            return f"Manager {self.name} leads {self.team_size} people"
+    
+    manager = Manager("Bob", 12345, 10, "Sales")
+    print(manager.get_info())
+    
+    # 8. Factory Pattern with Dataclass
+    from enum import Enum
+    
+    class UserType(Enum):
+        ADMIN = "admin"
+        USER = "user"
+        GUEST = "guest"
+    
+    @dataclass
+    class UserConfig:
+        """User configuration."""
+        user_type: UserType
+        permissions: List[str] = field(default_factory=list)
+        max_sessions: int = 1
+        
+        @staticmethod
+        def create_admin():
+            return UserConfig(
+                user_type=UserType.ADMIN,
+                permissions=["read", "write", "delete"],
+                max_sessions=10
+            )
+        
+        @staticmethod
+        def create_guest():
+            return UserConfig(
+                user_type=UserType.GUEST,
+                permissions=["read"],
+                max_sessions=1
+            )
+    
+    admin = UserConfig.create_admin()
+    guest = UserConfig.create_guest()
+    
+    print(f"Admin permissions: {admin.permissions}")
+    print(f"Guest permissions: {guest.permissions}")
+    
+    # 9. Validation with __post_init__
+    @dataclass
+    class EmailAddress:
+        """Validated email address."""
+        email: str
+        
+        def __post_init__(self):
+            if '@' not in self.email or '.' not in self.email:
+                raise ValueError(f"Invalid email: {self.email}")
+            self.email = self.email.lower()
+    
+    email = EmailAddress("User@EXAMPLE.COM")
+    print(email.email)  # user@example.com
+    ```
+
+    **Dataclass vs Named Tuple vs Regular Class:**
+
+    | Feature | dataclass | namedtuple | Regular class |
+    |---------|-----------|------------|---------------|
+    | **Mutability** | Mutable (or frozen) | Immutable | Mutable |
+    | **Type hints** | ✅ Yes | ❌ No | ✅ Yes |
+    | **Methods** | ✅ Yes | ✅ Yes | ✅ Yes |
+    | **Inheritance** | ✅ Easy | ⚠️ Tricky | ✅ Easy |
+    | **Memory** | Normal | Lower | Normal |
+    | **Boilerplate** | Minimal | Minimal | High |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Dataclasses: auto-generate `__init__`, `__repr__`, `__eq__`"
+        - "Python 3.7+ feature"
+        - "Less boilerplate than regular classes"
+        - "`frozen=True` makes immutable"
+        - "`field()` for customization (default_factory, init, repr, compare)"
+        - "`__post_init__` for validation/computed fields"
+        - "`asdict()`, `astuple()` for conversion"
+        - "`order=True` enables `<`, `>`, `<=`, `>=`"
+        - "Better than namedtuple for mutable data with methods"
+
+---
+
+### What is Structural Pattern Matching (match/case)? - Google, Netflix Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Python 3.10+`, `Pattern Matching`, `Control Flow` | **Asked by:** Google, Netflix, Stripe, Dropbox
+
+??? success "View Answer"
+
+    **Structural pattern matching** (Python 3.10+) provides powerful pattern matching for data structures using `match`/`case` statements, similar to switch statements but much more powerful.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Pattern Matching
+    def http_status(status_code):
+        """Match HTTP status codes."""
+        match status_code:
+            case 200:
+                return "OK"
+            case 201:
+                return "Created"
+            case 400:
+                return "Bad Request"
+            case 404:
+                return "Not Found"
+            case 500 | 502 | 503:  # OR pattern
+                return "Server Error"
+            case _:  # Default case
+                return "Unknown Status"
+    
+    print(http_status(200))  # OK
+    print(http_status(500))  # Server Error
+    
+    # 2. Sequence Patterns
+    def describe_point(point):
+        """Match point coordinates."""
+        match point:
+            case [0, 0]:
+                return "Origin"
+            case [0, y]:
+                return f"Y-axis at y={y}"
+            case [x, 0]:
+                return f"X-axis at x={x}"
+            case [x, y]:
+                return f"Point at ({x}, {y})"
+            case [x, y, z]:
+                return f"3D point at ({x}, {y}, {z})"
+            case _:
+                return "Invalid point"
+    
+    print(describe_point([0, 0]))  # Origin
+    print(describe_point([3, 4]))  # Point at (3, 4)
+    print(describe_point([1, 2, 3]))  # 3D point at (1, 2, 3)
+    
+    # 3. Class Patterns
+    from dataclasses import dataclass
+    
+    @dataclass
+    class Point:
+        x: float
+        y: float
+    
+    @dataclass
+    class Circle:
+        center: Point
+        radius: float
+    
+    @dataclass
+    class Rectangle:
+        top_left: Point
+        bottom_right: Point
+    
+    def describe_shape(shape):
+        """Match different shapes."""
+        match shape:
+            case Point(x=0, y=0):
+                return "Origin point"
+            case Point(x=x, y=y):
+                return f"Point at ({x}, {y})"
+            case Circle(center=Point(x=0, y=0), radius=r):
+                return f"Circle at origin with radius {r}"
+            case Circle(center=c, radius=r):
+                return f"Circle at {c} with radius {r}"
+            case Rectangle(top_left=Point(x=x1, y=y1), 
+                          bottom_right=Point(x=x2, y=y2)):
+                width = x2 - x1
+                height = y2 - y1
+                return f"Rectangle {width}x{height}"
+            case _:
+                return "Unknown shape"
+    
+    shapes = [
+        Point(0, 0),
+        Point(3, 4),
+        Circle(Point(0, 0), 5),
+        Rectangle(Point(0, 0), Point(10, 5))
+    ]
+    
+    for shape in shapes:
+        print(describe_shape(shape))
+    
+    # 4. Dictionary Patterns
+    def process_request(request):
+        """Match HTTP request structure."""
+        match request:
+            case {"method": "GET", "path": "/"}:
+                return "Homepage"
+            case {"method": "GET", "path": path}:
+                return f"GET {path}"
+            case {"method": "POST", "path": path, "body": body}:
+                return f"POST {path} with data: {body}"
+            case {"method": method, **rest}:  # Capture rest
+                return f"Unsupported method: {method}"
+            case _:
+                return "Invalid request"
+    
+    requests = [
+        {"method": "GET", "path": "/"},
+        {"method": "GET", "path": "/users"},
+        {"method": "POST", "path": "/users", "body": {"name": "Alice"}},
+        {"method": "DELETE", "path": "/users/1"}
+    ]
+    
+    for req in requests:
+        print(process_request(req))
+    
+    # 5. Guards (if clause)
+    def categorize_age(person):
+        """Categorize person by age with guards."""
+        match person:
+            case {"name": name, "age": age} if age < 0:
+                return f"{name}: Invalid age"
+            case {"name": name, "age": age} if age < 18:
+                return f"{name}: Minor"
+            case {"name": name, "age": age} if age < 65:
+                return f"{name}: Adult"
+            case {"name": name, "age": age}:
+                return f"{name}: Senior"
+            case _:
+                return "Invalid person"
+    
+    people = [
+        {"name": "Alice", "age": 10},
+        {"name": "Bob", "age": 30},
+        {"name": "Carol", "age": 70}
+    ]
+    
+    for person in people:
+        print(categorize_age(person))
+    
+    # 6. Nested Patterns
+    def process_json_event(event):
+        """Process complex JSON events."""
+        match event:
+            case {
+                "type": "user",
+                "action": "login",
+                "data": {"user_id": uid, "timestamp": ts}
+            }:
+                return f"User {uid} logged in at {ts}"
+            
+            case {
+                "type": "user",
+                "action": "logout",
+                "data": {"user_id": uid}
+            }:
+                return f"User {uid} logged out"
+            
+            case {
+                "type": "order",
+                "action": "created",
+                "data": {"order_id": oid, "items": items}
+            } if len(items) > 0:
+                return f"Order {oid} created with {len(items)} items"
+            
+            case {"type": event_type, **rest}:
+                return f"Unknown event type: {event_type}"
+            
+            case _:
+                return "Invalid event"
+    
+    events = [
+        {
+            "type": "user",
+            "action": "login",
+            "data": {"user_id": 123, "timestamp": "2024-01-01"}
+        },
+        {
+            "type": "order",
+            "action": "created",
+            "data": {"order_id": 456, "items": ["item1", "item2"]}
+        }
+    ]
+    
+    for event in events:
+        print(process_json_event(event))
+    
+    # 7. Wildcard and Capture Patterns
+    def analyze_list(lst):
+        """Analyze list structure."""
+        match lst:
+            case []:
+                return "Empty list"
+            case [x]:
+                return f"Single element: {x}"
+            case [x, y]:
+                return f"Two elements: {x}, {y}"
+            case [first, *middle, last]:  # Capture middle
+                return f"First: {first}, Middle: {middle}, Last: {last}"
+    
+    lists = [
+        [],
+        [1],
+        [1, 2],
+        [1, 2, 3, 4, 5]
+    ]
+    
+    for lst in lists:
+        print(f"{lst} -> {analyze_list(lst)}")
+    
+    # 8. Expression Tree Evaluation
+    from typing import Union
+    
+    @dataclass
+    class BinOp:
+        """Binary operation."""
+        left: 'Expr'
+        op: str
+        right: 'Expr'
+    
+    @dataclass
+    class Number:
+        """Number literal."""
+        value: float
+    
+    Expr = Union[BinOp, Number]
+    
+    def evaluate(expr: Expr) -> float:
+        """Evaluate expression tree."""
+        match expr:
+            case Number(value=v):
+                return v
+            case BinOp(left=l, op='+', right=r):
+                return evaluate(l) + evaluate(r)
+            case BinOp(left=l, op='-', right=r):
+                return evaluate(l) - evaluate(r)
+            case BinOp(left=l, op='*', right=r):
+                return evaluate(l) * evaluate(r)
+            case BinOp(left=l, op='/', right=r):
+                return evaluate(l) / evaluate(r)
+            case _:
+                raise ValueError(f"Unknown expression: {expr}")
+    
+    # (2 + 3) * 4
+    expr = BinOp(
+        left=BinOp(left=Number(2), op='+', right=Number(3)),
+        op='*',
+        right=Number(4)
+    )
+    
+    result = evaluate(expr)
+    print(f"Result: {result}")  # 20.0
+    
+    # 9. Command Pattern
+    def process_command(command):
+        """Process shell-like commands."""
+        match command.split():
+            case ["quit" | "exit"]:
+                return "Exiting..."
+            case ["help"]:
+                return "Available commands: help, echo, calc"
+            case ["echo", *words]:
+                return " ".join(words)
+            case ["calc", x, "+", y]:
+                return float(x) + float(y)
+            case ["calc", x, "-", y]:
+                return float(x) - float(y)
+            case _:
+                return "Unknown command"
+    
+    commands = ["help", "echo Hello World", "calc 5 + 3", "invalid"]
+    for cmd in commands:
+        print(f"{cmd} -> {process_command(cmd)}")
+    ```
+
+    **Pattern Types:**
+
+    | Pattern | Example | Matches |
+    |---------|---------|---------|
+    | **Literal** | `case 42:` | Exact value |
+    | **Capture** | `case x:` | Anything, binds to `x` |
+    | **Wildcard** | `case _:` | Anything, doesn't bind |
+    | **Sequence** | `case [x, y, z]:` | Fixed-length sequence |
+    | **Sequence + star** | `case [first, *rest]:` | Variable-length |
+    | **Mapping** | `case {"key": value}:` | Dict with key |
+    | **Class** | `case Point(x, y):` | Instance match |
+    | **OR** | `case 1 \| 2 \| 3:` | Multiple patterns |
+    | **Guard** | `case x if x > 0:` | With condition |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Python 3.10+ feature (PEP 634)"
+        - "More powerful than if/elif/else"
+        - "Destructuring: extracts values while matching"
+        - "Class patterns: match object attributes"
+        - "Guards: `if` clauses for conditions"
+        - "`*rest` captures remaining items"
+        - "Use cases: parsers, state machines, data validation"
+        - "Similar to Rust, Scala pattern matching"
+
+---
+
+### Explain Type Hints and typing Module - Meta, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Type Hints`, `Static Typing`, `typing` | **Asked by:** Meta, Google, Dropbox, Stripe
+
+??? success "View Answer"
+
+    **Type hints** (PEP 484) allow specifying expected types of variables, function parameters, and return values for better code documentation and static analysis.
+
+    **Complete Examples:**
+
+    ```python
+    from typing import (
+        List, Dict, Set, Tuple, Optional, Union, Any,
+        Callable, TypeVar, Generic, Protocol, Literal
+    )
+    from typing import get_type_hints, get_args, get_origin
+    
+    # 1. Basic Type Hints
+    def greet(name: str, age: int) -> str:
+        """Function with type hints."""
+        return f"Hello {name}, you are {age} years old"
+    
+    # Type hints for variables
+    username: str = "alice"
+    user_id: int = 123
+    is_active: bool = True
+    score: float = 95.5
+    
+    # 2. Collection Types
+    # List of integers
+    numbers: List[int] = [1, 2, 3, 4, 5]
+    
+    # Dictionary with string keys and int values
+    scores: Dict[str, int] = {"Alice": 95, "Bob": 87}
+    
+    # Set of strings
+    tags: Set[str] = {"python", "programming", "tutorial"}
+    
+    # Tuple with fixed types
+    point: Tuple[float, float] = (3.14, 2.71)
+    
+    # Tuple with variable length
+    values: Tuple[int, ...] = (1, 2, 3, 4)
+    
+    # 3. Optional and Union
+    # Optional[T] is shorthand for Union[T, None]
+    def find_user(user_id: int) -> Optional[str]:
+        """Returns username or None if not found."""
+        users = {1: "Alice", 2: "Bob"}
+        return users.get(user_id)
+    
+    # Union for multiple possible types
+    def process_value(value: Union[int, str, float]) -> str:
+        """Accept int, str, or float."""
+        return str(value)
+    
+    # 4. Callable Type
+    # Function that takes int and returns str
+    def apply_function(x: int, func: Callable[[int], str]) -> str:
+        """Apply function to value."""
+        return func(x)
+    
+    def int_to_str(n: int) -> str:
+        return f"Number: {n}"
+    
+    result = apply_function(42, int_to_str)
+    print(result)  # Number: 42
+    
+    # 5. Generic Types
+    T = TypeVar('T')  # Type variable
+    
+    def first_element(items: List[T]) -> Optional[T]:
+        """Return first element or None."""
+        return items[0] if items else None
+    
+    # Works with any type
+    print(first_element([1, 2, 3]))  # 1
+    print(first_element(["a", "b"]))  # "a"
+    
+    # 6. Generic Class
+    class Stack(Generic[T]):
+        """Generic stack implementation."""
+        
+        def __init__(self) -> None:
+            self._items: List[T] = []
+        
+        def push(self, item: T) -> None:
+            self._items.append(item)
+        
+        def pop(self) -> Optional[T]:
+            return self._items.pop() if self._items else None
+        
+        def peek(self) -> Optional[T]:
+            return self._items[-1] if self._items else None
+        
+        def is_empty(self) -> bool:
+            return len(self._items) == 0
+    
+    # Type-safe stack
+    int_stack: Stack[int] = Stack()
+    int_stack.push(1)
+    int_stack.push(2)
+    print(int_stack.pop())  # 2
+    
+    str_stack: Stack[str] = Stack()
+    str_stack.push("hello")
+    str_stack.push("world")
+    print(str_stack.pop())  # "world"
+    
+    # 7. Protocol (Structural Subtyping)
+    class Drawable(Protocol):
+        """Protocol for drawable objects."""
+        
+        def draw(self) -> str:
+            ...
+    
+    class Circle:
+        def draw(self) -> str:
+            return "Drawing circle"
+    
+    class Square:
+        def draw(self) -> str:
+            return "Drawing square"
+    
+    def render(obj: Drawable) -> None:
+        """Render any drawable object."""
+        print(obj.draw())
+    
+    # Both Circle and Square implement Drawable protocol
+    render(Circle())
+    render(Square())
+    
+    # 8. Literal Types
+    from typing import Literal
+    
+    Mode = Literal["read", "write", "append"]
+    
+    def open_file(filename: str, mode: Mode) -> None:
+        """Open file with specific mode."""
+        print(f"Opening {filename} in {mode} mode")
+    
+    open_file("data.txt", "read")  # OK
+    # open_file("data.txt", "invalid")  # Type checker error
+    
+    # 9. Type Aliases
+    # Complex type alias
+    JSON = Union[Dict[str, 'JSON'], List['JSON'], str, int, float, bool, None]
+    
+    UserId = int
+    Username = str
+    UserData = Dict[str, Union[str, int, bool]]
+    
+    def get_user(user_id: UserId) -> UserData:
+        """Get user data by ID."""
+        return {
+            "id": user_id,
+            "username": "alice",
+            "age": 30,
+            "active": True
+        }
+    
+    # 10. Advanced: TypedDict
+    from typing import TypedDict
+    
+    class Person(TypedDict):
+        """Person with specific fields."""
+        name: str
+        age: int
+        email: str
+    
+    def create_person(name: str, age: int, email: str) -> Person:
+        """Create person dict with type checking."""
+        return {"name": name, "age": age, "email": email}
+    
+    person: Person = create_person("Alice", 30, "alice@example.com")
+    print(person["name"])
+    
+    # 11. Generics with Bounds
+    from typing import TypeVar
+    from numbers import Number
+    
+    N = TypeVar('N', bound=Number)
+    
+    def add_numbers(a: N, b: N) -> N:
+        """Add two numbers of the same type."""
+        return a + b  # type: ignore
+    
+    print(add_numbers(5, 3))  # 8
+    print(add_numbers(2.5, 1.5))  # 4.0
+    
+    # 12. Runtime Type Checking
+    def validate_type(value: Any, expected_type: type) -> bool:
+        """Check if value matches expected type."""
+        return isinstance(value, expected_type)
+    
+    print(validate_type(42, int))  # True
+    print(validate_type("hello", int))  # False
+    
+    # 13. Type Checking with mypy
+    # Run: mypy script.py
+    
+    def process_items(items: List[int]) -> int:
+        """Sum of items."""
+        return sum(items)
+    
+    # Type checker will catch this error:
+    # result = process_items(["a", "b", "c"])  # Error: List[str] incompatible
+    
+    # 14. Forward References
+    class Node:
+        """Tree node with forward reference."""
+        
+        def __init__(self, value: int, left: Optional['Node'] = None, 
+                     right: Optional['Node'] = None):
+            self.value = value
+            self.left = left
+            self.right = right
+    
+    # 15. Get Type Information at Runtime
+    def example_function(x: int, y: str) -> bool:
+        return True
+    
+    hints = get_type_hints(example_function)
+    print(hints)  # {'x': <class 'int'>, 'y': <class 'str'>, 'return': <class 'bool'>}
+    ```
+
+    **Type Hint Benefits:**
+
+    | Benefit | Description |
+    |---------|-------------|
+    | **Documentation** | Self-documenting code |
+    | **IDE Support** | Better autocomplete and refactoring |
+    | **Static Analysis** | Catch errors before runtime (mypy, pyright) |
+    | **Refactoring** | Safer code changes |
+    | **Type Safety** | Prevent type-related bugs |
+
+    **Tools:**
+    - **mypy**: Static type checker
+    - **pyright**: Microsoft's type checker (used by Pylance)
+    - **pydantic**: Runtime validation with type hints
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Type hints: optional static typing for Python"
+        - "PEP 484 (Python 3.5+)"
+        - "`List[T]`, `Dict[K, V]`, `Optional[T]`, `Union[T1, T2]`"
+        - "`TypeVar` for generic functions/classes"
+        - "`Protocol` for structural subtyping"
+        - "Not enforced at runtime (static analysis only)"
+        - "Tools: mypy, pyright for type checking"
+        - "Improves code documentation and IDE support"
+
+---
+
+### Explain functools Module - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `functools`, `Functional Programming` | **Asked by:** Amazon, Google, Meta, Microsoft
+
+??? success "View Answer"
+
+    **`functools`** module provides higher-order functions and operations on callable objects.
+
+    **Complete Examples:**
+
+    ```python
+    import functools
+    from functools import (
+        partial, lru_cache, wraps, reduce, 
+        singledispatch, total_ordering, cache
+    )
+    from typing import Any
+    import time
+    
+    # 1. @functools.wraps - Preserve Function Metadata
+    def my_decorator(func):
+        """Without @wraps, metadata is lost."""
+        def wrapper(*args, **kwargs):
+            print("Before call")
+            result = func(*args, **kwargs)
+            print("After call")
+            return result
+        return wrapper
+    
+    def proper_decorator(func):
+        """With @wraps, metadata is preserved."""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            print("Before call")
+            result = func(*args, **kwargs)
+            print("After call")
+            return result
+        return wrapper
+    
+    @proper_decorator
+    def greet(name: str) -> str:
+        """Greet someone by name."""
+        return f"Hello, {name}!"
+    
+    print(greet.__name__)  # "greet" (preserved)
+    print(greet.__doc__)   # "Greet someone by name." (preserved)
+    
+    # 2. @lru_cache - Memoization
+    @functools.lru_cache(maxsize=128)
+    def fibonacci(n: int) -> int:
+        """Fibonacci with caching."""
+        if n < 2:
+            return n
+        return fibonacci(n-1) + fibonacci(n-2)
+    
+    # Fast due to caching
+    print(fibonacci(100))
+    print(fibonacci.cache_info())  # CacheInfo(hits=98, misses=101, maxsize=128, currsize=101)
+    
+    # Clear cache
+    fibonacci.cache_clear()
+    
+    # 3. @cache - Unlimited Cache (Python 3.9+)
+    @functools.cache
+    def expensive_computation(n: int) -> int:
+        """Expensive computation with unlimited cache."""
+        print(f"Computing for {n}...")
+        time.sleep(0.1)
+        return n ** 2
+    
+    print(expensive_computation(5))  # Computes
+    print(expensive_computation(5))  # Cached
+    
+    # 4. partial - Partial Function Application
+    def power(base: float, exponent: float) -> float:
+        """Calculate base^exponent."""
+        return base ** exponent
+    
+    # Create specialized functions
+    square = functools.partial(power, exponent=2)
+    cube = functools.partial(power, exponent=3)
+    
+    print(square(5))  # 25
+    print(cube(5))    # 125
+    
+    # Practical example: partial for callbacks
+    def log_message(message: str, level: str = "INFO") -> None:
+        """Log message with level."""
+        print(f"[{level}] {message}")
+    
+    log_info = functools.partial(log_message, level="INFO")
+    log_error = functools.partial(log_message, level="ERROR")
+    
+    log_info("Application started")
+    log_error("An error occurred")
+    
+    # 5. reduce - Reduce Sequence to Single Value
+    # Sum all numbers
+    numbers = [1, 2, 3, 4, 5]
+    total = functools.reduce(lambda x, y: x + y, numbers)
+    print(total)  # 15
+    
+    # Find maximum
+    maximum = functools.reduce(lambda x, y: x if x > y else y, numbers)
+    print(maximum)  # 5
+    
+    # Flatten nested list
+    nested = [[1, 2], [3, 4], [5, 6]]
+    flattened = functools.reduce(lambda x, y: x + y, nested)
+    print(flattened)  # [1, 2, 3, 4, 5, 6]
+    
+    # 6. @singledispatch - Function Overloading
+    @functools.singledispatch
+    def process(arg: Any) -> str:
+        """Generic process function."""
+        return f"Processing unknown type: {type(arg)}"
+    
+    @process.register(int)
+    def _(arg: int) -> str:
+        return f"Processing integer: {arg * 2}"
+    
+    @process.register(str)
+    def _(arg: str) -> str:
+        return f"Processing string: {arg.upper()}"
+    
+    @process.register(list)
+    def _(arg: list) -> str:
+        return f"Processing list of {len(arg)} items"
+    
+    print(process(42))          # Processing integer: 84
+    print(process("hello"))     # Processing string: HELLO
+    print(process([1, 2, 3]))   # Processing list of 3 items
+    print(process(3.14))        # Processing unknown type: <class 'float'>
+    
+    # 7. @total_ordering - Generate Comparison Methods
+    @functools.total_ordering
+    class Student:
+        """Student with automatic comparison methods."""
+        
+        def __init__(self, name: str, grade: int):
+            self.name = name
+            self.grade = grade
+        
+        def __eq__(self, other):
+            if not isinstance(other, Student):
+                return NotImplemented
+            return self.grade == other.grade
+        
+        def __lt__(self, other):
+            if not isinstance(other, Student):
+                return NotImplemented
+            return self.grade < other.grade
+        
+        # __le__, __gt__, __ge__ automatically generated!
+    
+    students = [
+        Student("Alice", 85),
+        Student("Bob", 92),
+        Student("Carol", 78)
+    ]
+    
+    students.sort()
+    for s in students:
+        print(f"{s.name}: {s.grade}")
+    
+    # 8. cached_property - Cached Property
+    class DataProcessor:
+        """Process data with cached expensive computation."""
+        
+        def __init__(self, data: list):
+            self.data = data
+        
+        @functools.cached_property
+        def processed_data(self):
+            """Expensive processing, cached after first call."""
+            print("Processing data...")
+            time.sleep(0.1)
+            return [x * 2 for x in self.data]
+        
+        @functools.cached_property
+        def statistics(self):
+            """Compute statistics once."""
+            print("Computing statistics...")
+            return {
+                'count': len(self.data),
+                'sum': sum(self.data),
+                'avg': sum(self.data) / len(self.data)
+            }
+    
+    processor = DataProcessor([1, 2, 3, 4, 5])
+    print(processor.processed_data)  # Computes
+    print(processor.processed_data)  # Cached
+    print(processor.statistics)       # Computes
+    print(processor.statistics)       # Cached
+    
+    # 9. Custom Caching Strategy
+    def custom_cache(maxsize=128, typed=False):
+        """Custom caching decorator."""
+        def decorator(func):
+            @functools.lru_cache(maxsize=maxsize, typed=typed)
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            
+            wrapper.cache_info = lambda: func.cache_info()
+            wrapper.cache_clear = lambda: func.cache_clear()
+            return wrapper
+        return decorator
+    
+    @custom_cache(maxsize=256)
+    def factorial(n: int) -> int:
+        """Factorial with custom cache."""
+        if n <= 1:
+            return 1
+        return n * factorial(n - 1)
+    
+    print(factorial(10))
+    print(factorial.cache_info())
+    
+    # 10. Combining functools Functions
+    class MathOperations:
+        """Math operations with functools."""
+        
+        @staticmethod
+        @functools.lru_cache(maxsize=None)
+        def fibonacci(n: int) -> int:
+            """Cached Fibonacci."""
+            if n < 2:
+                return n
+            return MathOperations.fibonacci(n-1) + MathOperations.fibonacci(n-2)
+        
+        @classmethod
+        @functools.lru_cache(maxsize=128)
+        def prime_factors(cls, n: int) -> tuple:
+            """Cached prime factorization."""
+            factors = []
+            d = 2
+            while d * d <= n:
+                while n % d == 0:
+                    factors.append(d)
+                    n //= d
+                d += 1
+            if n > 1:
+                factors.append(n)
+            return tuple(factors)
+    
+    print(MathOperations.fibonacci(20))
+    print(MathOperations.prime_factors(84))
+    ```
+
+    **Key Functions:**
+
+    | Function | Purpose | Example |
+    |----------|---------|---------|
+    | **@wraps** | Preserve metadata | Decorators |
+    | **@lru_cache** | Memoization | Expensive computations |
+    | **@cache** | Unlimited cache | Python 3.9+ |
+    | **partial** | Partial application | Create specialized functions |
+    | **reduce** | Reduce sequence | Sum, product, flatten |
+    | **@singledispatch** | Function overloading | Type-based dispatch |
+    | **@total_ordering** | Generate comparisons | Only need `__eq__` and `__lt__` |
+    | **@cached_property** | Cached property | Expensive property computation |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`@wraps`: preserve function metadata in decorators"
+        - "`@lru_cache`: memoization for expensive functions"
+        - "`partial`: create specialized functions"
+        - "`reduce`: fold/reduce operations"
+        - "`@singledispatch`: polymorphism/function overloading"
+        - "`@total_ordering`: auto-generate comparison methods"
+        - "`@cached_property`: cache expensive property computations"
+        - "Performance optimization use cases"
+
+---
+
+### Explain itertools Module - Google, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `itertools`, `Iterators`, `Combinatorics` | **Asked by:** Google, Amazon, Meta, Microsoft
+
+??? success "View Answer"
+
+    **`itertools`** module provides memory-efficient tools for working with iterators, especially for combinatorics and infinite sequences.
+
+    **Complete Examples:**
+
+    ```python
+    import itertools
+    from itertools import (
+        count, cycle, repeat, chain, zip_longest,
+        combinations, permutations, product, combinations_with_replacement,
+        groupby, islice, takewhile, dropwhile, filterfalse,
+        accumulate, starmap, tee
+    )
+    import operator
+    
+    # 1. Infinite Iterators
+    # count - infinite counting
+    counter = itertools.count(start=10, step=2)
+    print([next(counter) for _ in range(5)])  # [10, 12, 14, 16, 18]
+    
+    # cycle - cycle through iterable infinitely
+    colors = itertools.cycle(['red', 'green', 'blue'])
+    print([next(colors) for _ in range(7)])  # ['red', 'green', 'blue', 'red', 'green', 'blue', 'red']
+    
+    # repeat - repeat value
+    repeated = itertools.repeat('A', 3)
+    print(list(repeated))  # ['A', 'A', 'A']
+    
+    # 2. Combinatorics
+    # combinations - r-length tuples, no repeated elements
+    items = ['A', 'B', 'C', 'D']
+    combs = list(itertools.combinations(items, 2))
+    print(combs)  # [('A', 'B'), ('A', 'C'), ('A', 'D'), ('B', 'C'), ('B', 'D'), ('C', 'D')]
+    
+    # permutations - r-length tuples, order matters
+    perms = list(itertools.permutations(items, 2))
+    print(len(perms))  # 12 (4*3)
+    
+    # product - Cartesian product
+    prod = list(itertools.product(['A', 'B'], [1, 2]))
+    print(prod)  # [('A', 1), ('A', 2), ('B', 1), ('B', 2')]
+    
+    # combinations_with_replacement - combinations allowing repeats
+    combs_rep = list(itertools.combinations_with_replacement(['A', 'B'], 2))
+    print(combs_rep)  # [('A', 'A'), ('A', 'B'), ('B', 'B')]
+    
+    # 3. chain - Combine Iterables
+    list1 = [1, 2, 3]
+    list2 = [4, 5, 6]
+    list3 = [7, 8, 9]
+    
+    chained = itertools.chain(list1, list2, list3)
+    print(list(chained))  # [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    
+    # chain.from_iterable - flatten nested iterables
+    nested = [[1, 2], [3, 4], [5, 6]]
+    flattened = itertools.chain.from_iterable(nested)
+    print(list(flattened))  # [1, 2, 3, 4, 5, 6]
+    
+    # 4. groupby - Group Consecutive Elements
+    data = [
+        {'name': 'Alice', 'dept': 'Sales'},
+        {'name': 'Bob', 'dept': 'Sales'},
+        {'name': 'Carol', 'dept': 'Engineering'},
+        {'name': 'Dave', 'dept': 'Engineering'},
+    ]
+    
+    # Sort first, then group
+    data_sorted = sorted(data, key=lambda x: x['dept'])
+    
+    for dept, group in itertools.groupby(data_sorted, key=lambda x: x['dept']):
+        members = list(group)
+        print(f"{dept}: {[m['name'] for m in members]}")
+    
+    # 5. islice - Slice Iterator
+    numbers = range(100)
+    
+    # Get first 5
+    first_five = list(itertools.islice(numbers, 5))
+    print(first_five)  # [0, 1, 2, 3, 4]
+    
+    # Get elements from index 10 to 15
+    slice_range = list(itertools.islice(numbers, 10, 15))
+    print(slice_range)  # [10, 11, 12, 13, 14]
+    
+    # Every 3rd element
+    every_third = list(itertools.islice(range(20), 0, None, 3))
+    print(every_third)  # [0, 3, 6, 9, 12, 15, 18]
+    
+    # 6. takewhile and dropwhile
+    numbers = [1, 3, 5, 7, 2, 4, 6, 8]
+    
+    # takewhile - take elements while condition is true
+    taken = list(itertools.takewhile(lambda x: x < 7, numbers))
+    print(taken)  # [1, 3, 5]
+    
+    # dropwhile - drop elements while condition is true
+    dropped = list(itertools.dropwhile(lambda x: x < 7, numbers))
+    print(dropped)  # [7, 2, 4, 6, 8]
+    
+    # 7. accumulate - Running Totals
+    numbers = [1, 2, 3, 4, 5]
+    
+    # Cumulative sum
+    cumsum = list(itertools.accumulate(numbers))
+    print(cumsum)  # [1, 3, 6, 10, 15]
+    
+    # Cumulative product
+    cumprod = list(itertools.accumulate(numbers, operator.mul))
+    print(cumprod)  # [1, 2, 6, 24, 120]
+    
+    # Cumulative maximum
+    values = [3, 1, 4, 1, 5, 9, 2, 6]
+    cummax = list(itertools.accumulate(values, max))
+    print(cummax)  # [3, 3, 4, 4, 5, 9, 9, 9]
+    
+    # 8. zip_longest - Zip with Different Lengths
+    list1 = [1, 2, 3]
+    list2 = ['a', 'b', 'c', 'd', 'e']
+    
+    # Regular zip stops at shortest
+    print(list(zip(list1, list2)))  # [(1, 'a'), (2, 'b'), (3, 'c')]
+    
+    # zip_longest fills missing values
+    zipped = itertools.zip_longest(list1, list2, fillvalue='?')
+    print(list(zipped))  # [(1, 'a'), (2, 'b'), (3, 'c'), ('?', 'd'), ('?', 'e')]
+    
+    # 9. starmap - Map with Unpacking
+    pairs = [(2, 5), (3, 2), (10, 3)]
+    
+    # Apply pow to each pair
+    powers = list(itertools.starmap(pow, pairs))
+    print(powers)  # [32, 9, 1000]
+    
+    # 10. filterfalse - Opposite of filter
+    numbers = range(10)
+    
+    # filter - keep even
+    evens = list(filter(lambda x: x % 2 == 0, numbers))
+    print(evens)  # [0, 2, 4, 6, 8]
+    
+    # filterfalse - keep odd
+    odds = list(itertools.filterfalse(lambda x: x % 2 == 0, numbers))
+    print(odds)  # [1, 3, 5, 7, 9]
+    
+    # 11. tee - Split Iterator
+    numbers = range(5)
+    iter1, iter2 = itertools.tee(numbers, 2)
+    
+    print(list(iter1))  # [0, 1, 2, 3, 4]
+    print(list(iter2))  # [0, 1, 2, 3, 4]
+    
+    # 12. Practical Example: Batching
+    def batch(iterable, n):
+        """Batch iterable into chunks of size n."""
+        it = iter(iterable)
+        while True:
+            chunk = list(itertools.islice(it, n))
+            if not chunk:
+                break
+            yield chunk
+    
+    data = range(10)
+    for batch_data in batch(data, 3):
+        print(batch_data)  # [0, 1, 2], [3, 4, 5], [6, 7, 8], [9]
+    
+    # 13. Practical Example: Sliding Window
+    def sliding_window(iterable, n):
+        """Generate sliding windows of size n."""
+        it = iter(iterable)
+        window = list(itertools.islice(it, n))
+        if len(window) == n:
+            yield tuple(window)
+        for item in it:
+            window = window[1:] + [item]
+            yield tuple(window)
+    
+    data = [1, 2, 3, 4, 5, 6]
+    windows = list(sliding_window(data, 3))
+    print(windows)  # [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6)]
+    
+    # 14. Practical Example: Pairwise
+    def pairwise(iterable):
+        """Generate consecutive pairs."""
+        a, b = itertools.tee(iterable)
+        next(b, None)
+        return zip(a, b)
+    
+    data = [1, 2, 3, 4, 5]
+    pairs = list(pairwise(data))
+    print(pairs)  # [(1, 2), (2, 3), (3, 4), (4, 5)]
+    ```
+
+    **Common Patterns:**
+
+    | Function | Use Case | Example |
+    |----------|----------|---------|
+    | **combinations** | Choose k items from n | Lottery numbers |
+    | **permutations** | Arrange k items | Password generation |
+    | **product** | Cartesian product | Test case combinations |
+    | **groupby** | Group consecutive items | SQL GROUP BY |
+    | **chain** | Flatten/concatenate | Merge multiple lists |
+    | **islice** | Slice iterator | Pagination |
+    | **accumulate** | Running totals | Cumulative sum |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`itertools`: memory-efficient iterator tools"
+        - "`combinations/permutations`: combinatorics"
+        - "`product`: Cartesian product"
+        - "`groupby`: group consecutive elements (needs sorting first)"
+        - "`chain`: concatenate iterables"
+        - "`islice`: slice iterator without loading to memory"
+        - "`accumulate`: running totals"
+        - "Lazy evaluation - memory efficient"
+        - "Use cases: data processing, combinations, sliding windows"
+
+---
+
+### Explain Collections Module - Meta, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `collections`, `Data Structures` | **Asked by:** Meta, Amazon, Google, Microsoft
+
+??? success "View Answer"
+
+    **`collections`** module provides specialized container datatypes beyond the built-in dict, list, set, and tuple.
+
+    **Complete Examples:**
+
+    ```python
+    from collections import (
+        Counter, defaultdict, OrderedDict, deque,
+        namedtuple, ChainMap, UserDict, UserList
+    )
+    
+    # 1. Counter - Count Hashable Objects
+    # Count elements
+    words = ['apple', 'banana', 'apple', 'cherry', 'banana', 'apple']
+    counter = Counter(words)
+    print(counter)  # Counter({'apple': 3, 'banana': 2, 'cherry': 1})
+    
+    # Most common elements
+    print(counter.most_common(2))  # [('apple', 3), ('banana', 2)]
+    
+    # Arithmetic operations
+    counter1 = Counter(a=3, b=1)
+    counter2 = Counter(a=1, b=2, c=3)
+    
+    print(counter1 + counter2)  # Counter({'a': 4, 'b': 3, 'c': 3})
+    print(counter1 - counter2)  # Counter({'a': 2}) (negative counts removed)
+    print(counter1 & counter2)  # Counter({'a': 1, 'b': 1}) (intersection)
+    print(counter1 | counter2)  # Counter({'a': 3, 'c': 3, 'b': 2}) (union)
+    
+    # Character frequency
+    text = "hello world"
+    char_freq = Counter(text)
+    print(char_freq.most_common(3))  # [('l', 3), ('o', 2), ('h', 1)]
+    
+    # 2. defaultdict - Dictionary with Default Values
+    # Without defaultdict
+    word_dict = {}
+    words = ['apple', 'banana', 'apple', 'cherry', 'banana']
+    for word in words:
+        if word not in word_dict:
+            word_dict[word] = []
+        word_dict[word].append(1)
+    
+    # With defaultdict - cleaner
+    word_dict = defaultdict(list)
+    for word in words:
+        word_dict[word].append(1)
+    print(dict(word_dict))
+    
+    # Group by first letter
+    words = ['apple', 'apricot', 'banana', 'blueberry', 'cherry']
+    grouped = defaultdict(list)
+    for word in words:
+        grouped[word[0]].append(word)
+    print(dict(grouped))
+    # {'a': ['apple', 'apricot'], 'b': ['banana', 'blueberry'], 'c': ['cherry']}
+    
+    # Count occurrences
+    counts = defaultdict(int)
+    for word in ['a', 'b', 'a', 'c', 'b', 'a']:
+        counts[word] += 1
+    print(dict(counts))  # {'a': 3, 'b': 2, 'c': 1}
+    
+    # 3. OrderedDict - Remember Insertion Order
+    # NOTE: Regular dicts maintain order in Python 3.7+
+    # OrderedDict has additional features:
+    
+    od = OrderedDict()
+    od['one'] = 1
+    od['two'] = 2
+    od['three'] = 3
+    
+    # Move to end
+    od.move_to_end('one')
+    print(list(od.keys()))  # ['two', 'three', 'one']
+    
+    # Move to beginning
+    od.move_to_end('three', last=False)
+    print(list(od.keys()))  # ['three', 'two', 'one']
+    
+    # LRU Cache using OrderedDict
+    class LRUCache:
+        """Simple LRU cache implementation."""
+        
+        def __init__(self, capacity: int):
+            self.cache = OrderedDict()
+            self.capacity = capacity
+        
+        def get(self, key: int) -> int:
+            if key not in self.cache:
+                return -1
+            # Move to end (most recently used)
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        
+        def put(self, key: int, value: int) -> None:
+            if key in self.cache:
+                self.cache.move_to_end(key)
+            self.cache[key] = value
+            if len(self.cache) > self.capacity:
+                # Remove least recently used (first item)
+                self.cache.popitem(last=False)
+    
+    cache = LRUCache(2)
+    cache.put(1, 1)
+    cache.put(2, 2)
+    print(cache.get(1))  # 1
+    cache.put(3, 3)  # Evicts key 2
+    print(cache.get(2))  # -1 (not found)
+    
+    # 4. deque - Double-Ended Queue
+    # Efficient append/pop from both ends
+    dq = deque([1, 2, 3])
+    
+    # Add to right
+    dq.append(4)
+    print(dq)  # deque([1, 2, 3, 4])
+    
+    # Add to left
+    dq.appendleft(0)
+    print(dq)  # deque([0, 1, 2, 3, 4])
+    
+    # Remove from right
+    dq.pop()
+    print(dq)  # deque([0, 1, 2, 3])
+    
+    # Remove from left
+    dq.popleft()
+    print(dq)  # deque([1, 2, 3])
+    
+    # Rotate
+    dq.rotate(1)  # Rotate right
+    print(dq)  # deque([3, 1, 2])
+    
+    dq.rotate(-1)  # Rotate left
+    print(dq)  # deque([1, 2, 3])
+    
+    # Fixed-size deque (sliding window)
+    window = deque(maxlen=3)
+    for i in range(5):
+        window.append(i)
+        print(list(window))
+    # [0]
+    # [0, 1]
+    # [0, 1, 2]
+    # [1, 2, 3]  (0 evicted)
+    # [2, 3, 4]  (1 evicted)
+    
+    # 5. namedtuple - Tuple with Named Fields
+    # Create namedtuple class
+    Point = namedtuple('Point', ['x', 'y'])
+    
+    # Create instances
+    p1 = Point(3, 4)
+    p2 = Point(x=1, y=2)
+    
+    # Access by name or index
+    print(p1.x, p1.y)  # 3 4
+    print(p1[0], p1[1])  # 3 4
+    
+    # Immutable
+    # p1.x = 10  # AttributeError
+    
+    # Convert to dict
+    print(p1._asdict())  # {'x': 3, 'y': 4}
+    
+    # Replace (creates new instance)
+    p3 = p1._replace(x=5)
+    print(p3)  # Point(x=5, y=4)
+    
+    # Use case: Return multiple values
+    Person = namedtuple('Person', ['name', 'age', 'email'])
+    
+    def get_user_info(user_id):
+        """Return user information."""
+        return Person('Alice', 30, 'alice@example.com')
+    
+    user = get_user_info(1)
+    print(f"Name: {user.name}, Age: {user.age}")
+    
+    # 6. ChainMap - Chain Multiple Dicts
+    dict1 = {'a': 1, 'b': 2}
+    dict2 = {'b': 3, 'c': 4}
+    dict3 = {'c': 5, 'd': 6}
+    
+    # Chain dicts (first found wins)
+    chain = ChainMap(dict1, dict2, dict3)
+    print(chain['a'])  # 1 (from dict1)
+    print(chain['b'])  # 2 (from dict1, not dict2)
+    print(chain['c'])  # 4 (from dict2, not dict3)
+    print(chain['d'])  # 6 (from dict3)
+    
+    # Use case: Nested scopes/contexts
+    defaults = {'color': 'red', 'user': 'guest'}
+    user_prefs = {'color': 'blue'}
+    
+    settings = ChainMap(user_prefs, defaults)
+    print(settings['color'])  # 'blue' (user pref)
+    print(settings['user'])   # 'guest' (default)
+    
+    # 7. Practical Example: Word Frequency
+    text = "the quick brown fox jumps over the lazy dog the fox"
+    
+    # Using Counter
+    word_freq = Counter(text.split())
+    print(word_freq.most_common(3))  # [('the', 3), ('fox', 2), ('quick', 1)]
+    
+    # 8. Practical Example: Graph Adjacency List
+    graph = defaultdict(list)
+    edges = [(1, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    
+    for u, v in edges:
+        graph[u].append(v)
+        graph[v].append(u)  # Undirected
+    
+    print(dict(graph))
+    # {1: [2, 3], 2: [1, 3, 4], 3: [1, 2, 4], 4: [2, 3]}
+    
+    # 9. Practical Example: Queue Operations
+    class Queue:
+        """Queue using deque."""
+        
+        def __init__(self):
+            self.items = deque()
+        
+        def enqueue(self, item):
+            self.items.append(item)
+        
+        def dequeue(self):
+            return self.items.popleft() if self.items else None
+        
+        def is_empty(self):
+            return len(self.items) == 0
+    
+    q = Queue()
+    q.enqueue(1)
+    q.enqueue(2)
+    q.enqueue(3)
+    print(q.dequeue())  # 1 (FIFO)
+    ```
+
+    **Comparison:**
+
+    | Type | Use Case | Key Features |
+    |------|----------|--------------|
+    | **Counter** | Count elements | `most_common()`, arithmetic |
+    | **defaultdict** | Avoid KeyError | Auto-create default values |
+    | **OrderedDict** | Order + operations | `move_to_end()`, `popitem(last=False)` |
+    | **deque** | Queue/Stack | O(1) append/pop from both ends |
+    | **namedtuple** | Lightweight class | Immutable, named fields |
+    | **ChainMap** | Nested contexts | Chain multiple dicts |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`Counter`: count hashable objects, `most_common()`"
+        - "`defaultdict`: dict with default factory"
+        - "`OrderedDict`: maintains order + `move_to_end()`"
+        - "`deque`: O(1) append/pop from both ends (queue/stack)"
+        - "`namedtuple`: immutable tuple with named fields"
+        - "`ChainMap`: chain multiple dictionaries"
+        - "Use cases: frequency counting, graphs, LRU cache, queues"
+        - "Performance: deque O(1) vs list O(n) for popleft"
+
+---
+
+### Explain `__slots__` for Memory Optimization - Google, Dropbox Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Memory`, `Optimization`, `OOP` | **Asked by:** Google, Dropbox, Meta, Netflix
+
+??? success "View Answer"
+
+    **`__slots__`** is a class attribute that restricts instance attributes to a fixed set, eliminating the per-instance `__dict__` for significant memory savings.
+
+    **Complete Examples:**
+
+    ```python
+    import sys
+    
+    # 1. Without __slots__ (uses __dict__)
+    class PersonWithoutSlots:
+        """Regular class with __dict__."""
+        
+        def __init__(self, name: str, age: int, email: str):
+            self.name = name
+            self.age = age
+            self.email = email
+    
+    # 2. With __slots__ (no __dict__)
+    class PersonWithSlots:
+        """Optimized class with __slots__."""
+        __slots__ = ['name', 'age', 'email']
+        
+        def __init__(self, name: str, age: int, email: str):
+            self.name = name
+            self.age = age
+            self.email = email
+    
+    # Memory comparison
+    person1 = PersonWithoutSlots("Alice", 30, "alice@example.com")
+    person2 = PersonWithSlots("Alice", 30, "alice@example.com")
+    
+    print(f"Without __slots__: {sys.getsizeof(person1.__dict__)} bytes")
+    print(f"With __slots__: {sys.getsizeof(person2)} bytes")
+    
+    # __dict__ exists without slots
+    print(hasattr(person1, '__dict__'))  # True
+    print(hasattr(person2, '__dict__'))  # False
+    
+    # 3. Dynamic Attributes
+    # Without __slots__ - can add new attributes
+    person1.new_attribute = "value"
+    print(person1.new_attribute)  # Works!
+    
+    # With __slots__ - cannot add new attributes
+    try:
+        person2.new_attribute = "value"
+    except AttributeError as e:
+        print(f"Error: {e}")  # AttributeError: 'PersonWithSlots' object has no attribute 'new_attribute'
+    
+    # 4. Memory Savings at Scale
+    class Point:
+        """Point without slots."""
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    class PointWithSlots:
+        """Point with slots."""
+        __slots__ = ['x', 'y']
+        
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    # Create many instances
+    n = 1000000
+    
+    import time
+    
+    # Without slots
+    start = time.time()
+    points1 = [Point(i, i*2) for i in range(n)]
+    time1 = time.time() - start
+    
+    # With slots
+    start = time.time()
+    points2 = [PointWithSlots(i, i*2) for i in range(n)]
+    time2 = time.time() - start
+    
+    print(f"Without slots: {time1:.3f}s")
+    print(f"With slots: {time2:.3f}s")
+    print(f"Speedup: {time1/time2:.2f}x")
+    
+    # Memory usage
+    import tracemalloc
+    
+    tracemalloc.start()
+    points1 = [Point(i, i*2) for i in range(10000)]
+    mem1 = tracemalloc.get_traced_memory()[0]
+    tracemalloc.stop()
+    
+    tracemalloc.start()
+    points2 = [PointWithSlots(i, i*2) for i in range(10000)]
+    mem2 = tracemalloc.get_traced_memory()[0]
+    tracemalloc.stop()
+    
+    print(f"Memory without slots: {mem1 / 1024 / 1024:.2f} MB")
+    print(f"Memory with slots: {mem2 / 1024 / 1024:.2f} MB")
+    print(f"Memory savings: {(mem1 - mem2) / mem1 * 100:.1f}%")
+    
+    # 5. Inheritance with __slots__
+    class BaseWithSlots:
+        """Base class with slots."""
+        __slots__ = ['x', 'y']
+        
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    class DerivedWithSlots(BaseWithSlots):
+        """Derived class with additional slots."""
+        __slots__ = ['z']  # Only new attributes
+        
+        def __init__(self, x, y, z):
+            super().__init__(x, y)
+            self.z = z
+    
+    point3d = DerivedWithSlots(1, 2, 3)
+    print(f"x={point3d.x}, y={point3d.y}, z={point3d.z}")
+    
+    # 6. __slots__ with __dict__
+    class Hybrid:
+        """Class with both __slots__ and __dict__."""
+        __slots__ = ['x', 'y', '__dict__']  # Include __dict__
+        
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    hybrid = Hybrid(1, 2)
+    hybrid.z = 3  # Can add new attributes!
+    print(hybrid.__dict__)  # {'z': 3}
+    
+    # 7. __slots__ with Properties
+    class Rectangle:
+        """Rectangle with slots and properties."""
+        __slots__ = ['_width', '_height']
+        
+        def __init__(self, width, height):
+            self._width = width
+            self._height = height
+        
+        @property
+        def width(self):
+            return self._width
+        
+        @width.setter
+        def width(self, value):
+            if value <= 0:
+                raise ValueError("Width must be positive")
+            self._width = value
+        
+        @property
+        def area(self):
+            """Computed property."""
+            return self._width * self._height
+    
+    rect = Rectangle(5, 3)
+    print(f"Area: {rect.area}")
+    rect.width = 10
+    print(f"New area: {rect.area}")
+    
+    # 8. When to Use __slots__
+    class DataPoint:
+        """Use slots for data-heavy classes."""
+        __slots__ = ['timestamp', 'value', 'sensor_id']
+        
+        def __init__(self, timestamp, value, sensor_id):
+            self.timestamp = timestamp
+            self.value = value
+            self.sensor_id = sensor_id
+    
+    # Create millions of data points efficiently
+    data_points = [DataPoint(i, i*1.5, i%100) for i in range(10000)]
+    
+    # 9. Caveats of __slots__
+    class Example:
+        __slots__ = ['x', 'y']
+        
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    obj = Example(1, 2)
+    
+    # Cannot use __dict__
+    # print(obj.__dict__)  # AttributeError
+    
+    # Cannot use weakref by default
+    # import weakref
+    # ref = weakref.ref(obj)  # TypeError
+    
+    # To enable weakref, add '__weakref__' to slots
+    class ExampleWithWeakref:
+        __slots__ = ['x', 'y', '__weakref__']
+        
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+    
+    # 10. Real-World Example: NumPy-like Array Element
+    class ArrayElement:
+        """Optimized array element for millions of instances."""
+        __slots__ = ['value', 'index']
+        
+        def __init__(self, value, index):
+            self.value = value
+            self.index = index
+        
+        def __repr__(self):
+            return f"ArrayElement(value={self.value}, index={self.index})"
+    
+    # Efficient storage
+    elements = [ArrayElement(i**2, i) for i in range(10000)]
+    ```
+
+    **Benefits vs Limitations:**
+
+    | Aspect | With `__dict__` | With `__slots__` |
+    |--------|-----------------|------------------|
+    | **Memory** | Higher (dict overhead) | Lower (40-50% savings) |
+    | **Speed** | Slightly slower | Slightly faster |
+    | **Dynamic attrs** | ✅ Yes | ❌ No |
+    | **Inheritance** | Simple | Complex |
+    | **Weakref** | ✅ Yes | Need `__weakref__` in slots |
+    | **`__dict__`** | ✅ Yes | ❌ No (unless included) |
+
+    **When to Use:**
+    - Creating millions of instances
+    - Memory-constrained applications
+    - Data-heavy classes (coordinates, sensor data)
+    - Performance-critical code
+
+    **When Not to Use:**
+    - Need dynamic attributes
+    - Complex inheritance hierarchies
+    - Need pickle/serialization (can be tricky)
+    - Premature optimization
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`__slots__`: restrict attributes, eliminate `__dict__`"
+        - "Memory savings: 40-50% for many instances"
+        - "Faster attribute access (slight)"
+        - "Cannot add new attributes dynamically"
+        - "Use for data-heavy classes (millions of instances)"
+        - "Add `__weakref__` to slots for weak references"
+        - "Inheritance: derived class slots = base slots + new slots"
+        - "Trade-off: memory vs flexibility"
+
+---
+
+### Explain Multiprocessing vs Threading - Amazon, Netflix Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Concurrency`, `Parallelism`, `GIL` | **Asked by:** Amazon, Netflix, Google, Meta
+
+??? success "View Answer"
+
+    **Threading**: Multiple threads in one process (shared memory, limited by GIL for CPU-bound tasks)
+    
+    **Multiprocessing**: Multiple processes (separate memory, true parallelism, overhead for IPC)
+
+    **Complete Examples:**
+
+    ```python
+    import threading
+    import multiprocessing
+    import time
+    from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+    
+    # 1. CPU-Bound Task
+    def cpu_bound_task(n):
+        """CPU-intensive computation."""
+        count = 0
+        for i in range(n):
+            count += i ** 2
+        return count
+    
+    # Sequential execution
+    start = time.time()
+    results = [cpu_bound_task(5_000_000) for _ in range(4)]
+    sequential_time = time.time() - start
+    print(f"Sequential: {sequential_time:.2f}s")
+    
+    # Threading (limited by GIL)
+    start = time.time()
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(cpu_bound_task, [5_000_000] * 4))
+    threading_time = time.time() - start
+    print(f"Threading: {threading_time:.2f}s")
+    
+    # Multiprocessing (true parallelism)
+    start = time.time()
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(cpu_bound_task, [5_000_000] * 4))
+    multiprocessing_time = time.time() - start
+    print(f"Multiprocessing: {multiprocessing_time:.2f}s")
+    
+    # 2. I/O-Bound Task
+    def io_bound_task(url):
+        """Simulated I/O operation."""
+        time.sleep(0.1)  # Simulate network request
+        return f"Downloaded {url}"
+    
+    urls = [f"http://example.com/page{i}" for i in range(10)]
+    
+    # Sequential
+    start = time.time()
+    results = [io_bound_task(url) for url in urls]
+    sequential_time = time.time() - start
+    print(f"\nI/O Sequential: {sequential_time:.2f}s")
+    
+    # Threading (efficient for I/O)
+    start = time.time()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(io_bound_task, urls))
+    threading_time = time.time() - start
+    print(f"I/O Threading: {threading_time:.2f}s")
+    
+    # 3. Basic Threading
+    def worker(name, delay):
+        """Thread worker function."""
+        print(f"Thread {name} starting")
+        time.sleep(delay)
+        print(f"Thread {name} finished")
+    
+    threads = []
+    for i in range(3):
+        t = threading.Thread(target=worker, args=(i, 0.1))
+        threads.append(t)
+        t.start()
+    
+    # Wait for all threads
+    for t in threads:
+        t.join()
+    
+    # 4. Thread Communication with Queue
+    import queue
+    
+    task_queue = queue.Queue()
+    result_queue = queue.Queue()
+    
+    def thread_worker():
+        """Worker that processes tasks from queue."""
+        while True:
+            task = task_queue.get()
+            if task is None:  # Poison pill
+                break
+            result = task * 2
+            result_queue.put(result)
+            task_queue.task_done()
+    
+    # Start workers
+    num_workers = 3
+    threads = []
+    for _ in range(num_workers):
+        t = threading.Thread(target=thread_worker)
+        t.start()
+        threads.append(t)
+    
+    # Add tasks
+    for i in range(10):
+        task_queue.put(i)
+    
+    # Wait for completion
+    task_queue.join()
+    
+    # Stop workers
+    for _ in range(num_workers):
+        task_queue.put(None)
+    
+    for t in threads:
+        t.join()
+    
+    # Get results
+    results = []
+    while not result_queue.empty():
+        results.append(result_queue.get())
+    print(f"Results: {results}")
+    
+    # 5. Basic Multiprocessing
+    def process_worker(name, delay):
+        """Process worker function."""
+        print(f"Process {name} (PID: {multiprocessing.current_process().pid})")
+        time.sleep(delay)
+        return f"Process {name} finished"
+    
+    if __name__ == '__main__':
+        processes = []
+        for i in range(3):
+            p = multiprocessing.Process(target=process_worker, args=(i, 0.1))
+            processes.append(p)
+            p.start()
+        
+        for p in processes:
+            p.join()
+    
+    # 6. Process Communication with Queue
+    def process_worker_with_queue(task_queue, result_queue):
+        """Worker process with queues."""
+        while True:
+            task = task_queue.get()
+            if task is None:
+                break
+            result = task * 2
+            result_queue.put(result)
+    
+    if __name__ == '__main__':
+        task_queue = multiprocessing.Queue()
+        result_queue = multiprocessing.Queue()
+        
+        # Start workers
+        processes = []
+        for _ in range(3):
+            p = multiprocessing.Process(
+                target=process_worker_with_queue,
+                args=(task_queue, result_queue)
+            )
+            p.start()
+            processes.append(p)
+        
+        # Add tasks
+        for i in range(10):
+            task_queue.put(i)
+        
+        # Send poison pills
+        for _ in range(3):
+            task_queue.put(None)
+        
+        # Wait for completion
+        for p in processes:
+            p.join()
+        
+        # Get results
+        results = []
+        while not result_queue.empty():
+            results.append(result_queue.get())
+        print(f"Process results: {results}")
+    
+    # 7. Shared Memory in Multiprocessing
+    def increment_shared(shared_value, lock):
+        """Increment shared value with lock."""
+        for _ in range(100000):
+            with lock:
+                shared_value.value += 1
+    
+    if __name__ == '__main__':
+        shared_value = multiprocessing.Value('i', 0)  # Shared integer
+        lock = multiprocessing.Lock()
+        
+        processes = []
+        for _ in range(4):
+            p = multiprocessing.Process(target=increment_shared, args=(shared_value, lock))
+            p.start()
+            processes.append(p)
+        
+        for p in processes:
+            p.join()
+        
+        print(f"Shared value: {shared_value.value}")  # Should be 400000
+    
+    # 8. Process Pool Map
+    def square(n):
+        """Square a number."""
+        return n * n
+    
+    if __name__ == '__main__':
+        with multiprocessing.Pool(processes=4) as pool:
+            numbers = range(10)
+            results = pool.map(square, numbers)
+            print(f"Squared: {results}")
+        
+        # starmap for multiple arguments
+        pairs = [(1, 2), (3, 4), (5, 6)]
+        with multiprocessing.Pool(processes=4) as pool:
+            results = pool.starmap(lambda x, y: x + y, pairs)
+            print(f"Sums: {results}")
+    
+    # 9. Thread-Safe Counter
+    class ThreadSafeCounter:
+        """Thread-safe counter using Lock."""
+        
+        def __init__(self):
+            self.value = 0
+            self.lock = threading.Lock()
+        
+        def increment(self):
+            with self.lock:
+                self.value += 1
+        
+        def get_value(self):
+            with self.lock:
+                return self.value
+    
+    counter = ThreadSafeCounter()
+    
+    def increment_counter(counter, n):
+        for _ in range(n):
+            counter.increment()
+    
+    threads = []
+    for _ in range(10):
+        t = threading.Thread(target=increment_counter, args=(counter, 10000))
+        t.start()
+        threads.append(t)
+    
+    for t in threads:
+        t.join()
+    
+    print(f"Counter value: {counter.get_value()}")  # Should be 100000
+    ```
+
+    **Comparison:**
+
+    | Aspect | Threading | Multiprocessing |
+    |--------|-----------|-----------------|
+    | **Memory** | Shared | Separate (copied) |
+    | **GIL** | Limited by GIL | No GIL (separate interpreters) |
+    | **CPU-bound** | ❌ Poor (GIL) | ✅ Good (true parallelism) |
+    | **I/O-bound** | ✅ Good | ⚠️ Overkill (overhead) |
+    | **Overhead** | Low | High (process creation) |
+    | **Communication** | Direct (shared memory) | IPC (Queue, Pipe) |
+    | **Debugging** | Easier | Harder |
+
+    **When to Use:**
+    - **Threading**: I/O-bound tasks (network, files), shared state
+    - **Multiprocessing**: CPU-bound tasks, no shared state needed
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Threading: shared memory, limited by GIL for CPU-bound"
+        - "Multiprocessing: separate processes, true parallelism"
+        - "GIL prevents true parallel execution of Python bytecode"
+        - "Threading good for I/O-bound (network, disk)"
+        - "Multiprocessing good for CPU-bound (computation)"
+        - "Use `concurrent.futures` for high-level interface"
+        - "Communication: Queue for threads/processes"
+        - "Thread-safe: use Lock, RLock, Semaphore"
+
+---
+
+### Explain async/await and asyncio - Meta, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Async`, `Concurrency`, `asyncio` | **Asked by:** Meta, Google, Dropbox, Netflix
+
+??? success "View Answer"
+
+    **`async/await`** enables cooperative multitasking for I/O-bound operations without threads/processes. **`asyncio`** is the framework for writing asynchronous code.
+
+    **Complete Examples:**
+
+    ```python
+    import asyncio
+    import aiohttp
+    import time
+    from typing import List
+    
+    # 1. Basic Async Function
+    async def say_hello(name: str, delay: float):
+        """Async function that waits."""
+        await asyncio.sleep(delay)  # Non-blocking sleep
+        return f"Hello, {name}!"
+    
+    # Run async function
+    async def main():
+        result = await say_hello("Alice", 1)
+        print(result)
+    
+    # asyncio.run(main())
+    
+    # 2. Concurrent Execution with gather()
+    async def fetch_data(id: int, delay: float):
+        """Simulate fetching data."""
+        print(f"Fetching {id}...")
+        await asyncio.sleep(delay)
+        print(f"Fetched {id}")
+        return {"id": id, "data": f"Data{id}"}
+    
+    async def concurrent_example():
+        """Run multiple coroutines concurrently."""
+        # Run all concurrently
+        results = await asyncio.gather(
+            fetch_data(1, 1),
+            fetch_data(2, 0.5),
+            fetch_data(3, 0.3)
+        )
+        print(f"Results: {results}")
+    
+    # asyncio.run(concurrent_example())
+    
+    # 3. Task Creation
+    async def task_example():
+        """Create and manage tasks."""
+        # Create tasks (start immediately)
+        task1 = asyncio.create_task(fetch_data(1, 1))
+        task2 = asyncio.create_task(fetch_data(2, 0.5))
+        task3 = asyncio.create_task(fetch_data(3, 0.3))
+        
+        # Do other work here
+        print("Tasks started, doing other work...")
+        
+        # Wait for all tasks
+        results = await asyncio.gather(task1, task2, task3)
+        return results
+    
+    # asyncio.run(task_example())
+    
+    # 4. HTTP Requests with aiohttp
+    async def fetch_url(session, url: str):
+        """Fetch URL asynchronously."""
+        async with session.get(url) as response:
+            return await response.text()
+    
+    async def fetch_multiple_urls():
+        """Fetch multiple URLs concurrently."""
+        urls = [
+            "http://example.com",
+            "http://example.org",
+            "http://example.net"
+        ]
+        
+        async with aiohttp.ClientSession() as session:
+            tasks = [fetch_url(session, url) for url in urls]
+            results = await asyncio.gather(*tasks)
+            return results
+    
+    # asyncio.run(fetch_multiple_urls())
+    
+    # 5. Async Context Manager
+    class AsyncResource:
+        """Async context manager."""
+        
+        async def __aenter__(self):
+            print("Acquiring resource...")
+            await asyncio.sleep(0.1)
+            self.resource = "Database Connection"
+            return self
+        
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            print("Releasing resource...")
+            await asyncio.sleep(0.1)
+            return False
+        
+        async def query(self, sql: str):
+            await asyncio.sleep(0.05)
+            return f"Results for: {sql}"
+    
+    async def use_async_resource():
+        async with AsyncResource() as resource:
+            result = await resource.query("SELECT * FROM users")
+            print(result)
+    
+    # asyncio.run(use_async_resource())
+    
+    # 6. Async Iterator
+    class AsyncDataStream:
+        """Async iterator for streaming data."""
+        
+        def __init__(self, count: int):
+            self.count = count
+            self.current = 0
+        
+        def __aiter__(self):
+            return self
+        
+        async def __anext__(self):
+            if self.current >= self.count:
+                raise StopAsyncIteration
+            
+            await asyncio.sleep(0.1)  # Simulate fetching
+            self.current += 1
+            return self.current
+    
+    async def consume_stream():
+        """Consume async iterator."""
+        async for value in AsyncDataStream(5):
+            print(f"Received: {value}")
+    
+    # asyncio.run(consume_stream())
+    
+    # 7. Async Generator
+    async def async_range(start: int, end: int):
+        """Async generator."""
+        for i in range(start, end):
+            await asyncio.sleep(0.1)
+            yield i
+    
+    async def use_async_generator():
+        async for value in async_range(1, 6):
+            print(f"Value: {value}")
+    
+    # asyncio.run(use_async_generator())
+    
+    # 8. Timeouts
+    async def slow_operation():
+        """Slow async operation."""
+        await asyncio.sleep(5)
+        return "Completed"
+    
+    async def timeout_example():
+        """Handle timeouts."""
+        try:
+            result = await asyncio.wait_for(slow_operation(), timeout=2.0)
+            print(result)
+        except asyncio.TimeoutError:
+            print("Operation timed out!")
+    
+    # asyncio.run(timeout_example())
+    
+    # 9. Semaphore for Rate Limiting
+    async def rate_limited_request(semaphore, id: int):
+        """Rate-limited async request."""
+        async with semaphore:
+            print(f"Processing request {id}")
+            await asyncio.sleep(0.5)
+            return f"Result {id}"
+    
+    async def rate_limiting_example():
+        """Limit concurrent operations."""
+        semaphore = asyncio.Semaphore(3)  # Max 3 concurrent
+        
+        tasks = [
+            rate_limited_request(semaphore, i)
+            for i in range(10)
+        ]
+        
+        results = await asyncio.gather(*tasks)
+        print(f"All results: {results}")
+    
+    # asyncio.run(rate_limiting_example())
+    
+    # 10. Queue for Producer-Consumer
+    async def producer(queue: asyncio.Queue, n: int):
+        """Produce items."""
+        for i in range(n):
+            await asyncio.sleep(0.1)
+            await queue.put(i)
+            print(f"Produced: {i}")
+        await queue.put(None)  # Sentinel
+    
+    async def consumer(queue: asyncio.Queue, name: str):
+        """Consume items."""
+        while True:
+            item = await queue.get()
+            if item is None:
+                queue.task_done()
+                break
+            
+            await asyncio.sleep(0.2)
+            print(f"Consumer {name} processed: {item}")
+            queue.task_done()
+    
+    async def producer_consumer_example():
+        """Producer-consumer pattern."""
+        queue = asyncio.Queue()
+        
+        # Start producer and consumers
+        await asyncio.gather(
+            producer(queue, 10),
+            consumer(queue, "A"),
+            consumer(queue, "B")
+        )
+    
+    # asyncio.run(producer_consumer_example())
+    
+    # 11. Event Loop Management
+    async def background_task():
+        """Long-running background task."""
+        while True:
+            print("Background task running...")
+            await asyncio.sleep(1)
+    
+    async def main_with_background():
+        """Run main task with background task."""
+        task = asyncio.create_task(background_task())
+        
+        # Do main work
+        await asyncio.sleep(3)
+        
+        # Cancel background task
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            print("Background task cancelled")
+    
+    # asyncio.run(main_with_background())
+    
+    # 12. Performance Comparison
+    def sync_sleep(n):
+        """Synchronous sleep."""
+        time.sleep(0.1)
+        return n
+    
+    async def async_sleep(n):
+        """Asynchronous sleep."""
+        await asyncio.sleep(0.1)
+        return n
+    
+    # Synchronous version
+    start = time.time()
+    results = [sync_sleep(i) for i in range(10)]
+    sync_time = time.time() - start
+    print(f"Synchronous: {sync_time:.2f}s")
+    
+    # Asynchronous version
+    async def async_version():
+        start = time.time()
+        tasks = [async_sleep(i) for i in range(10)]
+        results = await asyncio.gather(*tasks)
+        async_time = time.time() - start
+        print(f"Asynchronous: {async_time:.2f}s")
+    
+    # asyncio.run(async_version())
+    ```
+
+    **Key Concepts:**
+
+    | Concept | Description | Example |
+    |---------|-------------|---------|
+    | **Coroutine** | Async function | `async def func()` |
+    | **await** | Wait for coroutine | `await func()` |
+    | **Task** | Scheduled coroutine | `asyncio.create_task()` |
+    | **gather** | Run multiple coroutines | `await asyncio.gather(*tasks)` |
+    | **Event Loop** | Manages async execution | `asyncio.run()` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`async/await`: cooperative multitasking"
+        - "Single-threaded, non-blocking I/O"
+        - "`await` yields control to event loop"
+        - "`asyncio.gather()`: run multiple coroutines"
+        - "`asyncio.create_task()`: schedule coroutine"
+        - "Use for I/O-bound operations (network, files)"
+        - "async context managers: `async with`"
+        - "async iterators: `async for`"
+        - "Not for CPU-bound tasks"
+
+---
+
+### Explain Python's Property Decorators - Amazon, Google Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Properties`, `OOP`, `Decorators` | **Asked by:** Amazon, Google, Meta, Microsoft
+
+??? success "View Answer"
+
+    **`@property`** decorator creates managed attributes with getter, setter, and deleter methods, providing controlled access to class attributes.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Property
+    class Person:
+        """Person with property for age."""
+        
+        def __init__(self, name: str, age: int):
+            self._name = name
+            self._age = age
+        
+        @property
+        def age(self):
+            """Get age."""
+            print("Getting age")
+            return self._age
+        
+        @age.setter
+        def age(self, value: int):
+            """Set age with validation."""
+            print(f"Setting age to {value}")
+            if value < 0:
+                raise ValueError("Age cannot be negative")
+            self._age = value
+        
+        @age.deleter
+        def age(self):
+            """Delete age."""
+            print("Deleting age")
+            del self._age
+    
+    person = Person("Alice", 30)
+    print(person.age)  # Calls getter
+    person.age = 31    # Calls setter
+    # person.age = -1  # Raises ValueError
+    # del person.age   # Calls deleter
+    
+    # 2. Computed Property
+    class Rectangle:
+        """Rectangle with computed area."""
+        
+        def __init__(self, width: float, height: float):
+            self.width = width
+            self.height = height
+        
+        @property
+        def area(self):
+            """Computed area (no setter)."""
+            return self.width * self.height
+        
+        @property
+        def perimeter(self):
+            """Computed perimeter."""
+            return 2 * (self.width + self.height)
+    
+    rect = Rectangle(5, 3)
+    print(f"Area: {rect.area}")  # 15
+    print(f"Perimeter: {rect.perimeter}")  # 16
+    # rect.area = 20  # AttributeError (no setter)
+    
+    # 3. Lazy Property
+    class DataProcessor:
+        """Process data with lazy loading."""
+        
+        def __init__(self, filename: str):
+            self.filename = filename
+            self._data = None
+        
+        @property
+        def data(self):
+            """Load data on first access."""
+            if self._data is None:
+                print(f"Loading data from {self.filename}...")
+                # Simulate expensive operation
+                import time
+                time.sleep(0.1)
+                self._data = list(range(1000))
+            return self._data
+    
+    processor = DataProcessor("data.csv")
+    print("Created processor")
+    print(len(processor.data))  # Loads data
+    print(len(processor.data))  # Uses cached data
+    
+    # 4. Temperature Conversion
+    class Temperature:
+        """Temperature with Celsius/Fahrenheit conversion."""
+        
+        def __init__(self, celsius: float = 0):
+            self._celsius = celsius
+        
+        @property
+        def celsius(self):
+            """Get temperature in Celsius."""
+            return self._celsius
+        
+        @celsius.setter
+        def celsius(self, value: float):
+            """Set temperature in Celsius."""
+            if value < -273.15:
+                raise ValueError("Temperature below absolute zero!")
+            self._celsius = value
+        
+        @property
+        def fahrenheit(self):
+            """Get temperature in Fahrenheit."""
+            return self._celsius * 9/5 + 32
+        
+        @fahrenheit.setter
+        def fahrenheit(self, value: float):
+            """Set temperature using Fahrenheit."""
+            self.celsius = (value - 32) * 5/9
+        
+        @property
+        def kelvin(self):
+            """Get temperature in Kelvin."""
+            return self._celsius + 273.15
+    
+    temp = Temperature(25)
+    print(f"{temp.celsius}°C = {temp.fahrenheit}°F = {temp.kelvin}K")
+    
+    temp.fahrenheit = 98.6
+    print(f"{temp.celsius:.1f}°C = {temp.fahrenheit}°F")
+    
+    # 5. Validation Property
+    class User:
+        """User with validated properties."""
+        
+        def __init__(self, username: str, email: str):
+            self.username = username  # Uses setter
+            self.email = email        # Uses setter
+        
+        @property
+        def username(self):
+            return self._username
+        
+        @username.setter
+        def username(self, value: str):
+            """Validate username."""
+            if not value:
+                raise ValueError("Username cannot be empty")
+            if len(value) < 3:
+                raise ValueError("Username must be at least 3 characters")
+            self._username = value
+        
+        @property
+        def email(self):
+            return self._email
+        
+        @email.setter
+        def email(self, value: str):
+            """Validate email."""
+            if '@' not in value or '.' not in value.split('@')[-1]:
+                raise ValueError("Invalid email format")
+            self._email = value.lower()
+    
+    user = User("alice", "Alice@Example.COM")
+    print(f"Username: {user.username}, Email: {user.email}")
+    
+    # try:
+    #     user.username = "ab"  # Too short
+    # except ValueError as e:
+    #     print(e)
+    
+    # 6. Read-Only Property
+    class Circle:
+        """Circle with read-only radius."""
+        
+        def __init__(self, radius: float):
+            self._radius = radius
+        
+        @property
+        def radius(self):
+            """Read-only radius."""
+            return self._radius
+        
+        @property
+        def diameter(self):
+            return self._radius * 2
+        
+        @property
+        def area(self):
+            import math
+            return math.pi * self._radius ** 2
+    
+    circle = Circle(5)
+    print(f"Radius: {circle.radius}, Area: {circle.area:.2f}")
+    # circle.radius = 10  # AttributeError (no setter)
+    
+    # 7. Property with Caching
+    class ExpensiveComputation:
+        """Property with result caching."""
+        
+        def __init__(self, value: int):
+            self.value = value
+            self._result_cache = None
+        
+        @property
+        def result(self):
+            """Expensive computation with caching."""
+            if self._result_cache is None:
+                print("Computing result...")
+                import time
+                time.sleep(0.1)
+                self._result_cache = self.value ** 2
+            return self._result_cache
+        
+        def invalidate_cache(self):
+            """Clear cache when value changes."""
+            self._result_cache = None
+    
+    comp = ExpensiveComputation(10)
+    print(comp.result)  # Computes
+    print(comp.result)  # Cached
+    comp.value = 20
+    comp.invalidate_cache()
+    print(comp.result)  # Recomputes
+    
+    # 8. Property with Type Checking
+    class TypedProperty:
+        """Property with type checking."""
+        
+        def __init__(self, expected_type):
+            self.expected_type = expected_type
+            self.data = {}
+        
+        def __set_name__(self, owner, name):
+            self.name = name
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            return self.data.get(id(obj))
+        
+        def __set__(self, obj, value):
+            if not isinstance(value, self.expected_type):
+                raise TypeError(
+                    f"{self.name} must be {self.expected_type.__name__}"
+                )
+            self.data[id(obj)] = value
+    
+    class Product:
+        name = TypedProperty(str)
+        price = TypedProperty(float)
+        quantity = TypedProperty(int)
+        
+        def __init__(self, name, price, quantity):
+            self.name = name
+            self.price = price
+            self.quantity = quantity
+    
+    product = Product("Laptop", 999.99, 5)
+    # product.price = "expensive"  # TypeError
+    
+    # 9. Property Chain
+    class Account:
+        """Bank account with property chain."""
+        
+        def __init__(self, balance: float):
+            self._balance = balance
+            self._transactions = []
+        
+        @property
+        def balance(self):
+            return self._balance
+        
+        @balance.setter
+        def balance(self, value: float):
+            if value < 0:
+                raise ValueError("Balance cannot be negative")
+            old_balance = self._balance
+            self._balance = value
+            self._transactions.append({
+                'old': old_balance,
+                'new': value,
+                'change': value - old_balance
+            })
+        
+        @property
+        def transaction_history(self):
+            """Read-only transaction history."""
+            return self._transactions.copy()
+    
+    account = Account(1000)
+    account.balance = 1500
+    account.balance = 1200
+    print(account.transaction_history)
+    ```
+
+    **Property vs Direct Access:**
+
+    | Aspect | Direct Attribute | Property |
+    |--------|-----------------|----------|
+    | **Validation** | ❌ No | ✅ Yes |
+    | **Computed** | ❌ No | ✅ Yes |
+    | **Lazy Loading** | ❌ No | ✅ Yes |
+    | **API Stability** | ⚠️ Breaking change | ✅ Non-breaking |
+    | **Overhead** | None | Minimal |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`@property`: managed attribute access"
+        - "Getter: `@property`, Setter: `@prop.setter`, Deleter: `@prop.deleter`"
+        - "Use for validation, computed values, lazy loading"
+        - "Maintains clean API (looks like attribute access)"
+        - "Can add validation without changing interface"
+        - "Read-only properties: no setter"
+        - "Cached properties: compute once, store result"
+        - "Better than Java-style getters/setters"
+
+---
+
+### Explain Abstract Base Classes (ABC) - Google, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `ABC`, `OOP`, `Interfaces` | **Asked by:** Google, Meta, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **Abstract Base Classes (ABC)** define interfaces that subclasses must implement. Use `abc` module to create abstract methods that force subclasses to provide implementations.
+
+    **Complete Examples:**
+
+    ```python
+    from abc import ABC, abstractmethod
+    from typing import List
+    import math
+    
+    # 1. Basic ABC
+    class Shape(ABC):
+        """Abstract shape class."""
+        
+        @abstractmethod
+        def area(self) -> float:
+            """Calculate area (must be implemented)."""
+            pass
+        
+        @abstractmethod
+        def perimeter(self) -> float:
+            """Calculate perimeter (must be implemented)."""
+            pass
+        
+        def describe(self) -> str:
+            """Concrete method (optional to override)."""
+            return f"{self.__class__.__name__}: area={self.area():.2f}"
+    
+    class Rectangle(Shape):
+        """Concrete shape implementation."""
+        
+        def __init__(self, width: float, height: float):
+            self.width = width
+            self.height = height
+        
+        def area(self) -> float:
+            return self.width * self.height
+        
+        def perimeter(self) -> float:
+            return 2 * (self.width + self.height)
+    
+    class Circle(Shape):
+        """Another concrete implementation."""
+        
+        def __init__(self, radius: float):
+            self.radius = radius
+        
+        def area(self) -> float:
+            return math.pi * self.radius ** 2
+        
+        def perimeter(self) -> float:
+            return 2 * math.pi * self.radius
+    
+    # Cannot instantiate ABC
+    # shape = Shape()  # TypeError
+    
+    rect = Rectangle(5, 3)
+    print(rect.describe())
+    
+    circle = Circle(2)
+    print(circle.describe())
+    
+    # 2. Data Storage ABC
+    class DataStore(ABC):
+        """Abstract data storage interface."""
+        
+        @abstractmethod
+        def save(self, key: str, value: any) -> None:
+            """Save data."""
+            pass
+        
+        @abstractmethod
+        def load(self, key: str) -> any:
+            """Load data."""
+            pass
+        
+        @abstractmethod
+        def delete(self, key: str) -> None:
+            """Delete data."""
+            pass
+        
+        @abstractmethod
+        def exists(self, key: str) -> bool:
+            """Check if key exists."""
+            pass
+    
+    class MemoryStore(DataStore):
+        """In-memory implementation."""
+        
+        def __init__(self):
+            self._data = {}
+        
+        def save(self, key: str, value: any) -> None:
+            self._data[key] = value
+        
+        def load(self, key: str) -> any:
+            return self._data.get(key)
+        
+        def delete(self, key: str) -> None:
+            if key in self._data:
+                del self._data[key]
+        
+        def exists(self, key: str) -> bool:
+            return key in self._data
+    
+    class FileStore(DataStore):
+        """File-based implementation."""
+        
+        def __init__(self, directory: str):
+            self.directory = directory
+            import os
+            os.makedirs(directory, exist_ok=True)
+        
+        def _get_path(self, key: str) -> str:
+            import os
+            return os.path.join(self.directory, f"{key}.txt")
+        
+        def save(self, key: str, value: any) -> None:
+            with open(self._get_path(key), 'w') as f:
+                f.write(str(value))
+        
+        def load(self, key: str) -> any:
+            try:
+                with open(self._get_path(key), 'r') as f:
+                    return f.read()
+            except FileNotFoundError:
+                return None
+        
+        def delete(self, key: str) -> None:
+            import os
+            try:
+                os.remove(self._get_path(key))
+            except FileNotFoundError:
+                pass
+        
+        def exists(self, key: str) -> bool:
+            import os
+            return os.path.exists(self._get_path(key))
+    
+    # Use polymorphically
+    def test_store(store: DataStore):
+        """Test any DataStore implementation."""
+        store.save("user:1", "Alice")
+        print(f"Loaded: {store.load('user:1')}")
+        print(f"Exists: {store.exists('user:1')}")
+        store.delete("user:1")
+        print(f"After delete: {store.exists('user:1')}")
+    
+    memory = MemoryStore()
+    test_store(memory)
+    
+    # 3. Abstract Properties
+    class Animal(ABC):
+        """Animal with abstract properties."""
+        
+        @property
+        @abstractmethod
+        def name(self) -> str:
+            """Animal name (must be implemented)."""
+            pass
+        
+        @property
+        @abstractmethod
+        def sound(self) -> str:
+            """Animal sound (must be implemented)."""
+            pass
+        
+        def make_sound(self) -> str:
+            """Concrete method using abstract property."""
+            return f"{self.name} says {self.sound}"
+    
+    class Dog(Animal):
+        """Concrete animal."""
+        
+        @property
+        def name(self) -> str:
+            return "Dog"
+        
+        @property
+        def sound(self) -> str:
+            return "Woof"
+    
+    class Cat(Animal):
+        """Another concrete animal."""
+        
+        @property
+        def name(self) -> str:
+            return "Cat"
+        
+        @property
+        def sound(self) -> str:
+            return "Meow"
+    
+    dog = Dog()
+    print(dog.make_sound())
+    
+    cat = Cat()
+    print(cat.make_sound())
+    
+    # 4. Multiple Abstract Methods
+    class Serializer(ABC):
+        """Abstract serializer."""
+        
+        @abstractmethod
+        def serialize(self, data: dict) -> str:
+            """Serialize to string."""
+            pass
+        
+        @abstractmethod
+        def deserialize(self, data: str) -> dict:
+            """Deserialize from string."""
+            pass
+        
+        @abstractmethod
+        def file_extension(self) -> str:
+            """File extension for this format."""
+            pass
+    
+    class JSONSerializer(Serializer):
+        """JSON serializer."""
+        
+        def serialize(self, data: dict) -> str:
+            import json
+            return json.dumps(data)
+        
+        def deserialize(self, data: str) -> dict:
+            import json
+            return json.loads(data)
+        
+        def file_extension(self) -> str:
+            return ".json"
+    
+    class XMLSerializer(Serializer):
+        """XML serializer (simplified)."""
+        
+        def serialize(self, data: dict) -> str:
+            # Simplified XML generation
+            items = [f"<{k}>{v}</{k}>" for k, v in data.items()]
+            return f"<root>{''.join(items)}</root>"
+        
+        def deserialize(self, data: str) -> dict:
+            # Simplified XML parsing (use xml.etree in production)
+            import re
+            items = re.findall(r'<(\w+)>([^<]+)</\1>', data)
+            return dict(items)
+        
+        def file_extension(self) -> str:
+            return ".xml"
+    
+    def save_data(serializer: Serializer, data: dict, filename: str):
+        """Save using any serializer."""
+        content = serializer.serialize(data)
+        full_name = filename + serializer.file_extension()
+        with open(full_name, 'w') as f:
+            f.write(content)
+        print(f"Saved to {full_name}")
+    
+    data = {"name": "Alice", "age": "30"}
+    # save_data(JSONSerializer(), data, "user")
+    
+    # 5. Abstract Class Methods
+    class Parser(ABC):
+        """Abstract parser with class method."""
+        
+        @classmethod
+        @abstractmethod
+        def can_parse(cls, content: str) -> bool:
+            """Check if this parser can handle content."""
+            pass
+        
+        @abstractmethod
+        def parse(self, content: str) -> dict:
+            """Parse content."""
+            pass
+    
+    class CSVParser(Parser):
+        """CSV parser."""
+        
+        @classmethod
+        def can_parse(cls, content: str) -> bool:
+            return ',' in content.split('\n')[0]
+        
+        def parse(self, content: str) -> dict:
+            lines = content.strip().split('\n')
+            headers = lines[0].split(',')
+            rows = [line.split(',') for line in lines[1:]]
+            return {"headers": headers, "rows": rows}
+    
+    class TSVParser(Parser):
+        """TSV parser."""
+        
+        @classmethod
+        def can_parse(cls, content: str) -> bool:
+            return '\t' in content.split('\n')[0]
+        
+        def parse(self, content: str) -> dict:
+            lines = content.strip().split('\n')
+            headers = lines[0].split('\t')
+            rows = [line.split('\t') for line in lines[1:]]
+            return {"headers": headers, "rows": rows}
+    
+    # Auto-select parser
+    parsers = [CSVParser, TSVParser]
+    content = "name,age\nAlice,30\nBob,25"
+    
+    for parser_class in parsers:
+        if parser_class.can_parse(content):
+            parser = parser_class()
+            result = parser.parse(content)
+            print(f"Parsed with {parser_class.__name__}: {result}")
+            break
+    
+    # 6. ABC with __init_subclass__
+    class PluginBase(ABC):
+        """Plugin system using ABC."""
+        
+        plugins = {}
+        
+        def __init_subclass__(cls, plugin_name: str, **kwargs):
+            super().__init_subclass__(**kwargs)
+            cls.plugins[plugin_name] = cls
+        
+        @abstractmethod
+        def execute(self) -> str:
+            pass
+    
+    class EmailPlugin(PluginBase, plugin_name="email"):
+        def execute(self) -> str:
+            return "Sending email..."
+    
+    class SMSPlugin(PluginBase, plugin_name="sms"):
+        def execute(self) -> str:
+            return "Sending SMS..."
+    
+    # Use plugin system
+    print(f"Available plugins: {list(PluginBase.plugins.keys())}")
+    
+    plugin = PluginBase.plugins["email"]()
+    print(plugin.execute())
+    
+    # 7. Template Method Pattern
+    class DataProcessor(ABC):
+        """Template method pattern."""
+        
+        def process(self, data: List[int]) -> List[int]:
+            """Template method (concrete)."""
+            validated = self.validate(data)
+            transformed = self.transform(validated)
+            filtered = self.filter(transformed)
+            return filtered
+        
+        @abstractmethod
+        def validate(self, data: List[int]) -> List[int]:
+            """Validation step."""
+            pass
+        
+        @abstractmethod
+        def transform(self, data: List[int]) -> List[int]:
+            """Transformation step."""
+            pass
+        
+        def filter(self, data: List[int]) -> List[int]:
+            """Optional filtering (default implementation)."""
+            return data
+    
+    class SquareProcessor(DataProcessor):
+        """Square and filter positives."""
+        
+        def validate(self, data: List[int]) -> List[int]:
+            # Remove None values
+            return [x for x in data if x is not None]
+        
+        def transform(self, data: List[int]) -> List[int]:
+            # Square all values
+            return [x ** 2 for x in data]
+        
+        def filter(self, data: List[int]) -> List[int]:
+            # Keep only values > 10
+            return [x for x in data if x > 10]
+    
+    processor = SquareProcessor()
+    result = processor.process([1, 2, 3, 4, 5, None, 6])
+    print(f"Processed: {result}")
+    
+    # 8. ABC with Multiple Inheritance
+    class Drawable(ABC):
+        """Abstract drawable interface."""
+        
+        @abstractmethod
+        def draw(self) -> str:
+            pass
+    
+    class Clickable(ABC):
+        """Abstract clickable interface."""
+        
+        @abstractmethod
+        def on_click(self) -> str:
+            pass
+    
+    class Button(Drawable, Clickable):
+        """Button implements both interfaces."""
+        
+        def __init__(self, label: str):
+            self.label = label
+        
+        def draw(self) -> str:
+            return f"[{self.label}]"
+        
+        def on_click(self) -> str:
+            return f"Button '{self.label}' clicked"
+    
+    button = Button("Submit")
+    print(button.draw())
+    print(button.on_click())
+    ```
+
+    **ABC Features:**
+
+    | Feature | Purpose | Example |
+    |---------|---------|---------|
+    | **@abstractmethod** | Force implementation | `def method(self)` |
+    | **Abstract property** | Force property | `@property @abstractmethod` |
+    | **Abstract classmethod** | Force class method | `@classmethod @abstractmethod` |
+    | **Concrete methods** | Optional override | `def method(self): ...` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "ABC: define interface that subclasses must implement"
+        - "`@abstractmethod`: force subclass implementation"
+        - "Cannot instantiate ABC directly"
+        - "Use for polymorphism and design contracts"
+        - "Abstract properties: `@property @abstractmethod`"
+        - "Multiple inheritance: implement multiple ABCs"
+        - "Template Method pattern: concrete method calls abstract"
+        - "Ensures consistent interface across implementations"
+
+---
+
+### Explain concurrent.futures Module - Netflix, Meta Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Concurrency`, `Threading`, `Multiprocessing` | **Asked by:** Netflix, Meta, Amazon, Google
+
+??? success "View Answer"
+
+    **`concurrent.futures`** provides high-level interface for asynchronous execution using `ThreadPoolExecutor` (threads) and `ProcessPoolExecutor` (processes).
+
+    **Complete Examples:**
+
+    ```python
+    from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed, wait
+    import time
+    import requests
+    from typing import List
+    
+    # 1. ThreadPoolExecutor Basic
+    def download_url(url: str) -> str:
+        """Simulate downloading URL."""
+        time.sleep(0.1)
+        return f"Downloaded {url}"
+    
+    urls = [f"http://example.com/page{i}" for i in range(5)]
+    
+    # Sequential
+    start = time.time()
+    results = [download_url(url) for url in urls]
+    print(f"Sequential: {time.time() - start:.2f}s")
+    
+    # Concurrent with ThreadPoolExecutor
+    start = time.time()
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        results = list(executor.map(download_url, urls))
+    print(f"Concurrent: {time.time() - start:.2f}s")
+    print(results)
+    
+    # 2. ProcessPoolExecutor for CPU-bound
+    def cpu_intensive(n: int) -> int:
+        """CPU-intensive computation."""
+        count = 0
+        for i in range(n):
+            count += i ** 2
+        return count
+    
+    numbers = [5_000_000] * 4
+    
+    # Sequential
+    start = time.time()
+    results = [cpu_intensive(n) for n in numbers]
+    print(f"\nCPU Sequential: {time.time() - start:.2f}s")
+    
+    # Parallel with ProcessPoolExecutor
+    start = time.time()
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(cpu_intensive, numbers))
+    print(f"CPU Parallel: {time.time() - start:.2f}s")
+    
+    # 3. submit() and Future Objects
+    def process_item(item: int) -> int:
+        """Process single item."""
+        time.sleep(0.1)
+        return item * 2
+    
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        # Submit tasks and get Future objects
+        futures = [executor.submit(process_item, i) for i in range(5)]
+        
+        # Get results from futures
+        for future in futures:
+            result = future.result()  # Blocks until complete
+            print(f"Result: {result}")
+    
+    # 4. as_completed() for Immediate Results
+    def slow_function(n: int) -> tuple:
+        """Function with varying execution time."""
+        delay = n * 0.1
+        time.sleep(delay)
+        return n, delay
+    
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(slow_function, i) for i in range(5, 0, -1)]
+        
+        # Process results as they complete (not in submission order)
+        for future in as_completed(futures):
+            n, delay = future.result()
+            print(f"Task {n} completed after {delay:.1f}s")
+    
+    # 5. Future Exception Handling
+    def risky_operation(n: int) -> float:
+        """Operation that might fail."""
+        if n == 0:
+            raise ValueError("Cannot divide by zero")
+        return 10 / n
+    
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(risky_operation, i) for i in range(-2, 3)]
+        
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                print(f"Success: {result:.2f}")
+            except Exception as e:
+                print(f"Error: {e}")
+    
+    # 6. Timeout Handling
+    def long_running_task(n: int) -> str:
+        """Task that might exceed timeout."""
+        time.sleep(n)
+        return f"Completed {n}"
+    
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(long_running_task, i) for i in [0.1, 0.5, 2.0]]
+        
+        for future in as_completed(futures, timeout=1.0):
+            try:
+                result = future.result(timeout=1.0)
+                print(result)
+            except TimeoutError:
+                print("Task timed out")
+    
+    # 7. Batch Processing
+    def process_batch(items: List[int]) -> List[int]:
+        """Process batch of items."""
+        time.sleep(0.2)
+        return [item * 2 for item in items]
+    
+    # Split data into batches
+    data = list(range(100))
+    batch_size = 10
+    batches = [data[i:i+batch_size] for i in range(0, len(data), batch_size)]
+    
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        results = executor.map(process_batch, batches)
+        flattened = [item for batch in results for item in batch]
+    
+    print(f"Processed {len(flattened)} items in batches")
+    
+    # 8. wait() for Fine Control
+    def task_with_priority(priority: int, data: str) -> tuple:
+        """Task with priority."""
+        time.sleep(priority * 0.1)
+        return priority, data
+    
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {
+            executor.submit(task_with_priority, i, f"data{i}"): i
+            for i in range(5)
+        }
+        
+        # Wait for first task to complete
+        done, pending = wait(futures, return_when='FIRST_COMPLETED')
+        print(f"First task done, {len(pending)} pending")
+        
+        # Wait for all tasks
+        done, pending = wait(futures)
+        print(f"All {len(done)} tasks done")
+    
+    # 9. Real-World Example: Web Scraping
+    def fetch_page(url: str) -> dict:
+        """Fetch page with error handling."""
+        try:
+            time.sleep(0.1)  # Simulate network delay
+            # In real code: response = requests.get(url, timeout=5)
+            return {
+                "url": url,
+                "status": 200,
+                "content_length": 1024
+            }
+        except Exception as e:
+            return {
+                "url": url,
+                "status": "error",
+                "error": str(e)
+            }
+    
+    urls = [f"http://example.com/page{i}" for i in range(20)]
+    
+    successful = 0
+    failed = 0
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_url = {executor.submit(fetch_page, url): url for url in urls}
+        
+        for future in as_completed(future_to_url):
+            result = future.result()
+            if result["status"] == 200:
+                successful += 1
+            else:
+                failed += 1
+    
+    print(f"Fetched: {successful} successful, {failed} failed")
+    
+    # 10. Callback Functions
+    def process_data(n: int) -> int:
+        """Process data."""
+        time.sleep(0.1)
+        return n * 2
+    
+    def on_complete(future):
+        """Callback when future completes."""
+        result = future.result()
+        print(f"Callback: processed {result}")
+    
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        for i in range(5):
+            future = executor.submit(process_data, i)
+            future.add_done_callback(on_complete)
+    
+    # 11. Context Manager Benefits
+    # Automatic shutdown and cleanup
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        # Executor automatically waits for all tasks and shuts down
+        futures = [executor.submit(process_item, i) for i in range(10)]
+    # All tasks complete before this line
+    
+    # 12. Executor Configuration
+    # Control thread/process pool size
+    import os
+    
+    # Default: min(32, os.cpu_count() + 4) for ThreadPool
+    # Default: os.cpu_count() for ProcessPool
+    
+    optimal_workers = os.cpu_count()
+    print(f"CPU count: {optimal_workers}")
+    
+    # For I/O-bound: more workers than CPUs
+    with ThreadPoolExecutor(max_workers=optimal_workers * 2) as executor:
+        pass
+    
+    # For CPU-bound: workers = CPUs
+    with ProcessPoolExecutor(max_workers=optimal_workers) as executor:
+        pass
+    ```
+
+    **Comparison:**
+
+    | Executor | Use Case | Parallelism | Overhead | Sharing |
+    |----------|----------|-------------|----------|---------|
+    | **ThreadPoolExecutor** | I/O-bound | No (GIL) | Low | Easy (shared memory) |
+    | **ProcessPoolExecutor** | CPU-bound | Yes | High | Complex (IPC) |
+
+    **Common Methods:**
+
+    | Method | Purpose | Example |
+    |--------|---------|---------|
+    | **submit()** | Submit single task | `executor.submit(func, arg)` |
+    | **map()** | Submit multiple tasks | `executor.map(func, iterable)` |
+    | **result()** | Get future result | `future.result(timeout=5)` |
+    | **as_completed()** | Process as done | `for f in as_completed(futures)` |
+    | **wait()** | Wait for completion | `done, pending = wait(futures)` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "ThreadPoolExecutor: I/O-bound tasks"
+        - "ProcessPoolExecutor: CPU-bound tasks"
+        - "`submit()`: returns Future object"
+        - "`map()`: parallel map operation"
+        - "`as_completed()`: process results as they finish"
+        - "Context manager: automatic cleanup"
+        - "Exception handling: `future.result()` raises exceptions"
+        - "Timeout support: `result(timeout=5)`"
+        - "Callbacks: `future.add_done_callback()`"
+
+---
+
+### Explain Python's Logging Module - Amazon, Microsoft Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Logging`, `Debugging`, `Best Practices` | **Asked by:** Amazon, Microsoft, Google, Dropbox
+
+??? success "View Answer"
+
+    **`logging`** module provides flexible logging for applications with configurable levels, formats, and outputs (console, file, network).
+
+    **Complete Examples:**
+
+    ```python
+    import logging
+    import sys
+    from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+    
+    # 1. Basic Logging
+    logging.basicConfig(level=logging.DEBUG)
+    
+    logging.debug("Debug message")
+    logging.info("Info message")
+    logging.warning("Warning message")
+    logging.error("Error message")
+    logging.critical("Critical message")
+    
+    # 2. Custom Logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    
+    # Console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    
+    # File handler
+    file_handler = logging.FileHandler('app.log')
+    file_handler.setLevel(logging.DEBUG)
+    
+    # Format
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    console_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
+    
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+    
+    logger.debug("Debug to file only")
+    logger.info("Info to both")
+    logger.error("Error to both")
+    
+    # 3. Logging with Context
+    def divide(a: float, b: float) -> float:
+        """Division with logging."""
+        logger.info(f"Dividing {a} by {b}")
+        try:
+            result = a / b
+            logger.info(f"Result: {result}")
+            return result
+        except ZeroDivisionError:
+            logger.error(f"Division by zero: {a} / {b}", exc_info=True)
+            raise
+    
+    # divide(10, 2)
+    # divide(10, 0)
+    
+    # 4. Structured Logging
+    class StructuredLogger:
+        """Logger with structured output."""
+        
+        def __init__(self, name: str):
+            self.logger = logging.getLogger(name)
+        
+        def log_request(self, method: str, path: str, status: int, duration: float):
+            """Log HTTP request."""
+            self.logger.info(
+                "HTTP Request",
+                extra={
+                    "method": method,
+                    "path": path,
+                    "status": status,
+                    "duration_ms": duration * 1000
+                }
+            )
+        
+        def log_database_query(self, query: str, rows: int, duration: float):
+            """Log database query."""
+            self.logger.debug(
+                "Database Query",
+                extra={
+                    "query": query,
+                    "rows_affected": rows,
+                    "duration_ms": duration * 1000
+                }
+            )
+    
+    structured = StructuredLogger("api")
+    structured.log_request("GET", "/users", 200, 0.045)
+    structured.log_database_query("SELECT * FROM users", 42, 0.023)
+    
+    # 5. Rotating File Handler
+    rotating_handler = RotatingFileHandler(
+        'app_rotating.log',
+        maxBytes=1024 * 1024,  # 1 MB
+        backupCount=5           # Keep 5 old files
+    )
+    rotating_handler.setFormatter(formatter)
+    
+    rotating_logger = logging.getLogger('rotating')
+    rotating_logger.addHandler(rotating_handler)
+    rotating_logger.setLevel(logging.INFO)
+    
+    # Logs automatically rotate when size limit reached
+    for i in range(1000):
+        rotating_logger.info(f"Message {i}: " + "x" * 100)
+    
+    # 6. Time-Based Rotating Handler
+    timed_handler = TimedRotatingFileHandler(
+        'app_timed.log',
+        when='midnight',  # Rotate at midnight
+        interval=1,       # Every 1 day
+        backupCount=7     # Keep 7 days
+    )
+    timed_handler.setFormatter(formatter)
+    
+    timed_logger = logging.getLogger('timed')
+    timed_logger.addHandler(timed_handler)
+    
+    # 7. Custom Formatter
+    class ColoredFormatter(logging.Formatter):
+        """Colored console output."""
+        
+        COLORS = {
+            'DEBUG': '\033[36m',      # Cyan
+            'INFO': '\033[32m',       # Green
+            'WARNING': '\033[33m',    # Yellow
+            'ERROR': '\033[31m',      # Red
+            'CRITICAL': '\033[35m',   # Magenta
+        }
+        RESET = '\033[0m'
+        
+        def format(self, record):
+            color = self.COLORS.get(record.levelname, self.RESET)
+            record.levelname = f"{color}{record.levelname}{self.RESET}"
+            return super().format(record)
+    
+    colored_handler = logging.StreamHandler()
+    colored_handler.setFormatter(ColoredFormatter(
+        '%(levelname)s - %(message)s'
+    ))
+    
+    colored_logger = logging.getLogger('colored')
+    colored_logger.addHandler(colored_handler)
+    colored_logger.setLevel(logging.DEBUG)
+    
+    # colored_logger.debug("Debug message")
+    # colored_logger.info("Info message")
+    # colored_logger.warning("Warning message")
+    
+    # 8. JSON Logging
+    import json
+    
+    class JSONFormatter(logging.Formatter):
+        """Format logs as JSON."""
+        
+        def format(self, record):
+            log_data = {
+                "timestamp": self.formatTime(record),
+                "level": record.levelname,
+                "logger": record.name,
+                "message": record.getMessage(),
+                "module": record.module,
+                "function": record.funcName,
+                "line": record.lineno
+            }
+            
+            # Add extra fields
+            if hasattr(record, 'user_id'):
+                log_data['user_id'] = record.user_id
+            
+            return json.dumps(log_data)
+    
+    json_handler = logging.FileHandler('app.json.log')
+    json_handler.setFormatter(JSONFormatter())
+    
+    json_logger = logging.getLogger('json')
+    json_logger.addHandler(json_handler)
+    
+    json_logger.info("User login", extra={"user_id": 12345})
+    
+    # 9. Filtering Logs
+    class SensitiveDataFilter(logging.Filter):
+        """Filter out sensitive data."""
+        
+        def filter(self, record):
+            # Redact credit card numbers
+            import re
+            message = record.getMessage()
+            record.msg = re.sub(
+                r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b',
+                'XXXX-XXXX-XXXX-XXXX',
+                str(record.msg)
+            )
+            return True
+    
+    filtered_logger = logging.getLogger('filtered')
+    filtered_logger.addFilter(SensitiveDataFilter())
+    handler = logging.StreamHandler()
+    filtered_logger.addHandler(handler)
+    
+    # filtered_logger.info("Payment with card 1234-5678-9012-3456")
+    
+    # 10. Performance Logging
+    import time
+    import functools
+    
+    def log_execution_time(logger):
+        """Decorator to log function execution time."""
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                start = time.time()
+                logger.info(f"Starting {func.__name__}")
+                try:
+                    result = func(*args, **kwargs)
+                    duration = time.time() - start
+                    logger.info(
+                        f"Finished {func.__name__} in {duration:.3f}s"
+                    )
+                    return result
+                except Exception as e:
+                    duration = time.time() - start
+                    logger.error(
+                        f"Failed {func.__name__} after {duration:.3f}s: {e}",
+                        exc_info=True
+                    )
+                    raise
+            return wrapper
+        return decorator
+    
+    perf_logger = logging.getLogger('performance')
+    
+    @log_execution_time(perf_logger)
+    def slow_function(n: int):
+        time.sleep(n * 0.1)
+        return n * 2
+    
+    # slow_function(5)
+    
+    # 11. Module-Level Loggers
+    # In each module, create logger with module name
+    module_logger = logging.getLogger(__name__)
+    
+    # This creates hierarchical loggers:
+    # myapp.models.user
+    # myapp.views.api
+    # myapp.utils.helpers
+    
+    # 12. Production Configuration
+    def setup_production_logging():
+        """Setup logging for production."""
+        # Root logger
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        
+        # Remove default handlers
+        root_logger.handlers = []
+        
+        # Console: errors only
+        console = logging.StreamHandler()
+        console.setLevel(logging.ERROR)
+        console.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+        root_logger.addHandler(console)
+        
+        # File: all logs with rotation
+        file_handler = RotatingFileHandler(
+            'production.log',
+            maxBytes=10 * 1024 * 1024,  # 10 MB
+            backupCount=10
+        )
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
+        ))
+        root_logger.addHandler(file_handler)
+        
+        # Separate error file
+        error_handler = RotatingFileHandler(
+            'errors.log',
+            maxBytes=10 * 1024 * 1024,
+            backupCount=10
+        )
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s\n%(pathname)s:%(lineno)d\n%(exc_info)s'
+        ))
+        root_logger.addHandler(error_handler)
+    
+    # setup_production_logging()
+    ```
+
+    **Log Levels:**
+
+    | Level | Numeric | Purpose | Example |
+    |-------|---------|---------|---------|
+    | **DEBUG** | 10 | Detailed info | Variable values |
+    | **INFO** | 20 | General info | Request started |
+    | **WARNING** | 30 | Warning | Deprecated API |
+    | **ERROR** | 40 | Error | Failed request |
+    | **CRITICAL** | 50 | Critical | System crash |
+
+    **Best Practices:**
+
+    | Practice | Reason | Example |
+    |----------|--------|---------|
+    | **Use `__name__`** | Hierarchical loggers | `logging.getLogger(__name__)` |
+    | **Lazy formatting** | Performance | `logger.info("Value: %s", value)` |
+    | **exc_info=True** | Full traceback | `logger.error("Error", exc_info=True)` |
+    | **Rotate logs** | Prevent disk full | `RotatingFileHandler` |
+    | **JSON for production** | Structured parsing | `JSONFormatter` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Five levels: DEBUG, INFO, WARNING, ERROR, CRITICAL"
+        - "`logging.getLogger(__name__)`: module-level logger"
+        - "Handlers: console, file, rotating, network"
+        - "Formatters: customize log output"
+        - "Filters: exclude/modify log records"
+        - "`exc_info=True`: include full traceback"
+        - "Lazy formatting: `logger.info('x=%s', x)`"
+        - "Production: rotate logs, separate error file"
+
+---
+
+### Explain Python's pathlib Module - Google, Dropbox Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Files`, `Paths`, `Modern Python` | **Asked by:** Google, Dropbox, Amazon, Meta
+
+??? success "View Answer"
+
+    **`pathlib`** provides object-oriented filesystem paths. It's more intuitive than `os.path` with better cross-platform support.
+
+    **Complete Examples:**
+
+    ```python
+    from pathlib import Path
+    import os
+    
+    # 1. Basic Path Creation
+    # Current directory
+    cwd = Path.cwd()
+    print(f"Current: {cwd}")
+    
+    # Home directory
+    home = Path.home()
+    print(f"Home: {home}")
+    
+    # Create path from string
+    path = Path('/usr/local/bin/python')
+    
+    # Join paths with /
+    config_path = Path.home() / '.config' / 'app' / 'settings.json'
+    print(config_path)
+    
+    # 2. Path Properties
+    path = Path('/Users/alice/documents/report.pdf')
+    
+    print(f"Name: {path.name}")              # report.pdf
+    print(f"Stem: {path.stem}")              # report
+    print(f"Suffix: {path.suffix}")          # .pdf
+    print(f"Parent: {path.parent}")          # /Users/alice/documents
+    print(f"Parents: {list(path.parents)}")  # All parents
+    print(f"Anchor: {path.anchor}")          # /
+    print(f"Parts: {path.parts}")            # Tuple of parts
+    
+    # 3. Path Manipulation
+    # Change extension
+    new_path = path.with_suffix('.txt')
+    print(new_path)  # /Users/alice/documents/report.txt
+    
+    # Change name
+    new_path = path.with_name('summary.pdf')
+    print(new_path)  # /Users/alice/documents/summary.pdf
+    
+    # Change stem (keep extension)
+    new_path = path.with_stem('final_report')
+    print(new_path)  # /Users/alice/documents/final_report.pdf
+    
+    # Absolute path
+    relative = Path('docs/file.txt')
+    absolute = relative.resolve()
+    print(absolute)
+    
+    # 4. File Operations
+    # Create file
+    file_path = Path('temp_file.txt')
+    file_path.touch()  # Create empty file
+    
+    # Write text
+    file_path.write_text('Hello, World!\n')
+    
+    # Read text
+    content = file_path.read_text()
+    print(content)
+    
+    # Write bytes
+    file_path.write_bytes(b'\x00\x01\x02')
+    
+    # Read bytes
+    data = file_path.read_bytes()
+    print(data)
+    
+    # Append text
+    with file_path.open('a') as f:
+        f.write('Appended line\n')
+    
+    # Delete file
+    file_path.unlink()
+    
+    # 5. Directory Operations
+    # Create directory
+    dir_path = Path('my_dir')
+    dir_path.mkdir(exist_ok=True)
+    
+    # Create parent directories
+    nested = Path('a/b/c/d')
+    nested.mkdir(parents=True, exist_ok=True)
+    
+    # Remove directory
+    dir_path.rmdir()  # Only if empty
+    
+    # Remove recursively
+    import shutil
+    shutil.rmtree('a')
+    
+    # 6. Checking Existence and Type
+    path = Path('example.txt')
+    
+    print(f"Exists: {path.exists()}")
+    print(f"Is file: {path.is_file()}")
+    print(f"Is dir: {path.is_dir()}")
+    print(f"Is symlink: {path.is_symlink()}")
+    print(f"Is absolute: {path.is_absolute()}")
+    
+    # 7. Listing Directory Contents
+    # List all items
+    directory = Path('.')
+    for item in directory.iterdir():
+        print(item)
+    
+    # Glob patterns
+    # Find all Python files
+    for py_file in directory.glob('*.py'):
+        print(py_file)
+    
+    # Recursive glob
+    for py_file in directory.rglob('*.py'):  # ** equivalent
+        print(py_file)
+    
+    # Multiple patterns
+    patterns = ['*.py', '*.txt', '*.md']
+    for pattern in patterns:
+        for file in directory.glob(pattern):
+            print(file)
+    
+    # 8. File Information
+    path = Path('example.txt')
+    if path.exists():
+        stat = path.stat()
+        
+        print(f"Size: {stat.st_size} bytes")
+        print(f"Modified: {stat.st_mtime}")
+        print(f"Created: {stat.st_ctime}")
+        print(f"Permissions: {oct(stat.st_mode)}")
+    
+    # Human-readable size
+    def human_size(size: int) -> str:
+        """Convert bytes to human-readable format."""
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if size < 1024:
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return f"{size:.1f} PB"
+    
+    if path.exists():
+        print(f"Size: {human_size(path.stat().st_size)}")
+    
+    # 9. Finding Files
+    def find_files(directory: Path, pattern: str, max_size: int = None):
+        """Find files matching pattern and size constraint."""
+        for file in directory.rglob(pattern):
+            if file.is_file():
+                if max_size is None or file.stat().st_size <= max_size:
+                    yield file
+    
+    # Find all small Python files (< 1 KB)
+    small_files = list(find_files(Path('.'), '*.py', max_size=1024))
+    print(f"Found {len(small_files)} small Python files")
+    
+    # 10. Working with Multiple Extensions
+    path = Path('archive.tar.gz')
+    
+    # Get all extensions
+    suffixes = path.suffixes  # ['.tar', '.gz']
+    print(suffixes)
+    
+    # Remove all extensions
+    stem = path
+    while stem.suffix:
+        stem = Path(stem.stem)
+    print(stem)  # archive
+    
+    # 11. Temporary Files
+    import tempfile
+    
+    # Temporary directory
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        
+        # Create files in temp directory
+        file1 = tmp_path / 'file1.txt'
+        file1.write_text('Temporary content')
+        
+        print(f"Created: {file1}")
+        print(f"Exists: {file1.exists()}")
+    # Directory auto-deleted
+    
+    # 12. Path Comparison
+    path1 = Path('/usr/local/bin')
+    path2 = Path('/usr/local/bin')
+    path3 = Path('/usr/local/lib')
+    
+    print(f"Equal: {path1 == path2}")
+    print(f"Not equal: {path1 == path3}")
+    
+    # Relative to
+    base = Path('/usr/local')
+    full_path = Path('/usr/local/bin/python')
+    relative = full_path.relative_to(base)
+    print(relative)  # bin/python
+    
+    # 13. Real-World Example: Project Structure
+    def create_project_structure(project_name: str):
+        """Create Python project structure."""
+        base = Path(project_name)
+        
+        # Create directories
+        directories = [
+            base,
+            base / 'src' / project_name,
+            base / 'tests',
+            base / 'docs',
+            base / 'scripts'
+        ]
+        
+        for directory in directories:
+            directory.mkdir(parents=True, exist_ok=True)
+        
+        # Create files
+        (base / 'README.md').write_text(f'# {project_name}\n')
+        (base / 'requirements.txt').write_text('')
+        (base / '.gitignore').write_text('__pycache__/\n*.pyc\n')
+        (base / 'src' / project_name / '__init__.py').write_text('')
+        (base / 'tests' / '__init__.py').write_text('')
+        
+        print(f"Created project: {base}")
+    
+    # create_project_structure('my_project')
+    
+    # 14. Path vs os.path Comparison
+    # Old way (os.path)
+    import os
+    old_path = os.path.join(os.path.expanduser('~'), 'documents', 'file.txt')
+    old_exists = os.path.exists(old_path)
+    old_basename = os.path.basename(old_path)
+    
+    # New way (pathlib)
+    new_path = Path.home() / 'documents' / 'file.txt'
+    new_exists = new_path.exists()
+    new_basename = new_path.name
+    
+    print(f"Old: {old_path}")
+    print(f"New: {new_path}")
+    ```
+
+    **pathlib vs os.path:**
+
+    | Operation | os.path | pathlib |
+    |-----------|---------|---------|
+    | **Join paths** | `os.path.join(a, b)` | `Path(a) / b` |
+    | **Home dir** | `os.path.expanduser('~')` | `Path.home()` |
+    | **Check exists** | `os.path.exists(p)` | `Path(p).exists()` |
+    | **Read file** | `open(p).read()` | `Path(p).read_text()` |
+    | **Basename** | `os.path.basename(p)` | `Path(p).name` |
+    | **Extension** | `os.path.splitext(p)[1]` | `Path(p).suffix` |
+    | **Absolute** | `os.path.abspath(p)` | `Path(p).resolve()` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`pathlib`: object-oriented paths"
+        - "Join paths: `Path.home() / 'dir' / 'file.txt'`"
+        - "Properties: `.name`, `.stem`, `.suffix`, `.parent`"
+        - "Quick read/write: `.read_text()`, `.write_text()`"
+        - "Glob patterns: `.glob('*.py')`, `.rglob('**/*.py')`"
+        - "Create dirs: `.mkdir(parents=True, exist_ok=True)`"
+        - "Better than `os.path` for modern Python"
+        - "Cross-platform: handles Windows/Unix differences"
+
+---
+
+### Explain Testing with pytest - Meta, Dropbox Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Testing`, `pytest`, `TDD` | **Asked by:** Meta, Dropbox, Google, Amazon
+
+??? success "View Answer"
+
+    **pytest** is a powerful testing framework with fixtures, parametrization, plugins, and clear assertion output.
+
+    **Complete Examples:**
+
+    ```python
+    import pytest
+    from typing import List
+    
+    # 1. Basic Test Functions
+    def add(a: int, b: int) -> int:
+        """Add two numbers."""
+        return a + b
+    
+    def test_add():
+        """Test add function."""
+        assert add(2, 3) == 5
+        assert add(-1, 1) == 0
+        assert add(0, 0) == 0
+    
+    def test_add_negative():
+        """Test add with negatives."""
+        assert add(-5, -3) == -8
+    
+    # Run: pytest test_file.py
+    
+    # 2. Test Classes
+    class Calculator:
+        """Simple calculator."""
+        
+        def add(self, a, b):
+            return a + b
+        
+        def divide(self, a, b):
+            if b == 0:
+                raise ValueError("Division by zero")
+            return a / b
+    
+    class TestCalculator:
+        """Test calculator."""
+        
+        def test_add(self):
+            calc = Calculator()
+            assert calc.add(2, 3) == 5
+        
+        def test_divide(self):
+            calc = Calculator()
+            assert calc.divide(10, 2) == 5
+        
+        def test_divide_by_zero(self):
+            calc = Calculator()
+            with pytest.raises(ValueError, match="Division by zero"):
+                calc.divide(10, 0)
+    
+    # 3. Fixtures
+    @pytest.fixture
+    def calculator():
+        """Provide calculator instance."""
+        return Calculator()
+    
+    @pytest.fixture
+    def sample_data():
+        """Provide sample data."""
+        return [1, 2, 3, 4, 5]
+    
+    def test_with_fixture(calculator):
+        """Test using fixture."""
+        assert calculator.add(2, 3) == 5
+    
+    def test_data_fixture(sample_data):
+        """Test with data fixture."""
+        assert len(sample_data) == 5
+        assert sum(sample_data) == 15
+    
+    # 4. Fixture Scopes
+    @pytest.fixture(scope="function")  # Default: per test
+    def function_fixture():
+        print("Function setup")
+        yield "function"
+        print("Function teardown")
+    
+    @pytest.fixture(scope="module")  # Once per module
+    def module_fixture():
+        print("Module setup")
+        yield "module"
+        print("Module teardown")
+    
+    @pytest.fixture(scope="session")  # Once per session
+    def session_fixture():
+        print("Session setup")
+        yield "session"
+        print("Session teardown")
+    
+    # 5. Parametrized Tests
+    @pytest.mark.parametrize("a,b,expected", [
+        (2, 3, 5),
+        (0, 0, 0),
+        (-1, 1, 0),
+        (10, -5, 5),
+    ])
+    def test_add_parametrized(a, b, expected):
+        """Test add with multiple inputs."""
+        assert add(a, b) == expected
+    
+    @pytest.mark.parametrize("input,expected", [
+        ("hello", "HELLO"),
+        ("World", "WORLD"),
+        ("123", "123"),
+        ("", ""),
+    ])
+    def test_upper(input, expected):
+        """Test string upper."""
+        assert input.upper() == expected
+    
+    # 6. Multiple Parameters
+    @pytest.mark.parametrize("x", [1, 2, 3])
+    @pytest.mark.parametrize("y", [10, 20])
+    def test_multiple_params(x, y):
+        """Test with multiple parameter sets."""
+        assert x + y > 0
+    # Runs 6 tests (3 * 2 combinations)
+    
+    # 7. Marks (Tags)
+    @pytest.mark.slow
+    def test_slow_operation():
+        """Slow test."""
+        import time
+        time.sleep(1)
+        assert True
+    
+    @pytest.mark.skip(reason="Not implemented yet")
+    def test_not_implemented():
+        """Skipped test."""
+        assert False
+    
+    @pytest.mark.skipif(
+        pytest.__version__ < "7.0",
+        reason="Requires pytest 7.0+"
+    )
+    def test_new_feature():
+        """Conditional skip."""
+        assert True
+    
+    @pytest.mark.xfail(reason="Known bug")
+    def test_expected_failure():
+        """Expected to fail."""
+        assert 1 == 2
+    
+    # Run: pytest -m slow  # Only slow tests
+    # Run: pytest -m "not slow"  # Skip slow tests
+    
+    # 8. Fixtures with Setup/Teardown
+    @pytest.fixture
+    def database_connection():
+        """Database fixture with cleanup."""
+        # Setup
+        print("\nConnecting to database...")
+        connection = {"connected": True, "data": []}
+        
+        yield connection
+        
+        # Teardown
+        print("\nClosing database connection...")
+        connection["connected"] = False
+    
+    def test_database_insert(database_connection):
+        """Test database operations."""
+        database_connection["data"].append("item1")
+        assert len(database_connection["data"]) == 1
+    
+    def test_database_query(database_connection):
+        """Another database test."""
+        assert database_connection["connected"] is True
+    
+    # 9. Mocking with pytest-mock
+    def fetch_user_data(user_id: int) -> dict:
+        """Fetch user from API (not implemented)."""
+        import requests
+        response = requests.get(f"https://api.example.com/users/{user_id}")
+        return response.json()
+    
+    def test_fetch_user_data(mocker):
+        """Test with mocked API call."""
+        # Mock requests.get
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = {"id": 1, "name": "Alice"}
+        
+        mocker.patch('requests.get', return_value=mock_response)
+        
+        result = fetch_user_data(1)
+        assert result["name"] == "Alice"
+    
+    # 10. Testing Exceptions
+    def validate_age(age: int):
+        """Validate age."""
+        if age < 0:
+            raise ValueError("Age cannot be negative")
+        if age > 150:
+            raise ValueError("Age too high")
+        return True
+    
+    def test_validate_age():
+        """Test age validation."""
+        assert validate_age(25) is True
+        
+        with pytest.raises(ValueError) as exc_info:
+            validate_age(-1)
+        assert "negative" in str(exc_info.value)
+        
+        with pytest.raises(ValueError, match="too high"):
+            validate_age(200)
+    
+    # 11. Fixture Dependencies
+    @pytest.fixture
+    def user_data():
+        """User data fixture."""
+        return {"id": 1, "name": "Alice"}
+    
+    @pytest.fixture
+    def user_with_posts(user_data):
+        """User with posts (depends on user_data)."""
+        user_data["posts"] = [
+            {"id": 1, "title": "Post 1"},
+            {"id": 2, "title": "Post 2"}
+        ]
+        return user_data
+    
+    def test_user_posts(user_with_posts):
+        """Test user with posts."""
+        assert len(user_with_posts["posts"]) == 2
+        assert user_with_posts["name"] == "Alice"
+    
+    # 12. Temporary Files/Directories
+    def test_with_temp_file(tmp_path):
+        """Test using temporary directory."""
+        # tmp_path is pytest fixture
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("Hello, World!")
+        
+        content = test_file.read_text()
+        assert content == "Hello, World!"
+        # tmp_path auto-deleted after test
+    
+    # 13. Capturing Output
+    def print_message(message: str):
+        """Print message."""
+        print(f"Message: {message}")
+    
+    def test_print_message(capsys):
+        """Test captured output."""
+        print_message("Hello")
+        
+        captured = capsys.readouterr()
+        assert "Hello" in captured.out
+    
+    # 14. Monkeypatching
+    def get_username():
+        """Get username from environment."""
+        import os
+        return os.getenv("USERNAME", "unknown")
+    
+    def test_get_username(monkeypatch):
+        """Test with monkeypatched environment."""
+        monkeypatch.setenv("USERNAME", "alice")
+        assert get_username() == "alice"
+        
+        monkeypatch.delenv("USERNAME", raising=False)
+        assert get_username() == "unknown"
+    
+    # 15. Conftest.py for Shared Fixtures
+    # In conftest.py:
+    # @pytest.fixture(scope="session")
+    # def app_config():
+    #     return {"debug": True, "database": "test.db"}
+    
+    # 16. Custom Markers
+    # In pytest.ini:
+    # [pytest]
+    # markers =
+    #     slow: marks tests as slow
+    #     integration: marks tests as integration tests
+    #     unit: marks tests as unit tests
+    
+    # 17. Approximate Comparisons
+    def test_approximate():
+        """Test floating point with approximation."""
+        assert 0.1 + 0.2 == pytest.approx(0.3)
+        assert [1.0, 2.0, 3.0] == pytest.approx([1.0, 2.0, 3.0])
+    ```
+
+    **pytest Features:**
+
+    | Feature | Purpose | Example |
+    |---------|---------|---------|
+    | **Fixtures** | Reusable setup | `@pytest.fixture` |
+    | **Parametrize** | Multiple inputs | `@pytest.mark.parametrize` |
+    | **Marks** | Tag tests | `@pytest.mark.slow` |
+    | **Mocking** | Fake dependencies | `mocker.patch()` |
+    | **Monkeypatch** | Modify environment | `monkeypatch.setenv()` |
+
+    **Common Commands:**
+
+    ```bash
+    pytest                          # Run all tests
+    pytest test_file.py             # Run specific file
+    pytest -k "test_add"            # Run tests matching pattern
+    pytest -m slow                  # Run tests with marker
+    pytest -v                       # Verbose output
+    pytest -s                       # Show print statements
+    pytest --cov=myapp              # Coverage report
+    pytest -x                       # Stop on first failure
+    pytest --lf                     # Run last failed
+    pytest --ff                     # Failed first, then others
+    ```
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Fixtures: reusable setup/teardown"
+        - "`@pytest.mark.parametrize`: test multiple inputs"
+        - "`pytest.raises`: test exceptions"
+        - "Mocking: isolate dependencies"
+        - "`tmp_path`: temporary files/directories"
+        - "`monkeypatch`: modify environment"
+        - "Scopes: function, class, module, session"
+        - "Markers: tag and filter tests"
+
+---
+
+### Explain F-string Advanced Features - Amazon, Google Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Strings`, `Formatting`, `Python 3.6+` | **Asked by:** Amazon, Google, Meta, Microsoft
+
+??? success "View Answer"
+
+    **F-strings** (formatted string literals) provide concise, readable string formatting with expressions, format specifiers, and debugging features (Python 3.6+).
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic F-strings
+    name = "Alice"
+    age = 30
+    
+    message = f"Hello, {name}! You are {age} years old."
+    print(message)
+    
+    # Expressions
+    print(f"Next year: {age + 1}")
+    print(f"Uppercase: {name.upper()}")
+    
+    # 2. Format Specifiers
+    # Numbers
+    pi = 3.14159265359
+    print(f"Pi: {pi:.2f}")        # 3.14 (2 decimals)
+    print(f"Pi: {pi:.4f}")        # 3.1416 (4 decimals)
+    
+    # Integers
+    number = 42
+    print(f"Binary: {number:b}")   # 101010
+    print(f"Hex: {number:x}")      # 2a
+    print(f"Hex: {number:X}")      # 2A
+    print(f"Octal: {number:o}")    # 52
+    
+    # Padding
+    print(f"Padded: {number:05d}")  # 00042
+    print(f"Padded: {number:>10}")  # "        42"
+    print(f"Padded: {number:<10}")  # "42        "
+    print(f"Padded: {number:^10}")  # "    42    "
+    
+    # 3. Thousands Separator
+    large_number = 1000000
+    print(f"Formatted: {large_number:,}")     # 1,000,000
+    print(f"Formatted: {large_number:_}")     # 1_000_000
+    
+    price = 1234.56
+    print(f"Price: ${price:,.2f}")            # $1,234.56
+    
+    # 4. Percentage
+    ratio = 0.85
+    print(f"Success rate: {ratio:.1%}")       # 85.0%
+    print(f"Success rate: {ratio:.2%}")       # 85.00%
+    
+    # 5. Date and Time Formatting
+    from datetime import datetime
+    
+    now = datetime.now()
+    print(f"Date: {now:%Y-%m-%d}")           # 2024-01-15
+    print(f"Time: {now:%H:%M:%S}")           # 14:30:45
+    print(f"Full: {now:%Y-%m-%d %H:%M:%S}")  # 2024-01-15 14:30:45
+    print(f"Month: {now:%B}")                # January
+    
+    # 6. Debugging with = (Python 3.8+)
+    x = 10
+    y = 20
+    result = x + y
+    
+    print(f"{x=}")              # x=10
+    print(f"{y=}")              # y=20
+    print(f"{result=}")         # result=30
+    print(f"{x + y=}")          # x + y=30
+    print(f"{len([1,2,3])=}")   # len([1,2,3])=3
+    
+    # With format specifier
+    pi = 3.14159
+    print(f"{pi=:.2f}")         # pi=3.14
+    
+    # 7. Nested F-strings
+    precision = 2
+    value = 3.14159
+    print(f"Value: {value:.{precision}f}")  # Value: 3.14
+    
+    # Dynamic formatting
+    width = 10
+    text = "Hello"
+    print(f"{text:>{width}}")    # "     Hello"
+    
+    # 8. Multiline F-strings
+    name = "Alice"
+    age = 30
+    city = "New York"
+    
+    message = f"""
+    Name: {name}
+    Age: {age}
+    City: {city}
+    """
+    print(message)
+    
+    # 9. Dictionary and Object Access
+    user = {"name": "Bob", "age": 25}
+    print(f"User: {user['name']}, Age: {user['age']}")
+    
+    class Person:
+        def __init__(self, name, age):
+            self.name = name
+            self.age = age
+    
+    person = Person("Charlie", 35)
+    print(f"Person: {person.name}, Age: {person.age}")
+    
+    # 10. Alignment and Width
+    items = [
+        ("Apple", 1.20, 5),
+        ("Banana", 0.50, 10),
+        ("Orange", 0.80, 7),
+    ]
+    
+    print(f"{'Item':<15} {'Price':>8} {'Qty':>5}")
+    print("-" * 30)
+    for name, price, qty in items:
+        print(f"{name:<15} ${price:>7.2f} {qty:>5}")
+    
+    # Output:
+    # Item            Price   Qty
+    # ------------------------------
+    # Apple           $  1.20     5
+    # Banana          $  0.50    10
+    # Orange          $  0.80     7
+    
+    # 11. Scientific Notation
+    big_num = 1234567890
+    small_num = 0.00000123
+    
+    print(f"Scientific: {big_num:e}")    # 1.234568e+09
+    print(f"Scientific: {small_num:e}")  # 1.230000e-06
+    print(f"Scientific: {big_num:.2e}")  # 1.23e+09
+    
+    # 12. Sign Display
+    positive = 42
+    negative = -42
+    
+    print(f"{positive:+d}")   # +42 (always show sign)
+    print(f"{negative:+d}")   # -42
+    print(f"{positive: d}")   # " 42" (space for positive)
+    print(f"{negative: d}")   # -42
+    
+    # 13. Type Conversion
+    value = 42
+    print(f"String: {str(value)!r}")    # 'String: '42''
+    print(f"Repr: {value!r}")           # 42
+    print(f"ASCII: {value!a}")          # 42
+    
+    text = "Hello\nWorld"
+    print(f"Repr: {text!r}")            # 'Hello\nWorld'
+    
+    # 14. Custom __format__ Method
+    class Point:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+        
+        def __format__(self, format_spec):
+            if format_spec == 'polar':
+                import math
+                r = math.sqrt(self.x**2 + self.y**2)
+                theta = math.atan2(self.y, self.x)
+                return f"(r={r:.2f}, θ={theta:.2f})"
+            else:
+                return f"({self.x}, {self.y})"
+    
+    point = Point(3, 4)
+    print(f"Cartesian: {point}")        # (3, 4)
+    print(f"Polar: {point:polar}")      # (r=5.00, θ=0.93)
+    
+    # 15. Performance Comparison
+    import timeit
+    
+    name = "Alice"
+    age = 30
+    
+    # F-string
+    f_time = timeit.timeit(
+        lambda: f"Name: {name}, Age: {age}",
+        number=100000
+    )
+    
+    # format()
+    format_time = timeit.timeit(
+        lambda: "Name: {}, Age: {}".format(name, age),
+        number=100000
+    )
+    
+    # % formatting
+    percent_time = timeit.timeit(
+        lambda: "Name: %s, Age: %d" % (name, age),
+        number=100000
+    )
+    
+    print(f"F-string: {f_time:.4f}s")
+    print(f"format(): {format_time:.4f}s")
+    print(f"% format: {percent_time:.4f}s")
+    # F-strings are fastest!
+    
+    # 16. Real-World Examples
+    def format_currency(amount: float, currency: str = "USD") -> str:
+        """Format amount as currency."""
+        symbols = {"USD": "$", "EUR": "€", "GBP": "£"}
+        symbol = symbols.get(currency, "")
+        return f"{symbol}{amount:,.2f}"
+    
+    print(format_currency(1234.56))        # $1,234.56
+    print(format_currency(9999.99, "EUR")) # €9,999.99
+    
+    def format_duration(seconds: int) -> str:
+        """Format duration."""
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    
+    print(format_duration(3665))  # 01:01:05
+    
+    def format_file_size(bytes: int) -> str:
+        """Format file size."""
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if bytes < 1024:
+                return f"{bytes:.1f} {unit}"
+            bytes /= 1024
+        return f"{bytes:.1f} PB"
+    
+    print(format_file_size(1536))      # 1.5 KB
+    print(format_file_size(1048576))   # 1.0 MB
+    ```
+
+    **Format Specifiers:**
+
+    | Specifier | Purpose | Example |
+    |-----------|---------|---------|
+    | **:.2f** | 2 decimal places | `{3.14159:.2f}` → `3.14` |
+    | **:05d** | Pad with zeros | `{42:05d}` → `00042` |
+    | **:,** | Thousands separator | `{1000:,}` → `1,000` |
+    | **:.1%** | Percentage | `{0.85:.1%}` → `85.0%` |
+    | **:>10** | Right align | `{42:>10}` → `"        42"` |
+    | **:^10** | Center align | `{42:^10}` → `"    42    "` |
+    | **:x** | Hexadecimal | `{255:x}` → `ff` |
+    | **:e** | Scientific | `{1000:e}` → `1.0e+03` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "F-strings: fastest, most readable formatting"
+        - "Format specifiers: `:.2f`, `:05d`, `:,`"
+        - "Debugging: `{var=}` (Python 3.8+)"
+        - "Alignment: `:<`, `:>`, `:^`"
+        - "Date formatting: `{now:%Y-%m-%d}`"
+        - "Dynamic precision: `{value:.{precision}f}`"
+        - "Better than `%` or `.format()`"
+        - "Can embed expressions: `{x + y}`"
+
+---
+
+### Explain Protocol Classes (Structural Subtyping) - Meta, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Typing`, `Duck Typing`, `Protocol` | **Asked by:** Meta, Google, Dropbox, Amazon
+
+??? success "View Answer"
+
+    **Protocol** classes define structural subtyping (duck typing) - any class matching the protocol's interface is compatible, without explicit inheritance.
+
+    **Complete Examples:**
+
+    ```python
+    from typing import Protocol, runtime_checkable
+    from abc import abstractmethod
+    
+    # 1. Basic Protocol
+    class Drawable(Protocol):
+        """Any class with draw() method is Drawable."""
+        
+        def draw(self) -> str:
+            ...
+    
+    class Circle:
+        """Implicitly implements Drawable (no inheritance)."""
+        
+        def draw(self) -> str:
+            return "Drawing circle"
+    
+    class Square:
+        """Also implements Drawable."""
+        
+        def draw(self) -> str:
+            return "Drawing square"
+    
+    def render(shape: Drawable) -> None:
+        """Render any drawable object."""
+        print(shape.draw())
+    
+    # No inheritance needed!
+    render(Circle())
+    render(Square())
+    
+    # 2. Protocol with Multiple Methods
+    class Closeable(Protocol):
+        """Protocol for closeable resources."""
+        
+        def close(self) -> None:
+            ...
+        
+        def is_closed(self) -> bool:
+            ...
+    
+    class FileHandler:
+        """File that matches Closeable protocol."""
+        
+        def __init__(self, filename: str):
+            self.filename = filename
+            self._closed = False
+        
+        def close(self) -> None:
+            self._closed = True
+        
+        def is_closed(self) -> bool:
+            return self._closed
+    
+    class DatabaseConnection:
+        """Database that also matches protocol."""
+        
+        def __init__(self):
+            self._closed = False
+        
+        def close(self) -> None:
+            print("Closing database")
+            self._closed = True
+        
+        def is_closed(self) -> bool:
+            return self._closed
+    
+    def cleanup_resource(resource: Closeable) -> None:
+        """Cleanup any closeable resource."""
+        if not resource.is_closed():
+            resource.close()
+    
+    file = FileHandler("data.txt")
+    db = DatabaseConnection()
+    cleanup_resource(file)
+    cleanup_resource(db)
+    
+    # 3. Runtime Checkable Protocol
+    @runtime_checkable
+    class Sized(Protocol):
+        """Protocol for objects with __len__."""
+        
+        def __len__(self) -> int:
+            ...
+    
+    class MyList:
+        """Custom list implementation."""
+        
+        def __init__(self, items):
+            self.items = items
+        
+        def __len__(self) -> int:
+            return len(self.items)
+    
+    my_list = MyList([1, 2, 3])
+    
+    # Runtime check
+    print(isinstance(my_list, Sized))  # True
+    print(isinstance([1, 2, 3], Sized))  # True
+    print(isinstance(42, Sized))  # False
+    
+    # 4. Protocol with Properties
+    class Named(Protocol):
+        """Protocol for objects with name property."""
+        
+        @property
+        def name(self) -> str:
+            ...
+    
+    class User:
+        """User with name."""
+        
+        def __init__(self, name: str):
+            self._name = name
+        
+        @property
+        def name(self) -> str:
+            return self._name
+    
+    class Product:
+        """Product with name."""
+        
+        def __init__(self, name: str):
+            self._name = name
+        
+        @property
+        def name(self) -> str:
+            return self._name
+    
+    def print_name(obj: Named) -> None:
+        """Print name of any named object."""
+        print(f"Name: {obj.name}")
+    
+    print_name(User("Alice"))
+    print_name(Product("Laptop"))
+    
+    # 5. Iterator Protocol
+    @runtime_checkable
+    class SupportsIter(Protocol):
+        """Protocol for iterable objects."""
+        
+        def __iter__(self):
+            ...
+        
+        def __next__(self):
+            ...
+    
+    class Countdown:
+        """Countdown iterator."""
+        
+        def __init__(self, start: int):
+            self.current = start
+        
+        def __iter__(self):
+            return self
+        
+        def __next__(self):
+            if self.current <= 0:
+                raise StopIteration
+            self.current -= 1
+            return self.current + 1
+    
+    countdown = Countdown(3)
+    print(isinstance(countdown, SupportsIter))  # True
+    
+    for i in countdown:
+        print(i)  # 3, 2, 1
+    
+    # 6. Comparison Protocol
+    from typing import Any
+    
+    class Comparable(Protocol):
+        """Protocol for comparable objects."""
+        
+        def __lt__(self, other: Any) -> bool:
+            ...
+        
+        def __le__(self, other: Any) -> bool:
+            ...
+    
+    class Person:
+        """Person comparable by age."""
+        
+        def __init__(self, name: str, age: int):
+            self.name = name
+            self.age = age
+        
+        def __lt__(self, other: 'Person') -> bool:
+            return self.age < other.age
+        
+        def __le__(self, other: 'Person') -> bool:
+            return self.age <= other.age
+    
+    def get_younger(a: Comparable, b: Comparable) -> Comparable:
+        """Get younger person."""
+        return a if a < b else b
+    
+    alice = Person("Alice", 30)
+    bob = Person("Bob", 25)
+    younger = get_younger(alice, bob)
+    print(f"Younger: {younger.name}")
+    
+    # 7. Container Protocol
+    class Container(Protocol):
+        """Protocol for container objects."""
+        
+        def __contains__(self, item: Any) -> bool:
+            ...
+        
+        def __len__(self) -> int:
+            ...
+    
+    class WordSet:
+        """Set of words."""
+        
+        def __init__(self, words: list):
+            self.words = set(words)
+        
+        def __contains__(self, word: str) -> bool:
+            return word in self.words
+        
+        def __len__(self) -> int:
+            return len(self.words)
+    
+    def count_matches(container: Container, items: list) -> int:
+        """Count how many items are in container."""
+        return sum(1 for item in items if item in container)
+    
+    words = WordSet(["hello", "world", "python"])
+    count = count_matches(words, ["hello", "foo", "python", "bar"])
+    print(f"Matches: {count}")  # 2
+    
+    # 8. Callable Protocol
+    class Validator(Protocol):
+        """Protocol for validation functions."""
+        
+        def __call__(self, value: str) -> bool:
+            ...
+    
+    class EmailValidator:
+        """Email validator class."""
+        
+        def __call__(self, email: str) -> bool:
+            return '@' in email and '.' in email.split('@')[-1]
+    
+    def validate_input(value: str, validator: Validator) -> bool:
+        """Validate input using validator."""
+        return validator(value)
+    
+    email_validator = EmailValidator()
+    print(validate_input("alice@example.com", email_validator))  # True
+    print(validate_input("invalid", email_validator))  # False
+    
+    # Also works with functions
+    def length_validator(value: str) -> bool:
+        return len(value) >= 3
+    
+    print(validate_input("ab", length_validator))  # False
+    
+    # 9. Protocol vs ABC
+    from abc import ABC, abstractmethod
+    
+    # ABC: requires explicit inheritance
+    class ShapeABC(ABC):
+        @abstractmethod
+        def area(self) -> float:
+            pass
+    
+    class RectangleABC(ShapeABC):  # Must inherit
+        def __init__(self, width, height):
+            self.width = width
+            self.height = height
+        
+        def area(self) -> float:
+            return self.width * self.height
+    
+    # Protocol: structural typing
+    class ShapeProtocol(Protocol):
+        def area(self) -> float:
+            ...
+    
+    class CircleProtocol:  # No inheritance needed!
+        def __init__(self, radius):
+            self.radius = radius
+        
+        def area(self) -> float:
+            import math
+            return math.pi * self.radius ** 2
+    
+    def print_area(shape: ShapeProtocol) -> None:
+        print(f"Area: {shape.area():.2f}")
+    
+    print_area(CircleProtocol(5))
+    
+    # 10. Generic Protocol
+    from typing import TypeVar
+    
+    T = TypeVar('T')
+    
+    class Stack(Protocol[T]):
+        """Protocol for stack data structure."""
+        
+        def push(self, item: T) -> None:
+            ...
+        
+        def pop(self) -> T:
+            ...
+        
+        def is_empty(self) -> bool:
+            ...
+    
+    class ListStack:
+        """Stack using list."""
+        
+        def __init__(self):
+            self.items = []
+        
+        def push(self, item):
+            self.items.append(item)
+        
+        def pop(self):
+            return self.items.pop()
+        
+        def is_empty(self) -> bool:
+            return len(self.items) == 0
+    
+    def process_stack(stack: Stack[int]) -> int:
+        """Process integer stack."""
+        total = 0
+        while not stack.is_empty():
+            total += stack.pop()
+        return total
+    
+    stack = ListStack()
+    stack.push(1)
+    stack.push(2)
+    stack.push(3)
+    print(f"Total: {process_stack(stack)}")
+    ```
+
+    **Protocol vs ABC:**
+
+    | Aspect | ABC | Protocol |
+    |--------|-----|----------|
+    | **Inheritance** | Required | Not required |
+    | **Type Checking** | Nominal | Structural |
+    | **Runtime Check** | Always | With `@runtime_checkable` |
+    | **Duck Typing** | ❌ No | ✅ Yes |
+    | **Flexibility** | Less | More |
+
+    **When to Use:**
+
+    | Use Case | Choice | Reason |
+    |----------|--------|--------|
+    | **Your code** | ABC | Control implementations |
+    | **Third-party** | Protocol | No inheritance needed |
+    | **Duck typing** | Protocol | Pythonic flexibility |
+    | **Strict contract** | ABC | Enforce implementation |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Protocol: structural subtyping (duck typing)"
+        - "No inheritance required"
+        - "`@runtime_checkable`: enable isinstance() checks"
+        - "More flexible than ABC"
+        - "Works with third-party classes"
+        - "Type hints: `def func(obj: Protocol)`"
+        - "Can define properties, methods, magic methods"
+        - "Pythonic: 'looks like a duck, quacks like a duck'"
+
+---
+
+### Explain Operator Overloading - Amazon, Microsoft Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Magic Methods`, `OOP`, `Operators` | **Asked by:** Amazon, Microsoft, Google, Meta
+
+??? success "View Answer"
+
+    **Operator overloading** lets you define custom behavior for operators (`+`, `-`, `*`, etc.) by implementing special methods (`__add__`, `__sub__`, etc.).
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Vector Class with Operators
+    class Vector:
+        """2D vector with operator overloading."""
+        
+        def __init__(self, x: float, y: float):
+            self.x = x
+            self.y = y
+        
+        def __add__(self, other):
+            """Add vectors: v1 + v2"""
+            return Vector(self.x + other.x, self.y + other.y)
+        
+        def __sub__(self, other):
+            """Subtract vectors: v1 - v2"""
+            return Vector(self.x - other.x, self.y - other.y)
+        
+        def __mul__(self, scalar):
+            """Multiply by scalar: v * 3"""
+            return Vector(self.x * scalar, self.y * scalar)
+        
+        def __rmul__(self, scalar):
+            """Right multiply: 3 * v"""
+            return self.__mul__(scalar)
+        
+        def __truediv__(self, scalar):
+            """Divide by scalar: v / 2"""
+            return Vector(self.x / scalar, self.y / scalar)
+        
+        def __neg__(self):
+            """Negate: -v"""
+            return Vector(-self.x, -self.y)
+        
+        def __abs__(self):
+            """Magnitude: abs(v)"""
+            return (self.x ** 2 + self.y ** 2) ** 0.5
+        
+        def __eq__(self, other):
+            """Equality: v1 == v2"""
+            return self.x == other.x and self.y == other.y
+        
+        def __repr__(self):
+            """String representation."""
+            return f"Vector({self.x}, {self.y})"
+    
+    v1 = Vector(1, 2)
+    v2 = Vector(3, 4)
+    
+    print(v1 + v2)      # Vector(4, 6)
+    print(v1 - v2)      # Vector(-2, -2)
+    print(v1 * 3)       # Vector(3, 6)
+    print(3 * v1)       # Vector(3, 6)
+    print(v1 / 2)       # Vector(0.5, 1.0)
+    print(-v1)          # Vector(-1, -2)
+    print(abs(v1))      # 2.236...
+    print(v1 == v2)     # False
+    
+    # 2. Fraction Class
+    from math import gcd
+    
+    class Fraction:
+        """Fraction with operator overloading."""
+        
+        def __init__(self, numerator: int, denominator: int):
+            if denominator == 0:
+                raise ValueError("Denominator cannot be zero")
+            
+            # Simplify
+            g = gcd(abs(numerator), abs(denominator))
+            self.num = numerator // g
+            self.den = denominator // g
+            
+            # Handle negative
+            if self.den < 0:
+                self.num = -self.num
+                self.den = -self.den
+        
+        def __add__(self, other):
+            """Add fractions."""
+            num = self.num * other.den + other.num * self.den
+            den = self.den * other.den
+            return Fraction(num, den)
+        
+        def __sub__(self, other):
+            """Subtract fractions."""
+            num = self.num * other.den - other.num * self.den
+            den = self.den * other.den
+            return Fraction(num, den)
+        
+        def __mul__(self, other):
+            """Multiply fractions."""
+            return Fraction(self.num * other.num, self.den * other.den)
+        
+        def __truediv__(self, other):
+            """Divide fractions."""
+            return Fraction(self.num * other.den, self.den * other.num)
+        
+        def __lt__(self, other):
+            """Less than comparison."""
+            return self.num * other.den < other.num * self.den
+        
+        def __le__(self, other):
+            """Less than or equal."""
+            return self.num * other.den <= other.num * self.den
+        
+        def __eq__(self, other):
+            """Equality."""
+            return self.num == other.num and self.den == other.den
+        
+        def __float__(self):
+            """Convert to float."""
+            return self.num / self.den
+        
+        def __repr__(self):
+            return f"Fraction({self.num}, {self.den})"
+        
+        def __str__(self):
+            return f"{self.num}/{self.den}"
+    
+    f1 = Fraction(1, 2)
+    f2 = Fraction(1, 3)
+    
+    print(f1 + f2)    # 5/6
+    print(f1 - f2)    # 1/6
+    print(f1 * f2)    # 1/6
+    print(f1 / f2)    # 3/2
+    print(f1 < f2)    # False
+    print(float(f1))  # 0.5
+    
+    # 3. Matrix Class
+    class Matrix:
+        """Simple matrix with operators."""
+        
+        def __init__(self, data: list):
+            self.data = data
+            self.rows = len(data)
+            self.cols = len(data[0])
+        
+        def __getitem__(self, index):
+            """Access: m[i][j]"""
+            return self.data[index]
+        
+        def __setitem__(self, index, value):
+            """Set: m[i][j] = value"""
+            self.data[index] = value
+        
+        def __add__(self, other):
+            """Matrix addition."""
+            if self.rows != other.rows or self.cols != other.cols:
+                raise ValueError("Matrix dimensions must match")
+            
+            result = [
+                [self[i][j] + other[i][j] for j in range(self.cols)]
+                for i in range(self.rows)
+            ]
+            return Matrix(result)
+        
+        def __mul__(self, other):
+            """Matrix multiplication or scalar multiplication."""
+            if isinstance(other, (int, float)):
+                # Scalar multiplication
+                result = [
+                    [self[i][j] * other for j in range(self.cols)]
+                    for i in range(self.rows)
+                ]
+                return Matrix(result)
+            else:
+                # Matrix multiplication
+                if self.cols != other.rows:
+                    raise ValueError("Invalid dimensions for multiplication")
+                
+                result = [
+                    [
+                        sum(self[i][k] * other[k][j] for k in range(self.cols))
+                        for j in range(other.cols)
+                    ]
+                    for i in range(self.rows)
+                ]
+                return Matrix(result)
+        
+        def __repr__(self):
+            return f"Matrix({self.data})"
+    
+    m1 = Matrix([[1, 2], [3, 4]])
+    m2 = Matrix([[5, 6], [7, 8]])
+    
+    m3 = m1 + m2
+    print(m3)  # [[6, 8], [10, 12]]
+    
+    m4 = m1 * 2
+    print(m4)  # [[2, 4], [6, 8]]
+    
+    # 4. Custom Container
+    class MyList:
+        """Custom list with operators."""
+        
+        def __init__(self, items=None):
+            self.items = items or []
+        
+        def __len__(self):
+            """Length: len(mylist)"""
+            return len(self.items)
+        
+        def __getitem__(self, index):
+            """Access: mylist[i]"""
+            return self.items[index]
+        
+        def __setitem__(self, index, value):
+            """Set: mylist[i] = value"""
+            self.items[index] = value
+        
+        def __delitem__(self, index):
+            """Delete: del mylist[i]"""
+            del self.items[index]
+        
+        def __contains__(self, item):
+            """Membership: item in mylist"""
+            return item in self.items
+        
+        def __iter__(self):
+            """Iteration: for x in mylist"""
+            return iter(self.items)
+        
+        def __add__(self, other):
+            """Concatenation: mylist + other"""
+            return MyList(self.items + other.items)
+        
+        def __mul__(self, n):
+            """Repetition: mylist * 3"""
+            return MyList(self.items * n)
+        
+        def __repr__(self):
+            return f"MyList({self.items})"
+    
+    ml = MyList([1, 2, 3])
+    print(len(ml))      # 3
+    print(ml[0])        # 1
+    print(2 in ml)      # True
+    print(ml + ml)      # MyList([1, 2, 3, 1, 2, 3])
+    print(ml * 2)       # MyList([1, 2, 3, 1, 2, 3])
+    
+    # 5. Comparison Operators
+    from functools import total_ordering
+    
+    @total_ordering
+    class Grade:
+        """Grade with full comparison operators."""
+        
+        GRADES = {'A': 4, 'B': 3, 'C': 2, 'D': 1, 'F': 0}
+        
+        def __init__(self, letter: str):
+            if letter not in self.GRADES:
+                raise ValueError(f"Invalid grade: {letter}")
+            self.letter = letter
+            self.value = self.GRADES[letter]
+        
+        def __eq__(self, other):
+            """Equality."""
+            return self.value == other.value
+        
+        def __lt__(self, other):
+            """Less than."""
+            return self.value < other.value
+        
+        # @total_ordering generates: >, >=, <=, !=
+        
+        def __repr__(self):
+            return f"Grade('{self.letter}')"
+    
+    grades = [Grade('B'), Grade('A'), Grade('C'), Grade('D')]
+    sorted_grades = sorted(grades)
+    print(sorted_grades)  # [D, C, B, A]
+    
+    print(Grade('A') > Grade('B'))   # True
+    print(Grade('C') <= Grade('B'))  # True
+    
+    # 6. Context Manager
+    class Timer:
+        """Timer using enter/exit operators."""
+        
+        def __enter__(self):
+            """Start timing."""
+            import time
+            self.start = time.time()
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            """Stop timing."""
+            import time
+            self.end = time.time()
+            self.duration = self.end - self.start
+            print(f"Duration: {self.duration:.4f}s")
+            return False
+    
+    with Timer():
+        # Code to time
+        sum(range(1000000))
+    
+    # 7. Callable Object
+    class Multiplier:
+        """Callable object."""
+        
+        def __init__(self, factor):
+            self.factor = factor
+        
+        def __call__(self, x):
+            """Make object callable."""
+            return x * self.factor
+    
+    double = Multiplier(2)
+    triple = Multiplier(3)
+    
+    print(double(5))  # 10
+    print(triple(5))  # 15
+    ```
+
+    **Common Magic Methods:**
+
+    | Operator | Method | Example |
+    |----------|--------|---------|
+    | `+` | `__add__` | `a + b` |
+    | `-` | `__sub__` | `a - b` |
+    | `*` | `__mul__` | `a * b` |
+    | `/` | `__truediv__` | `a / b` |
+    | `//` | `__floordiv__` | `a // b` |
+    | `%` | `__mod__` | `a % b` |
+    | `**` | `__pow__` | `a ** b` |
+    | `==` | `__eq__` | `a == b` |
+    | `<` | `__lt__` | `a < b` |
+    | `<=` | `__le__` | `a <= b` |
+    | `[]` | `__getitem__` | `a[i]` |
+    | `len()` | `__len__` | `len(a)` |
+    | `str()` | `__str__` | `str(a)` |
+    | `repr()` | `__repr__` | `repr(a)` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Magic methods: `__add__`, `__sub__`, `__mul__`, etc."
+        - "`__eq__`, `__lt__`: comparison operators"
+        - "`__getitem__`, `__setitem__`: indexing"
+        - "`__len__`, `__contains__`: container methods"
+        - "`__str__`, `__repr__`: string representation"
+        - "`__call__`: make object callable"
+        - "`@total_ordering`: auto-generate comparisons"
+        - "Use for domain objects (Vector, Fraction, etc.)"
+
+---
+
+### Explain classmethod vs staticmethod - Google, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `OOP`, `Methods`, `Decorators` | **Asked by:** Google, Amazon, Meta, Microsoft
+
+??? success "View Answer"
+
+    **`@classmethod`** receives the class as first argument (`cls`), while **`@staticmethod`** receives no implicit first argument. **Instance methods** receive `self`.
+
+    **Complete Examples:**
+
+    ```python
+    from datetime import datetime
+    
+    # 1. Basic Comparison
+    class Example:
+        class_var = "shared"
+        
+        def instance_method(self):
+            """Regular method: receives self."""
+            return f"Instance: {self}"
+        
+        @classmethod
+        def class_method(cls):
+            """Class method: receives cls."""
+            return f"Class: {cls.__name__}"
+        
+        @staticmethod
+        def static_method():
+            """Static method: no implicit argument."""
+            return "Static: no self/cls"
+    
+    obj = Example()
+    print(obj.instance_method())   # Instance: <Example object>
+    print(Example.class_method())  # Class: Example
+    print(Example.static_method()) # Static: no self/cls
+    
+    # 2. Alternative Constructors with @classmethod
+    class Person:
+        """Person with alternative constructors."""
+        
+        def __init__(self, name: str, age: int):
+            self.name = name
+            self.age = age
+        
+        @classmethod
+        def from_birth_year(cls, name: str, birth_year: int):
+            """Create from birth year."""
+            age = datetime.now().year - birth_year
+            return cls(name, age)
+        
+        @classmethod
+        def from_string(cls, person_str: str):
+            """Create from 'Name,Age' string."""
+            name, age = person_str.split(',')
+            return cls(name, int(age))
+        
+        def __repr__(self):
+            return f"Person('{self.name}', {self.age})"
+    
+    # Regular constructor
+    p1 = Person("Alice", 30)
+    
+    # Alternative constructors
+    p2 = Person.from_birth_year("Bob", 1990)
+    p3 = Person.from_string("Charlie,25")
+    
+    print(p1, p2, p3)
+    
+    # 3. Factory Pattern with @classmethod
+    class Shape:
+        """Base shape class."""
+        
+        def __init__(self, shape_type: str):
+            self.shape_type = shape_type
+        
+        @classmethod
+        def create_circle(cls, radius: float):
+            """Factory for circle."""
+            obj = cls("circle")
+            obj.radius = radius
+            return obj
+        
+        @classmethod
+        def create_rectangle(cls, width: float, height: float):
+            """Factory for rectangle."""
+            obj = cls("rectangle")
+            obj.width = width
+            obj.height = height
+            return obj
+        
+        def area(self) -> float:
+            """Calculate area."""
+            if self.shape_type == "circle":
+                import math
+                return math.pi * self.radius ** 2
+            elif self.shape_type == "rectangle":
+                return self.width * self.height
+            return 0
+    
+    circle = Shape.create_circle(5)
+    rect = Shape.create_rectangle(4, 3)
+    
+    print(f"Circle area: {circle.area():.2f}")
+    print(f"Rectangle area: {rect.area():.2f}")
+    
+    # 4. Validation with @staticmethod
+    class User:
+        """User with validation."""
+        
+        def __init__(self, username: str, email: str, age: int):
+            if not self.is_valid_username(username):
+                raise ValueError("Invalid username")
+            if not self.is_valid_email(email):
+                raise ValueError("Invalid email")
+            if not self.is_valid_age(age):
+                raise ValueError("Invalid age")
+            
+            self.username = username
+            self.email = email
+            self.age = age
+        
+        @staticmethod
+        def is_valid_username(username: str) -> bool:
+            """Validate username (no self/cls needed)."""
+            return len(username) >= 3 and username.isalnum()
+        
+        @staticmethod
+        def is_valid_email(email: str) -> bool:
+            """Validate email."""
+            return '@' in email and '.' in email.split('@')[-1]
+        
+        @staticmethod
+        def is_valid_age(age: int) -> bool:
+            """Validate age."""
+            return 0 <= age <= 150
+    
+    # Use validation before creating object
+    if User.is_valid_username("alice123"):
+        user = User("alice123", "alice@example.com", 30)
+    
+    # 5. Counting Instances with @classmethod
+    class Counter:
+        """Track number of instances."""
+        
+        _count = 0
+        
+        def __init__(self, name: str):
+            self.name = name
+            Counter._count += 1
+        
+        @classmethod
+        def get_count(cls) -> int:
+            """Get instance count."""
+            return cls._count
+        
+        @classmethod
+        def reset_count(cls):
+            """Reset counter."""
+            cls._count = 0
+    
+    c1 = Counter("first")
+    c2 = Counter("second")
+    c3 = Counter("third")
+    
+    print(f"Instances created: {Counter.get_count()}")  # 3
+    
+    Counter.reset_count()
+    print(f"After reset: {Counter.get_count()}")  # 0
+    
+    # 6. Configuration with @classmethod
+    class Database:
+        """Database with configuration."""
+        
+        _connection = None
+        _config = {}
+        
+        @classmethod
+        def configure(cls, host: str, port: int, database: str):
+            """Configure database connection."""
+            cls._config = {
+                "host": host,
+                "port": port,
+                "database": database
+            }
+        
+        @classmethod
+        def connect(cls):
+            """Create connection using config."""
+            if cls._connection is None:
+                cls._connection = f"Connected to {cls._config['host']}"
+            return cls._connection
+        
+        @staticmethod
+        def validate_query(query: str) -> bool:
+            """Validate SQL query (utility function)."""
+            dangerous = ['DROP', 'DELETE', 'TRUNCATE']
+            return not any(word in query.upper() for word in dangerous)
+    
+    Database.configure("localhost", 5432, "mydb")
+    connection = Database.connect()
+    print(connection)
+    
+    if Database.validate_query("SELECT * FROM users"):
+        print("Safe query")
+    
+    # 7. Inheritance Behavior
+    class Parent:
+        """Parent class."""
+        
+        @classmethod
+        def identify(cls):
+            """Identify class."""
+            return f"I am {cls.__name__}"
+        
+        @staticmethod
+        def utility():
+            """Static utility."""
+            return "Utility function"
+    
+    class Child(Parent):
+        """Child class."""
+        pass
+    
+    # @classmethod uses actual class
+    print(Parent.identify())  # I am Parent
+    print(Child.identify())   # I am Child (different!)
+    
+    # @staticmethod is the same
+    print(Parent.utility())   # Utility function
+    print(Child.utility())    # Utility function (same)
+    
+    # 8. Date Parser Example
+    class DateParser:
+        """Parse dates in various formats."""
+        
+        def __init__(self, date: datetime):
+            self.date = date
+        
+        @classmethod
+        def from_iso(cls, iso_string: str):
+            """Parse ISO format: 2024-01-15."""
+            date = datetime.strptime(iso_string, "%Y-%m-%d")
+            return cls(date)
+        
+        @classmethod
+        def from_us(cls, us_string: str):
+            """Parse US format: 01/15/2024."""
+            date = datetime.strptime(us_string, "%m/%d/%Y")
+            return cls(date)
+        
+        @classmethod
+        def from_timestamp(cls, timestamp: float):
+            """Parse Unix timestamp."""
+            date = datetime.fromtimestamp(timestamp)
+            return cls(date)
+        
+        @staticmethod
+        def is_valid_iso(date_string: str) -> bool:
+            """Check if string is valid ISO date."""
+            try:
+                datetime.strptime(date_string, "%Y-%m-%d")
+                return True
+            except ValueError:
+                return False
+        
+        def __repr__(self):
+            return f"DateParser({self.date})"
+    
+    d1 = DateParser.from_iso("2024-01-15")
+    d2 = DateParser.from_us("01/15/2024")
+    
+    print(DateParser.is_valid_iso("2024-01-15"))  # True
+    print(DateParser.is_valid_iso("invalid"))     # False
+    ```
+
+    **Comparison:**
+
+    | Aspect | Instance Method | @classmethod | @staticmethod |
+    |--------|----------------|--------------|---------------|
+    | **First arg** | `self` (instance) | `cls` (class) | None |
+    | **Access instance** | ✅ Yes | ❌ No | ❌ No |
+    | **Access class** | ✅ Yes | ✅ Yes | ❌ No |
+    | **Inheritance** | Polymorphic | Polymorphic | Not polymorphic |
+    | **Use case** | Instance data | Alternative constructors | Utilities |
+
+    **When to Use:**
+
+    | Method Type | Use Case | Example |
+    |-------------|----------|---------|
+    | **Instance** | Needs instance data | `obj.calculate()` |
+    | **@classmethod** | Alternative constructors | `Person.from_birth_year()` |
+    | **@classmethod** | Factory methods | `Shape.create_circle()` |
+    | **@staticmethod** | Utility functions | `User.is_valid_email()` |
+    | **@staticmethod** | No class/instance data | `Math.calculate_distance()` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Instance method: receives `self`, accesses instance"
+        - "`@classmethod`: receives `cls`, alternative constructors"
+        - "`@staticmethod`: no implicit argument, utility functions"
+        - "@classmethod polymorphic with inheritance"
+        - "@staticmethod same across inheritance"
+        - "Use @classmethod for factory methods"
+        - "Use @staticmethod for pure utility functions"
+        - "Can call all three from instance or class"
+
+---
+
+### Explain Python's Import System - Dropbox, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Modules`, `Packages`, `Imports` | **Asked by:** Dropbox, Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **Import system** loads modules/packages. Supports absolute imports (`import package.module`), relative imports (`from . import module`), and `importlib` for dynamic imports.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Imports
+    # Absolute import
+    import os
+    import sys
+    import json
+    
+    # From import
+    from pathlib import Path
+    from typing import List, Dict
+    
+    # Import with alias
+    import numpy as np
+    import pandas as pd
+    
+    # Import all (avoid in production)
+    # from math import *
+    
+    # 2. Relative Imports (in package)
+    # mypackage/
+    #   __init__.py
+    #   module1.py
+    #   module2.py
+    #   sub/
+    #     __init__.py
+    #     module3.py
+    
+    # In module2.py:
+    # from . import module1              # Same level
+    # from .module1 import function      # Import from same level
+    # from .. import module1             # Parent level
+    # from ..sub import module3          # Sibling package
+    
+    # 3. __init__.py for Package Initialization
+    # mypackage/__init__.py:
+    """
+    # Initialize package
+    from .module1 import function1
+    from .module2 import function2
+    
+    __all__ = ['function1', 'function2']
+    __version__ = '1.0.0'
+    """
+    
+    # Now can use:
+    # from mypackage import function1
+    
+    # 4. Dynamic Imports with importlib
+    import importlib
+    
+    # Import module by name
+    module_name = "math"
+    math_module = importlib.import_module(module_name)
+    print(math_module.pi)  # 3.14159...
+    
+    # Import from package
+    json_module = importlib.import_module("json")
+    data = json_module.dumps({"key": "value"})
+    
+    # Reload module (useful for development)
+    importlib.reload(math_module)
+    
+    # 5. __import__ Built-in
+    # Dynamic import (importlib preferred)
+    os_module = __import__('os')
+    print(os_module.name)
+    
+    # Import from package
+    path_module = __import__('os.path', fromlist=['join'])
+    print(path_module.join('/usr', 'local'))
+    
+    # 6. sys.modules (Module Cache)
+    import sys
+    
+    # Check if module loaded
+    if 'math' in sys.modules:
+        print("math already loaded")
+    
+    # Get loaded module
+    math_module = sys.modules.get('math')
+    
+    # Remove from cache (force reload)
+    if 'mymodule' in sys.modules:
+        del sys.modules['mymodule']
+    
+    # 7. sys.path (Module Search Path)
+    import sys
+    
+    # View search paths
+    print("Module search paths:")
+    for path in sys.path:
+        print(f"  {path}")
+    
+    # Add custom path
+    sys.path.append('/custom/module/path')
+    sys.path.insert(0, '/priority/path')  # Higher priority
+    
+    # 8. Custom Module Loader
+    import importlib.util
+    import sys
+    
+    def load_module_from_file(module_name: str, file_path: str):
+        """Load module from specific file."""
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec and spec.loader:
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)
+            return module
+        return None
+    
+    # my_module = load_module_from_file('mymod', '/path/to/module.py')
+    
+    # 9. Lazy Imports
+    class LazyImport:
+        """Lazy import wrapper."""
+        
+        def __init__(self, module_name):
+            self.module_name = module_name
+            self._module = None
+        
+        def __getattr__(self, name):
+            if self._module is None:
+                print(f"Loading {self.module_name}...")
+                self._module = importlib.import_module(self.module_name)
+            return getattr(self._module, name)
+    
+    # Lazy load numpy
+    np_lazy = LazyImport('numpy')
+    # numpy not loaded yet
+    # arr = np_lazy.array([1, 2, 3])  # Now numpy loads
+    
+    # 10. Module Introspection
+    import inspect
+    
+    # Get module path
+    print(f"os path: {os.__file__}")
+    
+    # List module contents
+    print("os contents:", dir(os))
+    
+    # Check if name is from module
+    print(f"getcwd from os: {hasattr(os, 'getcwd')}")
+    
+    # Get module members
+    members = inspect.getmembers(os)
+    functions = inspect.getmembers(os, inspect.isfunction)
+    print(f"os has {len(functions)} functions")
+    
+    # 11. Circular Import Problem & Solution
+    # a.py:
+    """
+    from b import b_function
+    
+    def a_function():
+        return "A"
+    """
+    
+    # b.py (circular dependency):
+    """
+    from a import a_function  # Circular import!
+    
+    def b_function():
+        return "B"
+    """
+    
+    # Solution 1: Import inside function
+    # b.py:
+    """
+    def b_function():
+        from a import a_function  # Import when needed
+        return "B"
+    """
+    
+    # Solution 2: Restructure to eliminate cycle
+    # common.py:
+    """
+    def shared_function():
+        return "Shared"
+    """
+    
+    # a.py:
+    """
+    from common import shared_function
+    """
+    
+    # b.py:
+    """
+    from common import shared_function
+    """
+    
+    # 12. Import Hooks
+    import sys
+    from importlib.abc import MetaPathFinder, Loader
+    from importlib.util import spec_from_loader
+    
+    class CustomFinder(MetaPathFinder):
+        """Custom import hook."""
+        
+        def find_spec(self, fullname, path, target=None):
+            if fullname.startswith('auto_'):
+                print(f"Custom loading: {fullname}")
+                # Return spec for custom loader
+                return spec_from_loader(fullname, CustomLoader())
+            return None
+    
+    class CustomLoader(Loader):
+        """Custom module loader."""
+        
+        def create_module(self, spec):
+            return None  # Use default module creation
+        
+        def exec_module(self, module):
+            # Custom initialization
+            module.custom_attr = "Custom loaded"
+    
+    # Install hook
+    sys.meta_path.insert(0, CustomFinder())
+    
+    # Now imports starting with 'auto_' use custom loader
+    # import auto_module
+    
+    # 13. __all__ for Wildcard Imports
+    # mymodule.py:
+    """
+    __all__ = ['public_function', 'PublicClass']
+    
+    def public_function():
+        pass
+    
+    def _private_function():
+        pass
+    
+    class PublicClass:
+        pass
+    """
+    
+    # Usage:
+    # from mymodule import *  # Only imports items in __all__
+    
+    # 14. Import Performance
+    import time
+    
+    # Measure import time
+    start = time.time()
+    import large_module  # Replace with actual module
+    import_time = time.time() - start
+    print(f"Import took: {import_time:.4f}s")
+    
+    # Check module size in sys.modules
+    module_count = len(sys.modules)
+    print(f"Loaded modules: {module_count}")
+    
+    # 15. Real-World Pattern: Plugin System
+    import os
+    import importlib
+    from pathlib import Path
+    
+    class PluginManager:
+        """Manage plugins from directory."""
+        
+        def __init__(self, plugin_dir: str):
+            self.plugin_dir = Path(plugin_dir)
+            self.plugins = {}
+        
+        def load_plugins(self):
+            """Load all plugins from directory."""
+            if not self.plugin_dir.exists():
+                return
+            
+            # Add plugin directory to path
+            sys.path.insert(0, str(self.plugin_dir))
+            
+            # Load all .py files
+            for file in self.plugin_dir.glob('*.py'):
+                if file.name.startswith('_'):
+                    continue
+                
+                module_name = file.stem
+                try:
+                    module = importlib.import_module(module_name)
+                    
+                    # Get plugin class
+                    if hasattr(module, 'Plugin'):
+                        plugin = module.Plugin()
+                        self.plugins[module_name] = plugin
+                        print(f"Loaded plugin: {module_name}")
+                except Exception as e:
+                    print(f"Failed to load {module_name}: {e}")
+        
+        def get_plugin(self, name: str):
+            """Get plugin by name."""
+            return self.plugins.get(name)
+        
+        def list_plugins(self):
+            """List all loaded plugins."""
+            return list(self.plugins.keys())
+    
+    # manager = PluginManager('./plugins')
+    # manager.load_plugins()
+    # plugins = manager.list_plugins()
+    ```
+
+    **Import Types:**
+
+    | Type | Syntax | Use Case |
+    |------|--------|----------|
+    | **Absolute** | `import package.module` | Clear, explicit |
+    | **Relative** | `from . import module` | Within packages |
+    | **Aliased** | `import numpy as np` | Shorter names |
+    | **Selective** | `from math import pi` | Import specific |
+    | **Dynamic** | `importlib.import_module()` | Runtime loading |
+
+    **Best Practices:**
+
+    | Practice | Reason | Example |
+    |----------|--------|---------|
+    | **Absolute imports** | Clarity | `import package.module` |
+    | **Avoid `import *`** | Namespace pollution | Use explicit imports |
+    | **Order imports** | Readability | stdlib, third-party, local |
+    | **__all__** | Control exports | `__all__ = ['func1']` |
+    | **Lazy imports** | Performance | Import when needed |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Absolute imports: `import package.module`"
+        - "Relative imports: `from . import module`"
+        - "`importlib`: dynamic imports at runtime"
+        - "`sys.path`: module search paths"
+        - "`sys.modules`: loaded module cache"
+        - "Circular imports: import inside function"
+        - "`__all__`: control wildcard imports"
+        - "`__init__.py`: package initialization"
+        - "Import hooks: customize import behavior"
+
+---
+
+### Explain Virtual Environments (venv) - Amazon, Dropbox Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Environment`, `Dependencies`, `Development` | **Asked by:** Amazon, Dropbox, Google, Microsoft
+
+??? success "View Answer"
+
+    **Virtual environments** isolate Python projects with separate package installations. Use **`venv`** (built-in), **`virtualenv`**, or **`conda`** to avoid dependency conflicts.
+
+    **Complete Examples:**
+
+    ```bash
+    # 1. Create Virtual Environment (venv)
+    # Python 3.3+
+    python3 -m venv myenv
+    
+    # Specific Python version
+    python3.10 -m venv myenv
+    
+    # With system packages
+    python3 -m venv myenv --system-site-packages
+    
+    # 2. Activate Virtual Environment
+    # Linux/macOS
+    source myenv/bin/activate
+    
+    # Windows
+    myenv\Scripts\activate
+    
+    # Fish shell
+    source myenv/bin/activate.fish
+    
+    # After activation:
+    # (myenv) $ python --version
+    # (myenv) $ which python
+    
+    # 3. Deactivate
+    deactivate
+    
+    # 4. Install Packages in venv
+    # After activation
+    pip install requests
+    pip install numpy pandas matplotlib
+    
+    # From requirements.txt
+    pip install -r requirements.txt
+    
+    # Specific version
+    pip install django==4.2.0
+    
+    # 5. List Installed Packages
+    pip list
+    pip freeze
+    
+    # Export to requirements.txt
+    pip freeze > requirements.txt
+    
+    # 6. Remove Virtual Environment
+    # Just delete the directory
+    rm -rf myenv
+    
+    # 7. virtualenv (More Features)
+    # Install
+    pip install virtualenv
+    
+    # Create environment
+    virtualenv myenv
+    
+    # With specific Python
+    virtualenv -p python3.10 myenv
+    
+    # 8. Project Structure with venv
+    myproject/
+    ├── venv/           # Virtual environment (git ignored)
+    ├── src/            # Source code
+    ├── tests/          # Tests
+    ├── requirements.txt
+    ├── README.md
+    └── .gitignore
+    
+    # .gitignore
+    venv/
+    *.pyc
+    __pycache__/
+    
+    # 9. requirements.txt Best Practices
+    # requirements.txt with pinned versions
+    requests==2.31.0
+    numpy==1.24.3
+    pandas==2.0.2
+    
+    # With comments
+    # Web framework
+    django==4.2.0
+    
+    # Database
+    psycopg2==2.9.6
+    
+    # Testing
+    pytest==7.3.1
+    
+    # 10. requirements-dev.txt
+    # requirements-dev.txt (development dependencies)
+    -r requirements.txt  # Include base requirements
+    
+    # Development tools
+    pytest==7.3.1
+    black==23.3.0
+    flake8==6.0.0
+    mypy==1.3.0
+    
+    # Install dev requirements
+    # pip install -r requirements-dev.txt
+    ```
+
+    **Python Code for Environment Management:**
+
+    ```python
+    import subprocess
+    import sys
+    from pathlib import Path
+    
+    # 1. Check if in Virtual Environment
+    def is_venv() -> bool:
+        """Check if running in virtual environment."""
+        return (
+            hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
+        )
+    
+    if is_venv():
+        print("Running in virtual environment")
+    else:
+        print("Not in virtual environment")
+    
+    # 2. Get Environment Info
+    def get_venv_info():
+        """Get virtual environment information."""
+        return {
+            "in_venv": is_venv(),
+            "prefix": sys.prefix,
+            "base_prefix": sys.base_prefix,
+            "executable": sys.executable,
+            "version": sys.version,
+        }
+    
+    info = get_venv_info()
+    for key, value in info.items():
+        print(f"{key}: {value}")
+    
+    # 3. Programmatically Create venv
+    import venv
+    
+    def create_virtual_environment(path: str):
+        """Create virtual environment."""
+        venv.create(path, with_pip=True)
+        print(f"Created virtual environment at {path}")
+    
+    # create_virtual_environment('./new_venv')
+    
+    # 4. Activate venv Programmatically
+    def activate_venv(venv_path: str):
+        """Activate virtual environment (Unix-like)."""
+        activate_script = Path(venv_path) / 'bin' / 'activate_this.py'
+        
+        if activate_script.exists():
+            exec(activate_script.read_text(), {'__file__': str(activate_script)})
+            print(f"Activated {venv_path}")
+        else:
+            print("Activation script not found")
+    
+    # 5. Install Package in venv
+    def install_package(package: str, venv_path: str = None):
+        """Install package in virtual environment."""
+        python_executable = sys.executable
+        
+        if venv_path:
+            python_executable = str(Path(venv_path) / 'bin' / 'python')
+        
+        subprocess.check_call([
+            python_executable, '-m', 'pip', 'install', package
+        ])
+        print(f"Installed {package}")
+    
+    # install_package('requests')
+    
+    # 6. List Installed Packages
+    def list_packages() -> list:
+        """List installed packages."""
+        result = subprocess.run(
+            [sys.executable, '-m', 'pip', 'list', '--format=json'],
+            capture_output=True,
+            text=True
+        )
+        
+        import json
+        return json.loads(result.stdout)
+    
+    packages = list_packages()
+    for pkg in packages[:5]:
+        print(f"{pkg['name']}=={pkg['version']}")
+    
+    # 7. Check Package Version
+    def get_package_version(package_name: str) -> str:
+        """Get installed package version."""
+        try:
+            from importlib.metadata import version
+            return version(package_name)
+        except:
+            return "Not installed"
+    
+    print(f"requests version: {get_package_version('requests')}")
+    
+    # 8. Verify Requirements
+    def verify_requirements(requirements_file: str) -> bool:
+        """Verify all requirements are installed."""
+        with open(requirements_file) as f:
+            requirements = [
+                line.strip().split('==')[0]
+                for line in f
+                if line.strip() and not line.startswith('#')
+            ]
+        
+        missing = []
+        for package in requirements:
+            if get_package_version(package) == "Not installed":
+                missing.append(package)
+        
+        if missing:
+            print(f"Missing packages: {missing}")
+            return False
+        
+        print("All requirements satisfied")
+        return True
+    
+    # verify_requirements('requirements.txt')
+    
+    # 9. Conda Environment (Alternative)
+    """
+    # Create conda environment
+    conda create -n myenv python=3.10
+    
+    # Activate
+    conda activate myenv
+    
+    # Install packages
+    conda install numpy pandas matplotlib
+    
+    # Export environment
+    conda env export > environment.yml
+    
+    # Create from file
+    conda env create -f environment.yml
+    
+    # List environments
+    conda env list
+    
+    # Remove environment
+    conda env remove -n myenv
+    """
+    
+    # 10. Poetry (Modern Alternative)
+    """
+    # Install Poetry
+    curl -sSL https://install.python-poetry.org | python3 -
+    
+    # Create new project
+    poetry new myproject
+    
+    # Add dependency
+    poetry add requests
+    
+    # Add dev dependency
+    poetry add --dev pytest
+    
+    # Install dependencies
+    poetry install
+    
+    # Run in environment
+    poetry run python script.py
+    
+    # Activate shell
+    poetry shell
+    """
+    
+    # 11. pipenv (Alternative)
+    """
+    # Install pipenv
+    pip install pipenv
+    
+    # Create environment and install
+    pipenv install requests
+    
+    # Install dev dependencies
+    pipenv install --dev pytest
+    
+    # Activate environment
+    pipenv shell
+    
+    # Run command in environment
+    pipenv run python script.py
+    
+    # Generate requirements.txt
+    pipenv requirements > requirements.txt
+    """
+    ```
+
+    **Comparison:**
+
+    | Tool | Pros | Cons | Use Case |
+    |------|------|------|----------|
+    | **venv** | Built-in, simple | Basic features | Simple projects |
+    | **virtualenv** | More features | External package | Legacy projects |
+    | **conda** | Cross-platform, handles non-Python | Large install | Data science |
+    | **Poetry** | Modern, dependency resolution | Learning curve | New projects |
+    | **pipenv** | Simple workflow | Slower | Medium projects |
+
+    **Best Practices:**
+
+    | Practice | Reason | Implementation |
+    |----------|--------|----------------|
+    | **Always use venv** | Isolation | One per project |
+    | **Pin versions** | Reproducibility | `requests==2.31.0` |
+    | **Separate dev deps** | Smaller production | `requirements-dev.txt` |
+    | **Ignore venv in git** | Don't commit | Add to `.gitignore` |
+    | **Document setup** | Easy onboarding | Clear `README.md` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Virtual environments: isolate project dependencies"
+        - "`venv`: built-in Python 3.3+"
+        - "Create: `python -m venv myenv`"
+        - "Activate: `source myenv/bin/activate`"
+        - "`requirements.txt`: specify dependencies"
+        - "`pip freeze > requirements.txt`: export deps"
+        - "Always activate before installing packages"
+        - "Never commit venv directory to git"
+        - "Alternatives: virtualenv, conda, poetry, pipenv"
+
+---
+
+### Explain Weak References (weakref) - Meta, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Memory`, `References`, `GC` | **Asked by:** Meta, Google, Dropbox, Amazon
+
+??? success "View Answer"
+
+    **Weak references** allow referencing objects without increasing their reference count, enabling garbage collection even when weak references exist.
+
+    **Complete Examples:**
+
+    ```python
+    import weakref
+    import sys
+    
+    # 1. Strong vs Weak Reference
+    class Data:
+        """Simple data class."""
+        
+        def __init__(self, value):
+            self.value = value
+        
+        def __del__(self):
+            print(f"Data({self.value}) deleted")
+    
+    # Strong reference prevents garbage collection
+    obj = Data(42)
+    ref = obj  # Strong reference
+    print(f"Ref count: {sys.getrefcount(obj)}")  # 3 (obj, ref, getrefcount arg)
+    del obj
+    print("After del obj")
+    # Object still exists (ref holds it)
+    print(f"Value: {ref.value}")
+    del ref
+    # Now object is deleted
+    
+    # Weak reference allows garbage collection
+    obj = Data(100)
+    weak = weakref.ref(obj)  # Weak reference
+    print(f"Ref count: {sys.getrefcount(obj)}")  # 2 (only obj and getrefcount arg)
+    print(f"Weak ref: {weak()}")  # Access via weak()
+    del obj
+    # Object is deleted (weak doesn't prevent it)
+    print(f"After del: {weak()}")  # None
+    
+    # 2. Weak Reference Callback
+    def object_deleted(weak_ref):
+        """Called when object is garbage collected."""
+        print(f"Object deleted: {weak_ref}")
+    
+    obj = Data(200)
+    weak = weakref.ref(obj, object_deleted)
+    print("Deleting object...")
+    del obj  # Callback is called
+    
+    # 3. WeakValueDictionary
+    class User:
+        """User class."""
+        
+        def __init__(self, user_id: int, name: str):
+            self.user_id = user_id
+            self.name = name
+        
+        def __del__(self):
+            print(f"User {self.name} deleted")
+    
+    # Regular dict keeps objects alive
+    cache = {}
+    user1 = User(1, "Alice")
+    cache[1] = user1
+    del user1
+    print(f"User in cache: {cache[1].name}")  # Still exists
+    
+    # WeakValueDictionary doesn't prevent GC
+    weak_cache = weakref.WeakValueDictionary()
+    user2 = User(2, "Bob")
+    weak_cache[2] = user2
+    print(f"In weak cache: {weak_cache[2].name}")
+    del user2
+    # User deleted automatically
+    print(f"After del: {weak_cache.get(2)}")  # None
+    
+    # 4. WeakKeyDictionary
+    class Document:
+        """Document class."""
+        
+        def __init__(self, title: str):
+            self.title = title
+        
+        def __del__(self):
+            print(f"Document '{self.title}' deleted")
+    
+    # Associate metadata with objects
+    metadata = weakref.WeakKeyDictionary()
+    
+    doc1 = Document("Report")
+    doc2 = Document("Memo")
+    
+    metadata[doc1] = {"author": "Alice", "date": "2024-01-15"}
+    metadata[doc2] = {"author": "Bob", "date": "2024-01-16"}
+    
+    print(f"Metadata for doc1: {metadata[doc1]}")
+    
+    del doc1
+    # doc1 deleted, metadata auto-removed
+    print(f"Remaining metadata: {len(metadata)}")  # 1
+    
+    # 5. WeakSet
+    class Task:
+        """Task class."""
+        
+        def __init__(self, name: str):
+            self.name = name
+        
+        def __del__(self):
+            print(f"Task '{self.name}' deleted")
+    
+    # Track active tasks without preventing deletion
+    active_tasks = weakref.WeakSet()
+    
+    task1 = Task("Download")
+    task2 = Task("Process")
+    
+    active_tasks.add(task1)
+    active_tasks.add(task2)
+    
+    print(f"Active tasks: {len(active_tasks)}")  # 2
+    
+    del task1
+    # task1 removed from WeakSet automatically
+    print(f"After delete: {len(active_tasks)}")  # 1
+    
+    # 6. Caching with Weak References
+    class ExpensiveObject:
+        """Object expensive to create."""
+        
+        def __init__(self, key: str):
+            self.key = key
+            print(f"Creating expensive object: {key}")
+        
+        def compute(self):
+            return f"Result for {self.key}"
+        
+        def __del__(self):
+            print(f"Deleting {self.key}")
+    
+    class WeakCache:
+        """Cache using weak references."""
+        
+        def __init__(self):
+            self._cache = weakref.WeakValueDictionary()
+        
+        def get(self, key: str):
+            """Get from cache or create."""
+            obj = self._cache.get(key)
+            if obj is None:
+                obj = ExpensiveObject(key)
+                self._cache[key] = obj
+            else:
+                print(f"Cache hit: {key}")
+            return obj
+    
+    cache = WeakCache()
+    
+    obj1 = cache.get("data1")  # Creates
+    obj1_again = cache.get("data1")  # Cache hit
+    
+    del obj1
+    del obj1_again
+    # Object deleted (no strong references)
+    
+    obj1_new = cache.get("data1")  # Creates again
+    
+    # 7. Proxy Objects
+    class Resource:
+        """Resource that can be proxied."""
+        
+        def __init__(self, name: str):
+            self.name = name
+        
+        def process(self):
+            return f"Processing {self.name}"
+        
+        def __del__(self):
+            print(f"Resource {self.name} deleted")
+    
+    resource = Resource("Database")
+    
+    # Create proxy
+    proxy = weakref.proxy(resource)
+    
+    # Use proxy like the object
+    print(proxy.name)
+    print(proxy.process())
+    
+    # Delete original
+    del resource
+    
+    # Proxy raises exception
+    try:
+        print(proxy.name)
+    except ReferenceError as e:
+        print(f"Error: {e}")  # weakly-referenced object no longer exists
+    
+    # 8. Observer Pattern with Weak References
+    class Observable:
+        """Observable that weakly references observers."""
+        
+        def __init__(self):
+            self._observers = []
+        
+        def register(self, observer):
+            """Register observer with weak reference."""
+            weak_ref = weakref.ref(observer, self._cleanup)
+            self._observers.append(weak_ref)
+        
+        def _cleanup(self, weak_ref):
+            """Remove dead weak references."""
+            self._observers.remove(weak_ref)
+        
+        def notify(self, message: str):
+            """Notify all observers."""
+            dead_refs = []
+            for ref in self._observers:
+                observer = ref()
+                if observer is not None:
+                    observer.update(message)
+                else:
+                    dead_refs.append(ref)
+            
+            # Clean up dead references
+            for ref in dead_refs:
+                self._observers.remove(ref)
+    
+    class Observer:
+        """Observer class."""
+        
+        def __init__(self, name: str):
+            self.name = name
+        
+        def update(self, message: str):
+            print(f"{self.name} received: {message}")
+        
+        def __del__(self):
+            print(f"Observer {self.name} deleted")
+    
+    observable = Observable()
+    
+    obs1 = Observer("Observer1")
+    obs2 = Observer("Observer2")
+    
+    observable.register(obs1)
+    observable.register(obs2)
+    
+    observable.notify("Event 1")  # Both notified
+    
+    del obs1  # Observer1 deleted
+    
+    observable.notify("Event 2")  # Only Observer2 notified
+    
+    # 9. finalize (Finalizer)
+    class DatabaseConnection:
+        """Database connection with cleanup."""
+        
+        def __init__(self, name: str):
+            self.name = name
+            print(f"Opening connection: {name}")
+            self._finalizer = weakref.finalize(self, self.cleanup, name)
+        
+        @staticmethod
+        def cleanup(name: str):
+            """Cleanup when object is garbage collected."""
+            print(f"Closing connection: {name}")
+        
+        def close(self):
+            """Explicit close."""
+            self._finalizer()
+    
+    conn = DatabaseConnection("main_db")
+    # Connection opened
+    
+    del conn
+    # Connection automatically closed
+    
+    # With explicit close
+    conn2 = DatabaseConnection("cache_db")
+    conn2.close()  # Explicit cleanup
+    del conn2  # No duplicate cleanup
+    
+    # 10. Detecting Memory Leaks
+    import gc
+    
+    class LeakDetector:
+        """Detect object leaks."""
+        
+        def __init__(self):
+            self._tracked = weakref.WeakSet()
+        
+        def track(self, obj):
+            """Track object."""
+            self._tracked.add(obj)
+        
+        def check_leaks(self):
+            """Check for leaked objects."""
+            gc.collect()  # Force garbage collection
+            
+            leaked = list(self._tracked)
+            if leaked:
+                print(f"Leaked objects: {len(leaked)}")
+                for obj in leaked:
+                    print(f"  {obj}")
+            else:
+                print("No leaks detected")
+    
+    detector = LeakDetector()
+    
+    obj1 = Data(1)
+    obj2 = Data(2)
+    
+    detector.track(obj1)
+    detector.track(obj2)
+    
+    del obj1
+    # obj2 not deleted (still referenced)
+    
+    detector.check_leaks()  # Shows obj2 as leaked
+    ```
+
+    **Weak Reference Types:**
+
+    | Type | Purpose | Use Case |
+    |------|---------|----------|
+    | **ref()** | Basic weak reference | Simple tracking |
+    | **proxy()** | Transparent proxy | Seamless access |
+    | **WeakValueDictionary** | Cache with weak values | Object cache |
+    | **WeakKeyDictionary** | Metadata for objects | Associate data |
+    | **WeakSet** | Set of weak references | Track active objects |
+    | **finalize** | Cleanup callback | Resource management |
+
+    **When to Use:**
+
+    | Scenario | Solution | Benefit |
+    |----------|----------|---------|
+    | **Caches** | WeakValueDictionary | Auto-cleanup |
+    | **Observers** | Weak references | No leaks |
+    | **Metadata** | WeakKeyDictionary | No ownership |
+    | **Circular refs** | Weak references | Break cycles |
+    | **Resource cleanup** | finalize | Guaranteed cleanup |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Weak references: don't prevent garbage collection"
+        - "`weakref.ref(obj)`: create weak reference"
+        - "Access: `weak_ref()` returns object or None"
+        - "`WeakValueDictionary`: cache that auto-cleans"
+        - "`WeakKeyDictionary`: metadata without ownership"
+        - "Use for caches, observers, breaking circular refs"
+        - "`proxy()`: transparent access"
+        - "`finalize`: cleanup callback"
+        - "Don't prevent GC, object can be deleted anytime"
+
+---
+
+### Explain Exception Handling Best Practices - Amazon, Microsoft Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Exceptions`, `Error Handling`, `Best Practices` | **Asked by:** Amazon, Microsoft, Google, Meta
+
+??? success "View Answer"
+
+    **Exception handling** manages errors gracefully. Use **try/except/else/finally**, **custom exceptions**, **context managers**, and **proper error messages** for robust code.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Exception Handling
+    try:
+        result = 10 / 0
+    except ZeroDivisionError:
+        print("Cannot divide by zero")
+    
+    # Multiple exceptions
+    try:
+        value = int("abc")
+    except (ValueError, TypeError) as e:
+        print(f"Conversion error: {e}")
+    
+    # 2. Try/Except/Else/Finally
+    def read_file(filename: str) -> str:
+        """Read file with proper error handling."""
+        try:
+            file = open(filename, 'r')
+            content = file.read()
+        except FileNotFoundError:
+            print(f"File not found: {filename}")
+            return ""
+        except IOError as e:
+            print(f"IO error: {e}")
+            return ""
+        else:
+            # Runs only if no exception
+            print("File read successfully")
+            return content
+        finally:
+            # Always runs
+            try:
+                file.close()
+                print("File closed")
+            except:
+                pass
+    
+    # content = read_file("data.txt")
+    
+    # 3. Custom Exceptions
+    class ValidationError(Exception):
+        """Custom validation error."""
+        pass
+    
+    class DatabaseError(Exception):
+        """Database operation error."""
+        
+        def __init__(self, message: str, error_code: int = None):
+            self.message = message
+            self.error_code = error_code
+            super().__init__(self.message)
+    
+    class UserNotFoundError(Exception):
+        """User not found error."""
+        
+        def __init__(self, user_id: int):
+            self.user_id = user_id
+            super().__init__(f"User {user_id} not found")
+    
+    # Raise custom exceptions
+    def validate_age(age: int):
+        if age < 0:
+            raise ValidationError("Age cannot be negative")
+        if age > 150:
+            raise ValidationError("Age too high")
+    
+    try:
+        validate_age(-5)
+    except ValidationError as e:
+        print(f"Validation failed: {e}")
+    
+    # 4. Exception Chaining
+    def process_data(data: str):
+        """Process data with exception chaining."""
+        try:
+            value = int(data)
+            result = 100 / value
+        except ValueError as e:
+            # Chain exceptions
+            raise ValidationError(f"Invalid data: {data}") from e
+        except ZeroDivisionError as e:
+            raise ValidationError("Cannot process zero") from e
+    
+    try:
+        process_data("0")
+    except ValidationError as e:
+        print(f"Error: {e}")
+        print(f"Caused by: {e.__cause__}")
+    
+    # 5. Context Manager for Resource Cleanup
+    class DatabaseConnection:
+        """Database connection context manager."""
+        
+        def __init__(self, connection_string: str):
+            self.connection_string = connection_string
+            self.connection = None
+        
+        def __enter__(self):
+            print(f"Opening connection: {self.connection_string}")
+            self.connection = {"connected": True}
+            return self.connection
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            print("Closing connection")
+            if self.connection:
+                self.connection["connected"] = False
+            
+            # Handle exception
+            if exc_type is not None:
+                print(f"Exception occurred: {exc_type.__name__}: {exc_val}")
+                return False  # Re-raise exception
+            return True
+    
+    # Automatic cleanup even with exception
+    try:
+        with DatabaseConnection("localhost:5432") as conn:
+            print(f"Connected: {conn['connected']}")
+            # raise ValueError("Database error")
+            print("Query executed")
+    except ValueError as e:
+        print(f"Caught: {e}")
+    
+    # 6. Exception Groups (Python 3.11+)
+    # Handle multiple exceptions simultaneously
+    try:
+        raise ExceptionGroup("Multiple errors", [
+            ValueError("Invalid value"),
+            TypeError("Invalid type"),
+            KeyError("Missing key")
+        ])
+    except* ValueError as eg:
+        print(f"Value errors: {eg.exceptions}")
+    except* TypeError as eg:
+        print(f"Type errors: {eg.exceptions}")
+    
+    # 7. Suppressing Exceptions
+    from contextlib import suppress
+    
+    # Without suppress
+    try:
+        os.remove("nonexistent.txt")
+    except FileNotFoundError:
+        pass
+    
+    # With suppress (cleaner)
+    with suppress(FileNotFoundError):
+        os.remove("nonexistent.txt")
+    
+    # 8. Retry Logic
+    import time
+    from functools import wraps
+    
+    def retry(max_attempts: int = 3, delay: float = 1.0):
+        """Retry decorator."""
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                attempts = 0
+                while attempts < max_attempts:
+                    try:
+                        return func(*args, **kwargs)
+                    except Exception as e:
+                        attempts += 1
+                        if attempts >= max_attempts:
+                            raise
+                        print(f"Attempt {attempts} failed: {e}")
+                        time.sleep(delay)
+            return wrapper
+        return decorator
+    
+    @retry(max_attempts=3, delay=0.1)
+    def unstable_operation():
+        """Operation that might fail."""
+        import random
+        if random.random() < 0.7:
+            raise ConnectionError("Network error")
+        return "Success"
+    
+    # result = unstable_operation()
+    
+    # 9. Logging Exceptions
+    import logging
+    
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    
+    def divide(a: float, b: float) -> float:
+        """Divide with logging."""
+        try:
+            result = a / b
+            logger.info(f"Division: {a} / {b} = {result}")
+            return result
+        except ZeroDivisionError:
+            logger.error("Division by zero", exc_info=True)
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error: {e}")
+            raise
+    
+    # divide(10, 0)
+    
+    # 10. Validation with Exceptions
+    class User:
+        """User with validation."""
+        
+        def __init__(self, username: str, email: str, age: int):
+            self.username = self._validate_username(username)
+            self.email = self._validate_email(email)
+            self.age = self._validate_age(age)
+        
+        def _validate_username(self, username: str) -> str:
+            if not username:
+                raise ValueError("Username cannot be empty")
+            if len(username) < 3:
+                raise ValueError("Username too short")
+            if not username.isalnum():
+                raise ValueError("Username must be alphanumeric")
+            return username
+        
+        def _validate_email(self, email: str) -> str:
+            if '@' not in email:
+                raise ValueError("Invalid email: missing @")
+            if '.' not in email.split('@')[-1]:
+                raise ValueError("Invalid email: missing domain")
+            return email.lower()
+        
+        def _validate_age(self, age: int) -> int:
+            if not isinstance(age, int):
+                raise TypeError("Age must be integer")
+            if age < 0 or age > 150:
+                raise ValueError("Age out of range")
+            return age
+    
+    try:
+        user = User("alice", "alice@example.com", 30)
+        print("User created")
+    except (ValueError, TypeError) as e:
+        print(f"Validation error: {e}")
+    
+    # 11. Error Recovery
+    def safe_division(a: float, b: float, default: float = 0.0) -> float:
+        """Division with default fallback."""
+        try:
+            return a / b
+        except ZeroDivisionError:
+            return default
+    
+    result = safe_division(10, 0, default=float('inf'))
+    print(f"Result: {result}")
+    ```
+
+    **Best Practices:**
+
+    | Practice | Bad ❌ | Good ✅ |
+    |----------|--------|---------|
+    | **Specific exceptions** | `except:` | `except ValueError:` |
+    | **Don't hide errors** | `except: pass` | `except: logger.error(...)` |
+    | **Custom exceptions** | Reuse built-in | Custom for domain |
+    | **Error messages** | Generic | Descriptive |
+    | **Resource cleanup** | Manual close | Context manager |
+    | **Exception chaining** | Lose context | `raise ... from e` |
+
+    **Common Exceptions:**
+
+    | Exception | When Raised | Example |
+    |-----------|-------------|---------|
+    | **ValueError** | Invalid value | `int("abc")` |
+    | **TypeError** | Wrong type | `"2" + 2` |
+    | **KeyError** | Missing dict key | `d["missing"]` |
+    | **IndexError** | Out of bounds | `lst[100]` |
+    | **FileNotFoundError** | File missing | `open("x.txt")` |
+    | **AttributeError** | Missing attribute | `obj.missing` |
+    | **ZeroDivisionError** | Divide by zero | `10 / 0` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Try/except/else/finally: complete error handling"
+        - "Catch specific exceptions, not bare `except:`"
+        - "Custom exceptions for domain errors"
+        - "Exception chaining: `raise ... from e`"
+        - "Context managers for resource cleanup"
+        - "Log exceptions: `logger.exception()`"
+        - "Don't silently swallow exceptions"
+        - "Fail fast: validate early"
+        - "Retry logic for transient errors"
+
+---
+
+### Explain subprocess Module - Dropbox, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `System`, `subprocess`, `Process Management` | **Asked by:** Dropbox, Google, Amazon, Meta
+
+??? success "View Answer"
+
+    **`subprocess`** module runs external commands, capture output, handle errors, and manage processes. Use **`run()`**, **`Popen()`**, **pipes**, and **timeouts**.
+
+    **Complete Examples:**
+
+    ```python
+    import subprocess
+    import sys
+    
+    # 1. Basic Command Execution
+    # Run command, wait for completion
+    result = subprocess.run(["ls", "-l"])
+    print(f"Return code: {result.returncode}")
+    
+    # Check for errors
+    result = subprocess.run(["ls", "nonexistent"], check=False)
+    if result.returncode != 0:
+        print("Command failed")
+    
+    # 2. Capture Output
+    result = subprocess.run(
+        ["echo", "Hello, World!"],
+        capture_output=True,
+        text=True
+    )
+    
+    print(f"stdout: {result.stdout}")
+    print(f"stderr: {result.stderr}")
+    print(f"return code: {result.returncode}")
+    
+    # Capture separately
+    result = subprocess.run(
+        ["python", "--version"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    print(result.stderr)  # Python version goes to stderr
+    
+    # 3. Check Return Code
+    try:
+        result = subprocess.run(
+            ["ls", "nonexistent"],
+            check=True,  # Raise exception on error
+            capture_output=True,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed with code {e.returncode}")
+        print(f"stderr: {e.stderr}")
+    
+    # 4. Input to Command
+    result = subprocess.run(
+        ["cat"],
+        input="Hello from Python\n",
+        capture_output=True,
+        text=True
+    )
+    print(f"Output: {result.stdout}")
+    
+    # 5. Timeout
+    try:
+        result = subprocess.run(
+            ["sleep", "5"],
+            timeout=2  # Kill after 2 seconds
+        )
+    except subprocess.TimeoutExpired:
+        print("Command timed out")
+    
+    # 6. Shell Commands
+    # Be careful with shell=True (security risk)
+    result = subprocess.run(
+        "ls -l | grep '.py'",
+        shell=True,
+        capture_output=True,
+        text=True
+    )
+    print(result.stdout)
+    
+    # Better: avoid shell
+    ps = subprocess.run(["ls", "-l"], capture_output=True, text=True)
+    grep = subprocess.run(
+        ["grep", ".py"],
+        input=ps.stdout,
+        capture_output=True,
+        text=True
+    )
+    print(grep.stdout)
+    
+    # 7. Popen for Advanced Control
+    # Non-blocking execution
+    process = subprocess.Popen(
+        ["python", "-c", "import time; time.sleep(2); print('Done')"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    
+    print("Process started, doing other work...")
+    
+    # Wait for completion
+    stdout, stderr = process.communicate()
+    print(f"Process finished: {stdout}")
+    print(f"Return code: {process.returncode}")
+    
+    # 8. Pipes Between Processes
+    # ls | grep .py | wc -l
+    p1 = subprocess.Popen(
+        ["ls", "-l"],
+        stdout=subprocess.PIPE
+    )
+    
+    p2 = subprocess.Popen(
+        ["grep", ".py"],
+        stdin=p1.stdout,
+        stdout=subprocess.PIPE
+    )
+    
+    p1.stdout.close()  # Allow p1 to receive SIGPIPE
+    
+    p3 = subprocess.Popen(
+        ["wc", "-l"],
+        stdin=p2.stdout,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    
+    p2.stdout.close()
+    
+    output, _ = p3.communicate()
+    print(f"Number of Python files: {output.strip()}")
+    
+    # 9. Environment Variables
+    import os
+    
+    env = os.environ.copy()
+    env["MY_VAR"] = "custom_value"
+    
+    result = subprocess.run(
+        ["python", "-c", "import os; print(os.getenv('MY_VAR'))"],
+        env=env,
+        capture_output=True,
+        text=True
+    )
+    print(f"Environment variable: {result.stdout.strip()}")
+    
+    # 10. Working Directory
+    result = subprocess.run(
+        ["pwd"],
+        cwd="/tmp",
+        capture_output=True,
+        text=True
+    )
+    print(f"Working directory: {result.stdout.strip()}")
+    
+    # 11. Process Communication
+    process = subprocess.Popen(
+        ["python", "-u", "-c", """
+import sys
+for line in sys.stdin:
+    print(f"Echo: {line.strip()}")
+    sys.stdout.flush()
+        """],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    
+    # Send input
+    process.stdin.write("Hello\n")
+    process.stdin.flush()
+    
+    # Read output
+    line = process.stdout.readline()
+    print(f"Received: {line.strip()}")
+    
+    # Close
+    process.stdin.close()
+    process.wait()
+    
+    # 12. Real-World Example: Git Commands
+    class GitRepository:
+        """Execute git commands."""
+        
+        def __init__(self, repo_path: str):
+            self.repo_path = repo_path
+        
+        def run_git(self, *args):
+            """Run git command."""
+            result = subprocess.run(
+                ["git"] + list(args),
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout.strip()
+        
+        def get_current_branch(self) -> str:
+            """Get current branch name."""
+            return self.run_git("rev-parse", "--abbrev-ref", "HEAD")
+        
+        def get_commit_hash(self) -> str:
+            """Get current commit hash."""
+            return self.run_git("rev-parse", "HEAD")
+        
+        def get_status(self) -> str:
+            """Get repository status."""
+            return self.run_git("status", "--short")
+        
+        def list_files(self) -> list:
+            """List tracked files."""
+            output = self.run_git("ls-files")
+            return output.split('\n') if output else []
+    
+    # repo = GitRepository(".")
+    # print(f"Branch: {repo.get_current_branch()}")
+    # print(f"Files: {len(repo.list_files())}")
+    
+    # 13. Running Python Scripts
+    def run_python_script(script: str, *args):
+        """Run Python script with arguments."""
+        result = subprocess.run(
+            [sys.executable, script] + list(args),
+            capture_output=True,
+            text=True
+        )
+        return result
+    
+    # result = run_python_script("my_script.py", "arg1", "arg2")
+    
+    # 14. Background Processes
+    # Start background process
+    process = subprocess.Popen(
+        ["python", "-m", "http.server", "8000"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+    
+    print(f"Server started with PID: {process.pid}")
+    
+    # Do work...
+    
+    # Terminate process
+    process.terminate()
+    process.wait(timeout=5)
+    print("Server stopped")
+    ```
+
+    **subprocess.run() Parameters:**
+
+    | Parameter | Purpose | Example |
+    |-----------|---------|---------|
+    | **args** | Command and arguments | `["ls", "-l"]` |
+    | **capture_output** | Capture stdout/stderr | `True` |
+    | **text** | Text mode (vs bytes) | `True` |
+    | **check** | Raise on error | `True` |
+    | **timeout** | Kill after seconds | `5` |
+    | **input** | Send to stdin | `"data"` |
+    | **cwd** | Working directory | `"/tmp"` |
+    | **env** | Environment variables | `{"KEY": "val"}` |
+    | **shell** | Use shell | `True` (⚠️ security risk) |
+
+    **run() vs Popen():**
+
+    | Aspect | run() | Popen() |
+    |--------|-------|---------|
+    | **Simplicity** | ✅ High | ⚠️ Low |
+    | **Blocking** | Yes | No |
+    | **Use Case** | Simple commands | Complex interaction |
+    | **Output** | Easy capture | Manual handling |
+    | **When** | Most cases | Advanced needs |
+
+    **Security:**
+
+    | Practice | Risk | Solution |
+    |----------|------|----------|
+    | **shell=True** | 🔴 Command injection | Use `shell=False`, pass list |
+    | **User input** | 🔴 Arbitrary commands | Sanitize or whitelist |
+    | **Quotes** | 🔴 Escape issues | Use list format |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`subprocess.run()`: run command, wait for completion"
+        - "`capture_output=True`: capture stdout/stderr"
+        - "`check=True`: raise exception on error"
+        - "`timeout`: kill long-running commands"
+        - "`Popen()`: non-blocking, advanced control"
+        - "Avoid `shell=True`: security risk"
+        - "Use list format: `['ls', '-l']` not `'ls -l'`"
+        - "Pipes: connect process outputs"
+        - "`communicate()`: send input, get output"
+
+---
+
+### Explain Monkey Patching - Meta, Dropbox Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Metaprogramming`, `Testing`, `Dynamic` | **Asked by:** Meta, Dropbox, Google, Amazon
+
+??? success "View Answer"
+
+    **Monkey patching** dynamically modifies classes/modules at runtime. Use for testing, hot fixes, or extending third-party code. But beware: it's powerful and dangerous!
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Monkey Patching
+    class Calculator:
+        """Simple calculator."""
+        
+        def add(self, a, b):
+            return a + b
+    
+    calc = Calculator()
+    print(calc.add(2, 3))  # 5
+    
+    # Monkey patch the method
+    def new_add(self, a, b):
+        print("Patched add called")
+        return a + b + 100
+    
+    Calculator.add = new_add
+    print(calc.add(2, 3))  # 105 (patched!)
+    
+    # 2. Patching Instance Method
+    calc2 = Calculator()
+    
+    # Patch single instance
+    def instance_add(a, b):
+        return a + b + 1000
+    
+    calc2.add = instance_add
+    print(calc2.add(2, 3))  # 1005
+    print(calc.add(2, 3))   # 105 (class-level patch)
+    
+    # 3. Patching Module Functions
+    import math
+    
+    original_sqrt = math.sqrt
+    
+    def patched_sqrt(x):
+        """Patched square root with logging."""
+        print(f"Computing sqrt of {x}")
+        return original_sqrt(x)
+    
+    math.sqrt = patched_sqrt
+    result = math.sqrt(16)  # Logs and computes
+    print(result)
+    
+    # Restore original
+    math.sqrt = original_sqrt
+    
+    # 4. Testing with Monkey Patching
+    import datetime
+    
+    class Order:
+        """Order with timestamp."""
+        
+        def __init__(self, item: str):
+            self.item = item
+            self.created_at = datetime.datetime.now()
+        
+        def is_recent(self) -> bool:
+            """Check if order is less than 1 hour old."""
+            age = datetime.datetime.now() - self.created_at
+            return age.total_seconds() < 3600
+    
+    # Test with fixed time
+    def test_order_recent():
+        """Test with monkey patched datetime."""
+        fixed_time = datetime.datetime(2024, 1, 15, 10, 0, 0)
+        
+        # Patch datetime.now
+        original_now = datetime.datetime.now
+        datetime.datetime.now = lambda: fixed_time
+        
+        order = Order("Book")
+        
+        # Move time forward 30 minutes
+        datetime.datetime.now = lambda: fixed_time + datetime.timedelta(minutes=30)
+        assert order.is_recent() == True
+        
+        # Move time forward 2 hours
+        datetime.datetime.now = lambda: fixed_time + datetime.timedelta(hours=2)
+        assert order.is_recent() == False
+        
+        # Restore
+        datetime.datetime.now = original_now
+    
+    test_order_recent()
+    print("Test passed")
+    
+    # 5. Adding Methods to Classes
+    class Person:
+        """Person class."""
+        
+        def __init__(self, name: str):
+            self.name = name
+    
+    # Add new method
+    def greet(self):
+        return f"Hello, I'm {self.name}"
+    
+    Person.greet = greet
+    
+    person = Person("Alice")
+    print(person.greet())  # Works!
+    
+    # 6. Patching Built-ins (Dangerous!)
+    original_len = len
+    
+    def patched_len(obj):
+        """Patched len that adds 100."""
+        return original_len(obj) + 100
+    
+    import builtins
+    builtins.len = patched_len
+    
+    print(len([1, 2, 3]))  # 103 (patched!)
+    
+    # Restore immediately!
+    builtins.len = original_len
+    print(len([1, 2, 3]))  # 3 (normal)
+    
+    # 7. Context Manager for Temporary Patching
+    from contextlib import contextmanager
+    
+    @contextmanager
+    def patch_attribute(obj, attr_name, new_value):
+        """Temporarily patch attribute."""
+        original = getattr(obj, attr_name, None)
+        setattr(obj, attr_name, new_value)
+        try:
+            yield
+        finally:
+            if original is not None:
+                setattr(obj, attr_name, original)
+            else:
+                delattr(obj, attr_name)
+    
+    class Config:
+        debug = False
+    
+    with patch_attribute(Config, 'debug', True):
+        print(Config.debug)  # True
+    
+    print(Config.debug)  # False (restored)
+    
+    # 8. unittest.mock for Testing
+    from unittest.mock import patch, MagicMock
+    
+    class EmailService:
+        """Email service."""
+        
+        def send_email(self, to: str, subject: str, body: str):
+            """Send email (real implementation)."""
+            print(f"Sending email to {to}")
+            # Actually send email...
+            return True
+    
+    class UserManager:
+        """User manager."""
+        
+        def __init__(self, email_service: EmailService):
+            self.email_service = email_service
+        
+        def register_user(self, email: str, name: str):
+            """Register user and send welcome email."""
+            # Save to database...
+            self.email_service.send_email(
+                to=email,
+                subject="Welcome!",
+                body=f"Welcome, {name}!"
+            )
+    
+    # Test without actually sending emails
+    def test_register_user():
+        """Test with mocked email service."""
+        mock_email = MagicMock()
+        manager = UserManager(mock_email)
+        
+        manager.register_user("alice@example.com", "Alice")
+        
+        # Verify email was "sent"
+        mock_email.send_email.assert_called_once_with(
+            to="alice@example.com",
+            subject="Welcome!",
+            body="Welcome, Alice!"
+        )
+    
+    test_register_user()
+    print("Mock test passed")
+    
+    # 9. Patching External API Calls
+    import requests
+    
+    def fetch_user(user_id: int) -> dict:
+        """Fetch user from API."""
+        response = requests.get(f"https://api.example.com/users/{user_id}")
+        return response.json()
+    
+    # Test without hitting real API
+    @patch('requests.get')
+    def test_fetch_user(mock_get):
+        """Test with patched requests."""
+        # Configure mock
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"id": 1, "name": "Alice"}
+        mock_get.return_value = mock_response
+        
+        # Call function
+        user = fetch_user(1)
+        
+        # Verify
+        assert user["name"] == "Alice"
+        mock_get.assert_called_once_with("https://api.example.com/users/1")
+    
+    # test_fetch_user()
+    
+    # 10. Decorator for Monkey Patching
+    def patch_method(target_class, method_name):
+        """Decorator to patch class method."""
+        def decorator(func):
+            original = getattr(target_class, method_name, None)
+            
+            def wrapper(*args, **kwargs):
+                # Call patched method
+                result = func(*args, **kwargs)
+                return result
+            
+            setattr(target_class, method_name, wrapper)
+            wrapper._original = original
+            return wrapper
+        return decorator
+    
+    class DataProcessor:
+        def process(self, data):
+            return data.upper()
+    
+    @patch_method(DataProcessor, 'process')
+    def patched_process(self, data):
+        """Patched process with logging."""
+        print(f"Processing: {data}")
+        return data.upper() + "!!!"
+    
+    processor = DataProcessor()
+    print(processor.process("hello"))  # Processing: hello\nHELLO!!!
+    
+    # 11. Dangers of Monkey Patching
+    # DON'T DO THIS IN PRODUCTION!
+    
+    # Global state pollution
+    class Database:
+        @staticmethod
+        def connect():
+            return "Real connection"
+    
+    # Patch for testing
+    Database.connect = lambda: "Mock connection"
+    
+    # Problem: affects ALL code using Database!
+    # Other parts of application now broken
+    
+    # Better: dependency injection
+    class UserService:
+        def __init__(self, database):
+            self.database = database
+        
+        def get_user(self):
+            conn = self.database.connect()
+            return f"User from {conn}"
+    
+    # Test with mock
+    class MockDatabase:
+        @staticmethod
+        def connect():
+            return "Mock connection"
+    
+    service = UserService(MockDatabase())
+    print(service.get_user())
+    ```
+
+    **When to Use:**
+
+    | Scenario | Use Monkey Patching? | Better Alternative |
+    |----------|---------------------|-------------------|
+    | **Unit tests** | ✅ Yes (with mocks) | `unittest.mock` |
+    | **Hot fixes** | ⚠️ Maybe | Patch source code |
+    | **Extending 3rd party** | ⚠️ Last resort | Wrapper class |
+    | **Production code** | ❌ Never | Proper design |
+
+    **Risks:**
+
+    | Risk | Problem | Mitigation |
+    |------|---------|------------|
+    | **Global state** | Affects all code | Use context managers |
+    | **Hard to debug** | Unexpected behavior | Document patches |
+    | **Version conflicts** | Breaks on updates | Pin versions |
+    | **Test pollution** | Tests affect each other | Restore after test |
+
+    **Best Practices:**
+
+    | Practice | Why | How |
+    |----------|-----|-----|
+    | **Use mocks** | Safer | `unittest.mock` |
+    | **Restore patches** | Clean state | Context managers |
+    | **Document** | Maintainability | Comments |
+    | **Temporary only** | Avoid bugs | Test/debug only |
+    | **Prefer DI** | Better design | Pass dependencies |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Monkey patching: modify classes/modules at runtime"
+        - "Use for testing, mocking external dependencies"
+        - "`unittest.mock`: safe way to patch"
+        - "Always restore original after patching"
+        - "Dangerous in production: global state pollution"
+        - "Better alternatives: dependency injection, wrapper classes"
+        - "Context managers for temporary patches"
+        - "Document all patches clearly"
+        - "Last resort for extending third-party code"
+
+---
+
+### Explain Python Debugging with pdb - Google, Dropbox Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Debugging`, `pdb`, `Development` | **Asked by:** Google, Dropbox, Amazon, Microsoft
+
+??? success "View Answer"
+
+    **pdb** (Python Debugger) is a built-in interactive debugger. Use **breakpoint()**, **stepping**, **inspection**, and **post-mortem** debugging to find bugs.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Breakpoint
+    def calculate_total(prices):
+        """Calculate total with debugging."""
+        total = 0
+        for price in prices:
+            breakpoint()  # Python 3.7+
+            # Old way: import pdb; pdb.set_trace()
+            total += price
+        return total
+    
+    # prices = [10, 20, 30]
+    # result = calculate_total(prices)
+    # When breakpoint() hits:
+    # (Pdb) price
+    # (Pdb) total
+    # (Pdb) c  # continue
+    
+    # 2. Common pdb Commands
+    """
+    Commands during debugging:
+    
+    n (next)          - Execute next line
+    s (step)          - Step into function
+    c (continue)      - Continue execution
+    l (list)          - Show source code
+    ll (longlist)     - Show entire function
+    p variable        - Print variable
+    pp variable       - Pretty print
+    w (where)         - Show stack trace
+    u (up)            - Move up stack
+    d (down)          - Move down stack
+    b line_number     - Set breakpoint
+    cl (clear)        - Clear breakpoints
+    q (quit)          - Quit debugger
+    h (help)          - Show help
+    """
+    
+    # 3. Conditional Breakpoint
+    def process_items(items):
+        """Process with conditional break."""
+        for i, item in enumerate(items):
+            # Break only on specific condition
+            if item > 50:
+                breakpoint()
+            result = item * 2
+        return result
+    
+    # 4. Programmatic Breakpoint
+    import pdb
+    
+    def buggy_function(x, y):
+        """Function with debugging."""
+        if x < 0:
+            pdb.set_trace()  # Break here only if x < 0
+        
+        result = x / y
+        return result
+    
+    # 5. Post-Mortem Debugging
+    def divide(a, b):
+        """Function that might crash."""
+        return a / b
+    
+    def main():
+        """Main function."""
+        result = divide(10, 0)  # Crashes here
+        print(result)
+    
+    # Run with post-mortem:
+    # python -m pdb script.py
+    # Or in code:
+    try:
+        main()
+    except Exception:
+        import pdb
+        pdb.post_mortem()
+    
+    # 6. Debug Decorator
+    def debug_calls(func):
+        """Decorator to debug function calls."""
+        def wrapper(*args, **kwargs):
+            print(f"Calling {func.__name__}")
+            print(f"Args: {args}")
+            print(f"Kwargs: {kwargs}")
+            breakpoint()
+            result = func(*args, **kwargs)
+            print(f"Result: {result}")
+            return result
+        return wrapper
+    
+    @debug_calls
+    def multiply(x, y):
+        return x * y
+    
+    # result = multiply(3, 4)
+    
+    # 7. Inspect Variables
+    def complex_calculation(data):
+        """Complex function to debug."""
+        step1 = [x * 2 for x in data]
+        step2 = [x + 10 for x in step1]
+        step3 = sum(step2)
+        
+        breakpoint()  # Inspect step1, step2, step3
+        
+        return step3 / len(data)
+    
+    # 8. Stack Inspection
+    def level3():
+        """Third level."""
+        x = 30
+        breakpoint()
+        # Commands:
+        # w - show stack
+        # u - move up to level2
+        # p y - access level2 variable
+        # d - move down
+        return x
+    
+    def level2():
+        """Second level."""
+        y = 20
+        return level3()
+    
+    def level1():
+        """First level."""
+        z = 10
+        return level2()
+    
+    # level1()
+    
+    # 9. Debugging with Assertions
+    def validate_data(data):
+        """Validate with debugging."""
+        assert isinstance(data, list), "Data must be list"
+        assert len(data) > 0, "Data cannot be empty"
+        assert all(isinstance(x, (int, float)) for x in data), "All items must be numbers"
+        
+        return sum(data) / len(data)
+    
+    # Enable assertion debugging:
+    # python -O script.py  # Disables assertions
+    # python script.py     # Enables assertions
+    
+    # 10. Logging vs Debugging
+    import logging
+    
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+    
+    def process_data(data):
+        """Process with logging."""
+        logger.debug(f"Input data: {data}")
+        
+        result = []
+        for item in data:
+            logger.debug(f"Processing item: {item}")
+            processed = item * 2
+            result.append(processed)
+        
+        logger.debug(f"Result: {result}")
+        return result
+    
+    # 11. Interactive Debugging Session
+    """
+    Example debugging session:
+    
+    $ python script.py
+    > script.py(10)calculate_total()
+    -> total += price
+    (Pdb) l  # List source
+    (Pdb) p price  # Print price
+    10
+    (Pdb) p total  # Print total
+    0
+    (Pdb) n  # Next line
+    (Pdb) p total  # Now total is 10
+    10
+    (Pdb) c  # Continue
+    """
+    
+    # 12. Breakpoint Management
+    def set_breakpoints_example():
+        """Manage breakpoints."""
+        x = 1
+        x += 1  # Line 5
+        x += 2  # Line 6
+        x += 3  # Line 7
+        return x
+    
+    # In debugger:
+    # (Pdb) b 6  # Set breakpoint at line 6
+    # (Pdb) b    # List all breakpoints
+    # (Pdb) cl 1 # Clear breakpoint 1
+    # (Pdb) disable 1  # Disable breakpoint
+    # (Pdb) enable 1   # Enable breakpoint
+    
+    # 13. Environment Variables
+    # PYTHONBREAKPOINT environment variable
+    # export PYTHONBREAKPOINT=0  # Disable all breakpoint() calls
+    # export PYTHONBREAKPOINT=ipdb.set_trace  # Use ipdb instead
+    
+    # 14. Alternative Debuggers
+    """
+    ipdb - IPython debugger (better interface)
+    pudb - Full-screen console debugger
+    pdb++ - Enhanced pdb
+    
+    Install:
+    pip install ipdb
+    pip install pudb
+    
+    Usage:
+    import ipdb; ipdb.set_trace()
+    import pudb; pudb.set_trace()
+    """
+    ```
+
+    **pdb Commands:**
+
+    | Command | Action | Example |
+    |---------|--------|---------|
+    | **n** | Next line | `(Pdb) n` |
+    | **s** | Step into | `(Pdb) s` |
+    | **c** | Continue | `(Pdb) c` |
+    | **l** | List code | `(Pdb) l` |
+    | **p var** | Print variable | `(Pdb) p x` |
+    | **pp var** | Pretty print | `(Pdb) pp data` |
+    | **w** | Stack trace | `(Pdb) w` |
+    | **u/d** | Up/down stack | `(Pdb) u` |
+    | **b line** | Set breakpoint | `(Pdb) b 10` |
+    | **cl** | Clear breakpoints | `(Pdb) cl 1` |
+    | **q** | Quit | `(Pdb) q` |
+
+    **Debugging Strategies:**
+
+    | Strategy | When | Example |
+    |----------|------|---------|
+    | **Print statements** | Simple bugs | `print(f"x={x}")` |
+    | **Logging** | Production | `logger.debug(...)` |
+    | **pdb** | Complex bugs | `breakpoint()` |
+    | **Post-mortem** | After crash | `pdb.post_mortem()` |
+    | **Assertions** | Invariants | `assert x > 0` |
+
+    **Breakpoint() Features:**
+
+    | Feature | Benefit | Usage |
+    |---------|---------|-------|
+    | **Built-in** | No import needed | `breakpoint()` |
+    | **Conditional** | Break on condition | `if x < 0: breakpoint()` |
+    | **Environment** | Easy disable | `PYTHONBREAKPOINT=0` |
+    | **Pluggable** | Use alternatives | `PYTHONBREAKPOINT=ipdb.set_trace` |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`breakpoint()`: start debugger (Python 3.7+)"
+        - "Common commands: `n` (next), `s` (step), `c` (continue)"
+        - "`p var`: print variable value"
+        - "`l`: list source code"
+        - "`w`: show stack trace"
+        - "Post-mortem: `pdb.post_mortem()` after exception"
+        - "Conditional breakpoints: `if condition: breakpoint()`"
+        - "Environment: `PYTHONBREAKPOINT=0` to disable"
+        - "Alternative: `import pdb; pdb.set_trace()` (old way)"
+
+---
+
+### Explain Metaclasses - Meta, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Metaclasses`, `Advanced OOP`, `Metaprogramming` | **Asked by:** Meta, Google, Dropbox
+
+??? success "View Answer"
+
+    **Metaclasses** are classes that create classes. They control class creation, allowing custom behavior like automatic registration, validation, or method injection.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Understanding type
+    # type is the default metaclass
+    class MyClass:
+        pass
+    
+    # These are equivalent:
+    MyClass1 = type('MyClass', (), {})
+    
+    print(type(MyClass))   # <class 'type'>
+    print(type(int))       # <class 'type'>
+    print(type(type))      # <class 'type'>
+    
+    # 2. Basic Metaclass
+    class SimpleMeta(type):
+        """Simple metaclass."""
+        
+        def __new__(mcs, name, bases, namespace):
+            print(f"Creating class: {name}")
+            cls = super().__new__(mcs, name, bases, namespace)
+            return cls
+    
+    class MyClass(metaclass=SimpleMeta):
+        pass
+    # Output: Creating class: MyClass
+    
+    # 3. Singleton Pattern with Metaclass
+    class Singleton(type):
+        """Metaclass for singleton pattern."""
+        
+        _instances = {}
+        
+        def __call__(cls, *args, **kwargs):
+            if cls not in cls._instances:
+                cls._instances[cls] = super().__call__(*args, **kwargs)
+            return cls._instances[cls]
+    
+    class Database(metaclass=Singleton):
+        def __init__(self):
+            print("Creating database connection")
+    
+    db1 = Database()  # Creates instance
+    db2 = Database()  # Returns same instance
+    print(db1 is db2)  # True
+    
+    # 4. Automatic Registration
+    class PluginRegistry(type):
+        """Metaclass for plugin registration."""
+        
+        plugins = {}
+        
+        def __new__(mcs, name, bases, namespace):
+            cls = super().__new__(mcs, name, bases, namespace)
+            
+            # Auto-register plugins (skip base class)
+            if name != 'Plugin':
+                mcs.plugins[name] = cls
+            
+            return cls
+    
+    class Plugin(metaclass=PluginRegistry):
+        """Base plugin class."""
+        pass
+    
+    class EmailPlugin(Plugin):
+        pass
+    
+    class SMSPlugin(Plugin):
+        pass
+    
+    print(PluginRegistry.plugins)
+    # {'EmailPlugin': <class 'EmailPlugin'>, 'SMSPlugin': <class 'SMSPlugin'>}
+    
+    # 5. Method Injection
+    class AddMethodsMeta(type):
+        """Inject methods into class."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Add automatic repr
+            def auto_repr(self):
+                attrs = ', '.join(f"{k}={v!r}" for k, v in self.__dict__.items())
+                return f"{name}({attrs})"
+            
+            namespace['__repr__'] = auto_repr
+            
+            return super().__new__(mcs, name, bases, namespace)
+    
+    class Person(metaclass=AddMethodsMeta):
+        def __init__(self, name, age):
+            self.name = name
+            self.age = age
+    
+    person = Person("Alice", 30)
+    print(person)  # Person(name='Alice', age=30)
+    
+    # 6. Validation Metaclass
+    class ValidatedMeta(type):
+        """Metaclass for validation."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Check required methods
+            required = ['validate', 'save']
+            for method in required:
+                if method not in namespace:
+                    raise TypeError(f"Class {name} must implement {method}()")
+            
+            return super().__new__(mcs, name, bases, namespace)
+    
+    # This works:
+    class User(metaclass=ValidatedMeta):
+        def validate(self):
+            pass
+        
+        def save(self):
+            pass
+    
+    # This fails:
+    # class InvalidUser(metaclass=ValidatedMeta):
+    #     pass  # Missing validate() and save()
+    
+    # 7. ORM-like Metaclass
+    class Field:
+        """Field descriptor."""
+        
+        def __init__(self, field_type):
+            self.field_type = field_type
+            self.value = None
+        
+        def __get__(self, obj, objtype=None):
+            return self.value
+        
+        def __set__(self, obj, value):
+            if not isinstance(value, self.field_type):
+                raise TypeError(f"Expected {self.field_type}")
+            self.value = value
+    
+    class ModelMeta(type):
+        """ORM metaclass."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Collect fields
+            fields = {}
+            for key, value in namespace.items():
+                if isinstance(value, Field):
+                    fields[key] = value
+            
+            namespace['_fields'] = fields
+            
+            return super().__new__(mcs, name, bases, namespace)
+    
+    class Model(metaclass=ModelMeta):
+        """Base model class."""
+        pass
+    
+    class User(Model):
+        name = Field(str)
+        age = Field(int)
+    
+    print(User._fields)  # {'name': <Field>, 'age': <Field>}
+    
+    # 8. ABC Alternative
+    class InterfaceMeta(type):
+        """Metaclass for interfaces."""
+        
+        def __new__(mcs, name, bases, namespace):
+            # Find abstract methods
+            abstract = [name for name, value in namespace.items()
+                       if getattr(value, '__isabstract__', False)]
+            
+            # Store abstract methods
+            namespace['__abstract_methods__'] = abstract
+            
+            cls = super().__new__(mcs, name, bases, namespace)
+            
+            # Check implementation in concrete classes
+            if abstract and not namespace.get('__abstract__', False):
+                missing = [m for m in abstract if not callable(getattr(cls, m, None))]
+                if missing:
+                    raise TypeError(f"Must implement: {missing}")
+            
+            return cls
+    
+    def abstract(func):
+        """Mark method as abstract."""
+        func.__isabstract__ = True
+        return func
+    
+    class Shape(metaclass=InterfaceMeta):
+        __abstract__ = True
+        
+        @abstract
+        def area(self):
+            pass
+    
+    # This fails:
+    # class Circle(Shape):
+    #     pass  # Missing area()
+    
+    # This works:
+    class Circle(Shape):
+        def area(self):
+            return 3.14
+    ```
+
+    **When to Use Metaclasses:**
+
+    | Use Case | Example | Better Alternative? |
+    |----------|---------|-------------------|
+    | **Registration** | Plugin system | Class decorator |
+    | **Singleton** | Single instance | `__new__` override |
+    | **Validation** | Enforce methods | ABC |
+    | **ORM** | Database models | Descriptors |
+    | **API** | Django models | ✅ Good use |
+
+    **Metaclass vs Alternatives:**
+
+    | Task | Metaclass | Alternative |
+    |------|-----------|-------------|
+    | **Singleton** | Complex | `__new__` method |
+    | **Add methods** | Overkill | Inheritance |
+    | **Validation** | Overkill | ABC |
+    | **Registration** | OK | Decorator |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Metaclass: class that creates classes"
+        - "`type` is default metaclass"
+        - "`__new__`: creates class"
+        - "`__call__`: creates instances"
+        - "Use `metaclass=MyMeta` parameter"
+        - "Control class creation, add methods, validate"
+        - "Singleton, registration, ORM common uses"
+        - "Usually overkill: prefer decorators, ABC, descriptors"
+        - "Django models: real-world metaclass example"
+
+---
+
+### Explain Descriptors - Google, Meta Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `Descriptors`, `OOP`, `Properties` | **Asked by:** Google, Meta, Dropbox
+
+??? success "View Answer"
+
+    **Descriptors** are objects that define **`__get__`**, **`__set__`**, or **`__delete__`** methods, controlling attribute access. They power properties, methods, static/class methods.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic Descriptor
+    class Descriptor:
+        """Simple descriptor."""
+        
+        def __init__(self, name):
+            self.name = name
+        
+        def __get__(self, obj, objtype=None):
+            print(f"Getting {self.name}")
+            return obj.__dict__.get(self.name)
+        
+        def __set__(self, obj, value):
+            print(f"Setting {self.name} = {value}")
+            obj.__dict__[self.name] = value
+        
+        def __delete__(self, obj):
+            print(f"Deleting {self.name}")
+            del obj.__dict__[self.name]
+    
+    class MyClass:
+        attr = Descriptor('attr')
+    
+    obj = MyClass()
+    obj.attr = 42      # Setting attr = 42
+    print(obj.attr)    # Getting attr / 42
+    del obj.attr       # Deleting attr
+    
+    # 2. Type Checking Descriptor
+    class Typed:
+        """Descriptor with type checking."""
+        
+        def __init__(self, name, expected_type):
+            self.name = name
+            self.expected_type = expected_type
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            return obj.__dict__.get(self.name)
+        
+        def __set__(self, obj, value):
+            if not isinstance(value, self.expected_type):
+                raise TypeError(
+                    f"{self.name} must be {self.expected_type.__name__}"
+                )
+            obj.__dict__[self.name] = value
+    
+    class Person:
+        name = Typed('name', str)
+        age = Typed('age', int)
+        
+        def __init__(self, name, age):
+            self.name = name
+            self.age = age
+    
+    person = Person("Alice", 30)
+    # person.age = "thirty"  # TypeError
+    
+    # 3. Validated Descriptor
+    class Validated:
+        """Descriptor with validation."""
+        
+        def __init__(self, validator):
+            self.validator = validator
+            self.data = {}
+        
+        def __set_name__(self, owner, name):
+            self.name = name
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            return self.data.get(id(obj))
+        
+        def __set__(self, obj, value):
+            self.validator(value)
+            self.data[id(obj)] = value
+    
+    def positive(value):
+        if value <= 0:
+            raise ValueError("Must be positive")
+    
+    def non_empty(value):
+        if not value:
+            raise ValueError("Cannot be empty")
+    
+    class Product:
+        name = Validated(non_empty)
+        price = Validated(positive)
+        quantity = Validated(positive)
+        
+        def __init__(self, name, price, quantity):
+            self.name = name
+            self.price = price
+            self.quantity = quantity
+    
+    product = Product("Laptop", 999.99, 5)
+    # product.price = -10  # ValueError
+    
+    # 4. Lazy Property Descriptor
+    class LazyProperty:
+        """Computed once, then cached."""
+        
+        def __init__(self, func):
+            self.func = func
+            self.name = func.__name__
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            
+            # Compute and cache
+            value = self.func(obj)
+            obj.__dict__[self.name] = value
+            return value
+    
+    class DataSet:
+        def __init__(self, data):
+            self.data = data
+        
+        @LazyProperty
+        def mean(self):
+            """Computed on first access."""
+            print("Computing mean...")
+            return sum(self.data) / len(self.data)
+    
+    dataset = DataSet([1, 2, 3, 4, 5])
+    print(dataset.mean)  # Computing mean... / 3.0
+    print(dataset.mean)  # 3.0 (cached, no computation)
+    
+    # 5. Property Implementation
+    class MyProperty:
+        """Implementing property descriptor."""
+        
+        def __init__(self, fget=None, fset=None, fdel=None):
+            self.fget = fget
+            self.fset = fset
+            self.fdel = fdel
+        
+        def __get__(self, obj, objtype=None):
+            if obj is None:
+                return self
+            if self.fget is None:
+                raise AttributeError("unreadable attribute")
+            return self.fget(obj)
+        
+        def __set__(self, obj, value):
+            if self.fset is None:
+                raise AttributeError("can't set attribute")
+            self.fset(obj, value)
+        
+        def __delete__(self, obj):
+            if self.fdel is None:
+                raise AttributeError("can't delete attribute")
+            self.fdel(obj)
+        
+        def getter(self, fget):
+            return type(self)(fget, self.fset, self.fdel)
+        
+        def setter(self, fset):
+            return type(self)(self.fget, fset, self.fdel)
+    
+    class Circle:
+        def __init__(self, radius):
+            self._radius = radius
+        
+        @MyProperty
+        def radius(self):
+            return self._radius
+        
+        @radius.setter
+        def radius(self, value):
+            if value < 0:
+                raise ValueError("Radius cannot be negative")
+            self._radius = value
+    
+    circle = Circle(5)
+    print(circle.radius)  # 5
+    circle.radius = 10    # OK
+    # circle.radius = -1  # ValueError
+    
+    # 6. Data Descriptor vs Non-Data Descriptor
+    class DataDescriptor:
+        """Has __set__, takes precedence."""
+        
+        def __get__(self, obj, objtype=None):
+            return "data descriptor"
+        
+        def __set__(self, obj, value):
+            pass
+    
+    class NonDataDescriptor:
+        """Only __get__, can be overridden."""
+        
+        def __get__(self, obj, objtype=None):
+            return "non-data descriptor"
+    
+    class Example:
+        data_desc = DataDescriptor()
+        non_data_desc = NonDataDescriptor()
+    
+    obj = Example()
+    print(obj.data_desc)      # data descriptor
+    print(obj.non_data_desc)  # non-data descriptor
+    
+    # Instance attribute overrides non-data descriptor
+    obj.non_data_desc = "instance"
+    print(obj.non_data_desc)  # instance
+    
+    # Instance attribute cannot override data descriptor
+    obj.data_desc = "instance"
+    print(obj.data_desc)      # data descriptor
+    ```
+
+    **Descriptor Protocol:**
+
+    | Method | Purpose | Descriptor Type |
+    |--------|---------|-----------------|
+    | **`__get__`** | Get attribute | All descriptors |
+    | **`__set__`** | Set attribute | Data descriptor |
+    | **`__delete__`** | Delete attribute | Data descriptor |
+    | **`__set_name__`** | Store attribute name | All (Python 3.6+) |
+
+    **Attribute Lookup Order:**
+
+    1. Data descriptors from class (and parents)
+    2. Instance `__dict__`
+    3. Non-data descriptors from class (and parents)
+    4. Class `__dict__`
+    5. `__getattr__` (if defined)
+
+    **Built-in Descriptors:**
+
+    | Built-in | Descriptor Type | Purpose |
+    |----------|----------------|---------|
+    | **property** | Data | Managed attributes |
+    | **staticmethod** | Non-data | Static methods |
+    | **classmethod** | Non-data | Class methods |
+    | **functions** | Non-data | Bound methods |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Descriptors: objects with `__get__`, `__set__`, `__delete__`"
+        - "Data descriptor: has `__set__`, takes precedence"
+        - "Non-data descriptor: only `__get__`, can be overridden"
+        - "`property`, `classmethod`, `staticmethod` are descriptors"
+        - "Use for validation, type checking, computed properties"
+        - "`__set_name__`: get attribute name (Python 3.6+)"
+        - "Lookup order: data descriptor > instance dict > non-data"
+        - "Methods are descriptors that return bound methods"
+
+---
+
+### Explain Generators vs Iterators - Amazon, Google Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Generators`, `Iterators`, `Lazy Evaluation` | **Asked by:** Amazon, Google, Meta, Microsoft
+
+??? success "View Answer"
+
+    **Iterators** implement `__iter__` and `__next__`. **Generators** are simpler iterators created with `yield`. Generators are memory-efficient for large sequences.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Iterator Protocol
+    class CountIterator:
+        """Manual iterator."""
+        
+        def __init__(self, start, end):
+            self.current = start
+            self.end = end
+        
+        def __iter__(self):
+            return self
+        
+        def __next__(self):
+            if self.current >= self.end:
+                raise StopIteration
+            value = self.current
+            self.current += 1
+            return value
+    
+    # Use iterator
+    for num in CountIterator(1, 5):
+        print(num)  # 1, 2, 3, 4
+    
+    # 2. Generator Function (Simpler)
+    def count_generator(start, end):
+        """Generator version."""
+        current = start
+        while current < end:
+            yield current
+            current += 1
+    
+    for num in count_generator(1, 5):
+        print(num)  # 1, 2, 3, 4
+    
+    # 3. Memory Comparison
+    import sys
+    
+    # List: stores all values
+    numbers_list = [x for x in range(1000000)]
+    print(f"List size: {sys.getsizeof(numbers_list):,} bytes")
+    
+    # Generator: computes on demand
+    numbers_gen = (x for x in range(1000000))
+    print(f"Generator size: {sys.getsizeof(numbers_gen)} bytes")
+    
+    # 4. Generator Expression
+    # List comprehension
+    squares_list = [x**2 for x in range(10)]
+    
+    # Generator expression
+    squares_gen = (x**2 for x in range(10))
+    
+    print(squares_list)  # [0, 1, 4, 9, ...]
+    print(squares_gen)   # <generator object>
+    print(list(squares_gen))  # [0, 1, 4, 9, ...]
+    
+    # 5. Infinite Generator
+    def fibonacci():
+        """Infinite Fibonacci sequence."""
+        a, b = 0, 1
+        while True:
+            yield a
+            a, b = b, a + b
+    
+    fib = fibonacci()
+    for _, val in zip(range(10), fib):
+        print(val, end=' ')  # 0 1 1 2 3 5 8 13 21 34
+    
+    # 6. Generator State
+    def stateful_generator():
+        """Generator maintains state."""
+        print("Starting")
+        yield 1
+        print("After first yield")
+        yield 2
+        print("After second yield")
+        yield 3
+        print("Finishing")
+    
+    gen = stateful_generator()
+    print(next(gen))  # Starting / 1
+    print(next(gen))  # After first yield / 2
+    print(next(gen))  # After second yield / 3
+    # print(next(gen))  # Finishing / StopIteration
+    
+    # 7. send() Method
+    def echo_generator():
+        """Generator that receives values."""
+        value = None
+        while True:
+            value = yield value
+            if value is not None:
+                value = value ** 2
+    
+    gen = echo_generator()
+    next(gen)  # Prime the generator
+    print(gen.send(2))   # 4
+    print(gen.send(3))   # 9
+    print(gen.send(10))  # 100
+    
+    # 8. Pipeline with Generators
+    def read_file(filename):
+        """Generate lines from file."""
+        with open(filename) as f:
+            for line in f:
+                yield line.strip()
+    
+    def filter_lines(lines, keyword):
+        """Filter lines containing keyword."""
+        for line in lines:
+            if keyword in line:
+                yield line
+    
+    def uppercase_lines(lines):
+        """Convert lines to uppercase."""
+        for line in lines:
+            yield line.upper()
+    
+    # Efficient pipeline (lazy evaluation)
+    # lines = read_file('data.txt')
+    # filtered = filter_lines(lines, 'python')
+    # upper = uppercase_lines(filtered)
+    # for line in upper:
+    #     print(line)
+    
+    # 9. yield from
+    def flatten(nested):
+        """Flatten nested iterables."""
+        for item in nested:
+            if isinstance(item, list):
+                yield from flatten(item)  # Delegate to recursive call
+            else:
+                yield item
+    
+    nested_list = [1, [2, [3, 4], 5], 6, [7, 8]]
+    flat = list(flatten(nested_list))
+    print(flat)  # [1, 2, 3, 4, 5, 6, 7, 8]
+    
+    # 10. Coroutine-like Behavior
+    def running_average():
+        """Maintain running average."""
+        total = 0
+        count = 0
+        average = None
+        while True:
+            value = yield average
+            total += value
+            count += 1
+            average = total / count
+    
+    avg = running_average()
+    next(avg)  # Prime
+    print(avg.send(10))  # 10.0
+    print(avg.send(20))  # 15.0
+    print(avg.send(30))  # 20.0
+    ```
+
+    **Iterator vs Generator:**
+
+    | Aspect | Iterator | Generator |
+    |--------|----------|-----------|
+    | **Implementation** | Class with `__iter__`, `__next__` | Function with `yield` |
+    | **Complexity** | More code | Simpler |
+    | **State** | Manual tracking | Automatic |
+    | **Memory** | Efficient | Efficient |
+    | **When** | Complex logic | Simple sequences |
+
+    **Generator Benefits:**
+
+    | Benefit | Description | Example |
+    |---------|-------------|---------|
+    | **Memory** | Generate on demand | Large files |
+    | **Infinite** | Can be infinite | Fibonacci |
+    | **Lazy** | Compute when needed | Pipelines |
+    | **Simple** | Less code | vs iterators |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "Generator: function with `yield`"
+        - "Iterator: `__iter__` and `__next__` methods"
+        - "Generators are simpler iterators"
+        - "Memory efficient: lazy evaluation"
+        - "`yield from`: delegate to sub-iterator"
+        - "`send()`: send values to generator"
+        - "Generator expression: `(x for x in range(10))`"
+        - "Use for: large data, infinite sequences, pipelines"
+        - "One-time use: can't reset generator"
+
+---
+
+### Explain Python's Global Interpreter Lock (GIL) - Netflix, Google Interview Question
+
+**Difficulty:** 🔴 Hard | **Tags:** `GIL`, `Threading`, `Performance` | **Asked by:** Netflix, Google, Meta, Amazon
+
+??? success "View Answer"
+
+    **GIL (Global Interpreter Lock)** is a mutex that protects Python objects, allowing only one thread to execute Python bytecode at a time. It simplifies memory management but limits multi-threading for CPU-bound tasks.
+
+    **Complete Examples:**
+
+    ```python
+    import threading
+    import time
+    from multiprocessing import Process
+    
+    # 1. GIL Impact on CPU-Bound Tasks
+    def cpu_bound(n):
+        """CPU-intensive task."""
+        count = 0
+        for i in range(n):
+            count += i ** 2
+        return count
+    
+    # Single-threaded
+    start = time.time()
+    result1 = cpu_bound(10_000_000)
+    result2 = cpu_bound(10_000_000)
+    single_time = time.time() - start
+    print(f"Single-threaded: {single_time:.2f}s")
+    
+    # Multi-threaded (limited by GIL)
+    start = time.time()
+    t1 = threading.Thread(target=cpu_bound, args=(10_000_000,))
+    t2 = threading.Thread(target=cpu_bound, args=(10_000_000,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    thread_time = time.time() - start
+    print(f"Multi-threaded: {thread_time:.2f}s")
+    print(f"Speedup: {single_time / thread_time:.2f}x")
+    # Usually slower or same due to GIL!
+    
+    # 2. GIL Release for I/O
+    def io_bound():
+        """I/O-bound task (GIL released during I/O)."""
+        time.sleep(0.1)  # Simulates I/O
+    
+    # Multi-threaded I/O (GIL released)
+    start = time.time()
+    threads = [threading.Thread(target=io_bound) for _ in range(10)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    io_time = time.time() - start
+    print(f"I/O multi-threaded: {io_time:.2f}s")  # ~0.1s (10x speedup)
+    
+    # 3. Multiprocessing Bypasses GIL
+    if __name__ == '__main__':
+        start = time.time()
+        p1 = Process(target=cpu_bound, args=(10_000_000,))
+        p2 = Process(target=cpu_bound, args=(10_000_000,))
+        p1.start()
+        p2.start()
+        p1.join()
+        p2.join()
+        process_time = time.time() - start
+        print(f"Multi-process: {process_time:.2f}s")
+        print(f"Speedup: {single_time / process_time:.2f}x")
+        # ~2x speedup on 2+ cores!
+    
+    # 4. When GIL is Released
+    # - I/O operations (file, network, sleep)
+    # - NumPy operations (releases GIL internally)
+    # - C extensions that explicitly release GIL
+    
+    import numpy as np
+    
+    def numpy_computation():
+        """NumPy releases GIL."""
+        a = np.random.rand(1000, 1000)
+        b = np.random.rand(1000, 1000)
+        return np.dot(a, b)
+    
+    # Threading works well with NumPy
+    start = time.time()
+    threads = [threading.Thread(target=numpy_computation) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    numpy_time = time.time() - start
+    print(f"NumPy multi-threaded: {numpy_time:.2f}s")
+    ```
+
+    **GIL Impact:**
+
+    | Task Type | Threading | Multiprocessing | Why |
+    |-----------|-----------|-----------------|-----|
+    | **CPU-bound** | ❌ No speedup | ✅ Scales | GIL limits |
+    | **I/O-bound** | ✅ Good | ⚠️ Overkill | GIL released |
+    | **NumPy** | ✅ Good | ✅ Good | GIL released |
+    | **Network** | ✅ Good | ⚠️ Overkill | GIL released |
+
+    **Workarounds:**
+
+    | Solution | Use Case | Example |
+    |----------|----------|---------|
+    | **Multiprocessing** | CPU-bound | Parallel computation |
+    | **async/await** | I/O-bound | Web servers |
+    | **NumPy/C extensions** | Heavy compute | Scientific computing |
+    | **PyPy** | Alternative | JIT compilation |
+    | **CPython alternatives** | No GIL | Jython, IronPython |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "GIL: only one thread executes Python bytecode at a time"
+        - "Simplifies memory management, prevents race conditions"
+        - "Limits CPU-bound multi-threading performance"
+        - "Released during I/O operations"
+        - "Use multiprocessing for CPU-bound parallelism"
+        - "Threading good for I/O-bound tasks"
+        - "NumPy, C extensions can release GIL"
+        - "Not an issue for I/O-heavy applications"
+        - "Alternative: async/await for concurrency"
+
+---
+
+### Explain List Comprehensions vs Generator Expressions - Microsoft, Amazon Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Comprehensions`, `Generators`, `Performance` | **Asked by:** Microsoft, Amazon, Google, Meta
+
+??? success "View Answer"
+
+    **List comprehensions** create lists immediately (eager). **Generator expressions** create generators (lazy). Use generators for memory efficiency with large datasets.
+
+    **Complete Examples:**
+
+    ```python
+    import sys
+    
+    # 1. Basic Comparison
+    # List comprehension: eager evaluation
+    squares_list = [x**2 for x in range(10)]
+    print(squares_list)  # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+    
+    # Generator expression: lazy evaluation
+    squares_gen = (x**2 for x in range(10))
+    print(squares_gen)   # <generator object>
+    print(list(squares_gen))  # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+    
+    # 2. Memory Usage
+    # List: allocates all values
+    big_list = [x for x in range(1_000_000)]
+    print(f"List: {sys.getsizeof(big_list):,} bytes")  # ~8 MB
+    
+    # Generator: minimal memory
+    big_gen = (x for x in range(1_000_000))
+    print(f"Generator: {sys.getsizeof(big_gen)} bytes")  # ~200 bytes
+    
+    # 3. Performance Comparison
+    import time
+    
+    # List comprehension: all at once
+    start = time.time()
+    data_list = [x**2 for x in range(1_000_000)]
+    sum(data_list)
+    list_time = time.time() - start
+    print(f"List: {list_time:.4f}s")
+    
+    # Generator: computed on demand
+    start = time.time()
+    data_gen = (x**2 for x in range(1_000_000))
+    sum(data_gen)
+    gen_time = time.time() - start
+    print(f"Generator: {gen_time:.4f}s")
+    # Generator usually faster!
+    
+    # 4. One-Time Use vs Reusable
+    gen = (x for x in range(5))
+    print(list(gen))  # [0, 1, 2, 3, 4]
+    print(list(gen))  # [] (exhausted!)
+    
+    lst = [x for x in range(5)]
+    print(list(lst))  # [0, 1, 2, 3, 4]
+    print(list(lst))  # [0, 1, 2, 3, 4] (reusable)
+    
+    # 5. When to Use Each
+    # Use list: need multiple iterations, indexing
+    numbers = [x for x in range(10)]
+    print(numbers[5])  # 5
+    print(numbers[:3])  # [0, 1, 2]
+    
+    # Use generator: single iteration, large data
+    total = sum(x for x in range(1_000_000))
+    
+    # 6. Nested Comprehensions
+    # List comprehension
+    matrix = [[i * j for j in range(5)] for i in range(5)]
+    print(matrix[2])  # [0, 2, 4, 6, 8]
+    
+    # Generator expression (nested)
+    matrix_gen = ((i * j for j in range(5)) for i in range(5))
+    print(list(next(matrix_gen)))  # [0, 0, 0, 0, 0]
+    
+    # 7. Conditional Expressions
+    # With filter
+    evens_list = [x for x in range(20) if x % 2 == 0]
+    evens_gen = (x for x in range(20) if x % 2 == 0)
+    
+    # With transformation
+    processed = [x**2 if x % 2 == 0 else x for x in range(10)]
+    print(processed)  # [0, 1, 4, 3, 16, 5, 36, 7, 64, 9]
+    
+    # 8. Dict and Set Comprehensions
+    # Dictionary comprehension
+    squares_dict = {x: x**2 for x in range(5)}
+    print(squares_dict)  # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+    
+    # Set comprehension
+    squares_set = {x**2 for x in range(-5, 6)}
+    print(squares_set)  # {0, 1, 4, 9, 16, 25}
+    
+    # 9. Pipeline Processing
+    # Chained generators (memory efficient)
+    def read_data():
+        for i in range(1_000_000):
+            yield i
+    
+    def filter_evens(data):
+        return (x for x in data if x % 2 == 0)
+    
+    def square(data):
+        return (x**2 for x in data)
+    
+    # Lazy pipeline
+    pipeline = square(filter_evens(read_data()))
+    result = sum(x for x, _ in zip(pipeline, range(100)))  # First 100
+    print(result)
+    ```
+
+    **List vs Generator:**
+
+    | Aspect | List Comprehension | Generator Expression |
+    |--------|-------------------|---------------------|
+    | **Syntax** | `[x for x in ...]` | `(x for x in ...)` |
+    | **Evaluation** | Eager (immediate) | Lazy (on demand) |
+    | **Memory** | Stores all values | Minimal |
+    | **Speed** | Slower for large data | Faster |
+    | **Reusable** | ✅ Yes | ❌ One-time |
+    | **Indexing** | ✅ Yes | ❌ No |
+    | **When** | Small data, multiple use | Large data, single use |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "List comp: `[x for x in ...]`, eager"
+        - "Generator expr: `(x for x in ...)`, lazy"
+        - "Generator: memory efficient for large data"
+        - "List: reusable, supports indexing"
+        - "Generator: one-time use, sequential only"
+        - "Use generator for: single pass, large data"
+        - "Use list for: multiple iterations, indexing"
+        - "Dict/set comprehensions also available"
+        - "Generators compose well in pipelines"
+
+---
+
+### Explain *args and **kwargs - Amazon, Microsoft Interview Question
+
+**Difficulty:** 🟢 Easy | **Tags:** `Arguments`, `Functions`, `Unpacking` | **Asked by:** Amazon, Microsoft, Google, Meta
+
+??? success "View Answer"
+
+    **`*args`** captures variable positional arguments as tuple. **`**kwargs`** captures variable keyword arguments as dict. Use for flexible function signatures.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic *args
+    def sum_all(*args):
+        """Sum any number of arguments."""
+        return sum(args)
+    
+    print(sum_all(1, 2, 3))           # 6
+    print(sum_all(1, 2, 3, 4, 5))     # 15
+    print(sum_all())                   # 0
+    
+    # 2. Basic **kwargs
+    def print_info(**kwargs):
+        """Print keyword arguments."""
+        for key, value in kwargs.items():
+            print(f"{key}: {value}")
+    
+    print_info(name="Alice", age=30, city="NYC")
+    # name: Alice
+    # age: 30
+    # city: NYC
+    
+    # 3. Combining args and kwargs
+    def flexible_function(*args, **kwargs):
+        """Function accepting both."""
+        print(f"Positional: {args}")
+        print(f"Keyword: {kwargs}")
+    
+    flexible_function(1, 2, 3, name="Alice", age=30)
+    # Positional: (1, 2, 3)
+    # Keyword: {'name': 'Alice', 'age': 30}
+    
+    # 4. Order of Parameters
+    def proper_order(a, b, *args, key1=None, key2=None, **kwargs):
+        """Correct parameter order."""
+        print(f"Required: {a}, {b}")
+        print(f"Extra positional: {args}")
+        print(f"Specific keywords: {key1}, {key2}")
+        print(f"Extra keywords: {kwargs}")
+    
+    proper_order(1, 2, 3, 4, key1="x", key2="y", extra="z")
+    
+    # 5. Unpacking Arguments
+    def add(a, b, c):
+        """Add three numbers."""
+        return a + b + c
+    
+    numbers = [1, 2, 3]
+    result = add(*numbers)  # Unpacks list
+    print(result)  # 6
+    
+    # 6. Unpacking Dictionaries
+    def create_user(name, age, email):
+        """Create user."""
+        return {"name": name, "age": age, "email": email}
+    
+    user_data = {"name": "Alice", "age": 30, "email": "alice@example.com"}
+    user = create_user(**user_data)  # Unpacks dict
+    print(user)
+    
+    # 7. Forwarding Arguments
+    def wrapper(*args, **kwargs):
+        """Forward to another function."""
+        print("Before calling")
+        result = target_function(*args, **kwargs)
+        print("After calling")
+        return result
+    
+    def target_function(x, y, z=10):
+        """Target function."""
+        return x + y + z
+    
+    result = wrapper(1, 2, z=20)  # 23
+    
+    # 8. Decorator Pattern
+    import functools
+    
+    def log_calls(func):
+        """Decorator that logs calls."""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            print(f"Calling {func.__name__}")
+            print(f"Args: {args}, Kwargs: {kwargs}")
+            result = func(*args, **kwargs)
+            print(f"Result: {result}")
+            return result
+        return wrapper
+    
+    @log_calls
+    def multiply(a, b):
+        return a * b
+    
+    multiply(3, 4)
+    
+    # 9. Merging Dictionaries
+    def merge_dicts(**kwargs):
+        """Merge multiple dictionaries."""
+        return kwargs
+    
+    config1 = {"host": "localhost", "port": 8000}
+    config2 = {"debug": True, "timeout": 30}
+    
+    merged = merge_dicts(**config1, **config2)
+    print(merged)
+    # {'host': 'localhost', 'port': 8000, 'debug': True, 'timeout': 30}
+    ```
+
+    **Parameter Order:**
+
+    1. Positional parameters: `def func(a, b)`
+    2. `*args`: `def func(a, b, *args)`
+    3. Keyword-only: `def func(a, b, *args, key=None)`
+    4. `**kwargs`: `def func(a, b, *args, key=None, **kwargs)`
+
+    **Common Patterns:**
+
+    | Pattern | Example | Use Case |
+    |---------|---------|----------|
+    | **Variadic positional** | `def func(*args)` | Variable args |
+    | **Variadic keyword** | `def func(**kwargs)` | Variable kwargs |
+    | **Forwarding** | `func(*args, **kwargs)` | Wrappers/decorators |
+    | **Unpacking** | `func(*list, **dict)` | Pass collections |
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "`*args`: tuple of positional arguments"
+        - "`**kwargs`: dict of keyword arguments"
+        - "Order: required, *args, keyword-only, **kwargs"
+        - "Unpacking: `func(*list)`, `func(**dict)`"
+        - "Decorators use for forwarding"
+        - "Names 'args' and 'kwargs' are convention"
+        - "Can combine with regular parameters"
+        - "Use for flexible APIs"
+
+---
+
+### Explain Packaging with setuptools - Dropbox, Amazon Interview Question
+
+**Difficulty:** 🟡 Medium | **Tags:** `Packaging`, `Distribution`, `setuptools` | **Asked by:** Dropbox, Amazon, Google, Microsoft
+
+??? success "View Answer"
+
+    **Packaging** distributes Python projects. Use **setuptools** with **setup.py** or **pyproject.toml** to define dependencies, metadata, and build configuration.
+
+    **Complete Examples:**
+
+    ```python
+    # 1. Basic setup.py
+    """
+    from setuptools import setup, find_packages
+    
+    setup(
+        name="myproject",
+        version="1.0.0",
+        author="Your Name",
+        author_email="you@example.com",
+        description="A short description",
+        long_description=open("README.md").read(),
+        long_description_content_type="text/markdown",
+        url="https://github.com/yourusername/myproject",
+        packages=find_packages(),
+        classifiers=[
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+        ],
+        python_requires=">=3.7",
+        install_requires=[
+            "requests>=2.25.0",
+            "numpy>=1.20.0",
+        ],
+        extras_require={
+            "dev": ["pytest", "black", "flake8"],
+        },
+        entry_points={
+            "console_scripts": [
+                "myapp=myproject.main:main",
+            ],
+        },
+    )
+    """
+    
+    # 2. Project Structure
+    """
+    myproject/
+    ├── setup.py
+    ├── pyproject.toml
+    ├── README.md
+    ├── LICENSE
+    ├── requirements.txt
+    ├── myproject/
+    │   ├── __init__.py
+    │   ├── main.py
+    │   └── utils.py
+    └── tests/
+        ├── __init__.py
+        └── test_main.py
+    """
+    
+    # 3. Modern pyproject.toml (PEP 518)
+    """
+    [build-system]
+    requires = ["setuptools>=45", "wheel"]
+    build-backend = "setuptools.build_meta"
+    
+    [project]
+    name = "myproject"
+    version = "1.0.0"
+    description = "A short description"
+    readme = "README.md"
+    requires-python = ">=3.7"
+    license = {text = "MIT"}
+    authors = [
+        {name = "Your Name", email = "you@example.com"}
+    ]
+    
+    dependencies = [
+        "requests>=2.25.0",
+        "numpy>=1.20.0",
+    ]
+    
+    [project.optional-dependencies]
+    dev = ["pytest", "black", "flake8"]
+    
+    [project.scripts]
+    myapp = "myproject.main:main"
+    """
+    
+    # 4. Building and Installing
+    """
+    # Build package
+    python setup.py sdist bdist_wheel
+    
+    # Install locally
+    pip install -e .
+    
+    # Install from source
+    pip install .
+    
+    # Upload to PyPI
+    pip install twine
+    twine upload dist/*
+    """
+    
+    # 5. Entry Points
+    # myproject/main.py
+    def main():
+        """Command-line entry point."""
+        print("Hello from myproject!")
+    
+    if __name__ == "__main__":
+        main()
+    
+    # After installation: myapp command available
+    
+    # 6. Version Management
+    # myproject/__init__.py
+    __version__ = "1.0.0"
+    
+    # In setup.py:
+    """
+    import myproject
+    
+    setup(
+        version=myproject.__version__,
+        ...
+    )
+    """
+    
+    # 7. MANIFEST.in
+    """
+    include README.md
+    include LICENSE
+    include requirements.txt
+    recursive-include myproject/data *
+    global-exclude *.pyc
+    """
+    ```
+
+    **Key Files:**
+
+    | File | Purpose |
+    |------|---------|
+    | **setup.py** | Build configuration (old style) |
+    | **pyproject.toml** | Modern build config (PEP 518) |
+    | **README.md** | Project description |
+    | **LICENSE** | License text |
+    | **requirements.txt** | Dependencies (pip) |
+    | **MANIFEST.in** | Include non-Python files |
+
+    **Common Commands:**
+
+    ```bash
+    # Install in editable mode
+    pip install -e .
+    
+    # Build distribution
+    python -m build
+    
+    # Upload to PyPI
+    twine upload dist/*
+    
+    # Install from PyPI
+    pip install myproject
+    ```
+
+    **Interview Insights:**
+    
+    !!! tip "Interviewer's Insight"
+        
+        - "setuptools: standard packaging tool"
+        - "setup.py or pyproject.toml: define package"
+        - "`find_packages()`: auto-discover modules"
+        - "`install_requires`: runtime dependencies"
+        - "`extras_require`: optional dependencies"
+        - "`entry_points`: create CLI commands"
+        - "Build: `python setup.py sdist bdist_wheel`"
+        - "Install editable: `pip install -e .`"
+        - "Modern: prefer pyproject.toml"
+
+---
+
 ## Questions asked in Google interview
 - Explain the Global Interpreter Lock (GIL) and its impact on multi-threading.
 - How does Python's garbage collection mechanism work? (Reference counting vs Generational GC).

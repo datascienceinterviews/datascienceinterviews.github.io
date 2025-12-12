@@ -1,7 +1,7 @@
 ---
 comments: true
-title: Data Science 
-description: Home page for the platform for Data Science Interview Questions 
+title: About This Platform - Data Science Interview Prep
+description: Learn how to use this open-source data science interview preparation platform. Explore 500+ curated questions, cheat sheets, ML tutorials, and community-contributed resources.
 ---
 
 # Home

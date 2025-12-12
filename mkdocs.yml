@@ -6,6 +6,7 @@ site_description: >-
   maintaining curated list of interview questions
   and answers for people looking and preparing
   for data science opportunities.
+site_url: https://singhsidhukuldeep.github.io/
 
 # Repository
 repo_name: singhsidhukuldeep/singhsidhukuldeep.github.io
@@ -63,6 +64,8 @@ extra:
 theme:
   name: material
   custom_dir: overrides
+  language: en
+  favicon: https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2
 
   features:
     # - announce.dismiss
@@ -82,7 +85,6 @@ theme:
   icon:
     logo: fontawesome/solid/terminal
     repo: fontawesome/brands/git-alt
-#  favicon: fontawesome/solid/terminal
 
   palette:
 
@@ -111,6 +113,8 @@ theme:
         name: Switch to system preference
 #plugins
 plugins:
+  # - social  # Requires: pip install "mkdocs-material[imaging]"
+  # - meta  # Requires MkDocs Material Insiders (paid)
   # - optimize
   - glightbox
   - enumerate-headings:
@@ -168,8 +172,8 @@ markdown_extensions:
   - pymdownx.caret
   - pymdownx.critic
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.inlinehilite
   - pymdownx.magiclink
   - pymdownx.mark

@@ -1,6 +1,6 @@
 ---
-title: System Design Interview Questions (DS & ML)
-description: A curated list of system design questions for Data Science and Machine Learning interviews
+title: ML System Design Interview Questions
+description: 50+ ML system design interview questions - recommendation systems, real-time ML pipelines, feature stores, model serving, A/B testing infrastructure for senior ML engineer roles.
 ---
 
 # System Design Interview Questions (DS & ML)

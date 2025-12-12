@@ -2274,35 +2274,6 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ---
 
-### How to handle NaN values? - Most Tech Companies Interview Question
-
-**Difficulty:** 🟡 Medium | **Tags:** `Data Cleaning` | **Asked by:** Most Tech Companies
-
-??? success "View Answer"
-
-    ```python
-    import numpy as np
-    
-    arr = np.array([1.0, np.nan, 3.0, np.nan, 5.0])
-    
-    # Check for NaN
-    np.isnan(arr)  # [False, True, False, True, False]
-    
-    # NaN-safe operations
-    np.nanmean(arr)   # 3.0 (ignores NaN)
-    np.nansum(arr)    # 9.0
-    np.nanmax(arr)    # 5.0
-    
-    # Replace NaN
-    arr[np.isnan(arr)] = 0
-    np.nan_to_num(arr, nan=0.0)
-    ```
-
-    !!! tip "Interviewer's Insight"
-        Uses nanmean/nansum for robust calculations.
-
----
-
 ### How to use np.frompyfunc for custom ufuncs? - Google, Amazon Interview Question
 
 **Difficulty:** 🔴 Hard | **Tags:** `Advanced` | **Asked by:** Google, Amazon

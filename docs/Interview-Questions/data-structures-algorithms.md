@@ -1,7 +1,7 @@
 
 ---
-title: Data Structures and Algorithms (DSA)
-description: Data Structures and Algorithms for cracking interviews
+title: Data Structures and Algorithms (DSA) Interview Questions
+description: 100+ DSA interview questions with Python solutions - arrays, trees, graphs, dynamic programming, sorting algorithms, and time complexity analysis for coding interviews.
 ---
 
 # Data Structures and Algorithms (DSA)

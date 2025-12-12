@@ -1,6 +1,6 @@
 ---
-title: Natural Language Processing (NLP) Interview Questions
-description: A curated list of 100 Natural Language Processing interview questions for cracking data science interviews
+title: NLP Interview Questions - Natural Language Processing
+description: 100+ NLP interview questions - transformers, BERT, GPT, word embeddings, text classification, named entity recognition, and LLMs for ML engineer interviews.
 ---
 
 # Natural Language Processing (NLP) Interview Questions
