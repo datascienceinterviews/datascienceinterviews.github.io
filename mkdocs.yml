@@ -221,6 +221,7 @@ nav:
       - Flask: Cheat-Sheets/Flask.md
       - Hypothesis Tests: Cheat-Sheets/Hypothesis-Tests.md
       - Keras: Cheat-Sheets/Keras.md
+      - LangChain & LangGraph: Cheat-Sheets/LangChain-LangGraph.md
       - NumPy: Cheat-Sheets/NumPy.ipynb
       - Pandas: Cheat-Sheets/Pandas.ipynb
       - PySpark: Cheat-Sheets/PySpark.md
@@ -267,7 +268,7 @@ nav:
   # - 🎌 Deploying ML Models:
   #     - Production Deployment: Deploying-ML-models/deploying-ml-models.md
 
-  - 📳 Projects: projects.md
+  # - 📳 Projects: projects.md
 
   - 🤝 Contribute: Contribute.md
 
