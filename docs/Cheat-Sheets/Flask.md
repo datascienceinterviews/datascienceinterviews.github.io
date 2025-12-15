@@ -23,7 +23,40 @@ Consider using a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Linux/macOS
-venv\Scripts\activate  # On Windows
+venv\Scripts\activate     # On Windows
+```
+
+### Flask Application Lifecycle
+
+```
+    ┌──────────────────┐
+    │  Create App      │
+    │  Flask(__name__) │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  Configure App   │
+    │  app.config[]    │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  Register Routes │
+    │  @app.route()    │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  Initialize      │
+    │  Extensions      │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  Run Application │
+    │  app.run()       │
+    └──────────────────┘
 ```
 
 ### Basic App Structure
@@ -44,10 +77,44 @@ if __name__ == '__main__':
 ### Running the App
 
 ```bash
-python your_app_name.py
+# Direct execution
+python app.py
+
+# Using Flask CLI
+export FLASK_APP=app.py
+flask run
+
+# Run on specific host and port
+flask run --host=0.0.0.0 --port=8000
 ```
 
 ## Routing
+
+### Request Flow
+
+```
+    ┌──────────────┐
+    │ HTTP Request │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────────┐
+    │  URL Matching    │
+    │  @app.route()    │
+    └──────┬───────────┘
+           │
+           ↓
+    ┌──────────────────┐
+    │  View Function   │
+    │  Execute Logic   │
+    └──────┬───────────┘
+           │
+           ↓
+    ┌──────────────────┐
+    │ Return Response  │
+    │  HTML/JSON/etc   │
+    └──────────────────┘
+```
 
 ### Basic Route
 
@@ -60,6 +127,10 @@ app = Flask(__name__)
 def index():
     return 'Index Page'
 
+@app.route('/about')
+def about():
+    return 'About Page'
+
 if __name__ == '__main__':
     app.run(debug=True)
 ```
@@ -71,15 +142,30 @@ from flask import Flask
 
 app = Flask(__name__)
 
+# String parameter (default)
 @app.route('/user/<username>')
 def show_user_profile(username):
-    # show the user profile for that user
-    return f'User {username}'
+    return f'User: {username}'
 
+# Integer parameter
 @app.route('/post/<int:post_id>')
 def show_post(post_id):
-    # show the post with the given id, the id is an integer
     return f'Post {post_id}'
+
+# Float parameter
+@app.route('/price/<float:amount>')
+def show_price(amount):
+    return f'Price: ${amount:.2f}'
+
+# Path parameter (accepts slashes)
+@app.route('/path/<path:subpath>')
+def show_path(subpath):
+    return f'Path: {subpath}'
+
+# UUID parameter
+@app.route('/uuid/<uuid:id>')
+def show_uuid(id):
+    return f'UUID: {id}'
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -87,17 +173,53 @@ if __name__ == '__main__':
 
 ### HTTP Methods
 
+```
+    ┌──────────┐     ┌──────────┐     ┌──────────┐
+    │   GET    │     │   POST   │     │  DELETE  │
+    │ Retrieve │     │  Create  │     │  Remove  │
+    └────┬─────┘     └────┬─────┘     └────┬─────┘
+         │                │                 │
+         └────────────────┴─────────────────┘
+                          ↓
+                 ┌────────────────┐
+                 │  Flask Route   │
+                 │  View Function │
+                 └────────────────┘
+```
+
 ```python
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+# Multiple methods on one route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        return "Do the login"
-    else:
-        return "Show the login form"
+        username = request.form.get('username')
+        password = request.form.get('password')
+        return f"Logging in: {username}"
+    return "Show login form"
+
+# RESTful API example
+@app.route('/api/users/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
+def user_api(user_id):
+    if request.method == 'GET':
+        return jsonify({'user_id': user_id, 'action': 'fetch'})
+    elif request.method == 'PUT':
+        data = request.get_json()
+        return jsonify({'user_id': user_id, 'action': 'update', 'data': data})
+    elif request.method == 'DELETE':
+        return jsonify({'user_id': user_id, 'action': 'delete'})
+
+# Separate routes for different methods
+@app.route('/resource', methods=['GET'])
+def get_resource():
+    return "GET resource"
+
+@app.route('/resource', methods=['POST'])
+def create_resource():
+    return "POST resource"
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -106,7 +228,7 @@ if __name__ == '__main__':
 ### URL Building
 
 ```python
-from flask import Flask, url_for
+from flask import Flask, url_for, redirect
 
 app = Flask(__name__)
 
@@ -122,17 +244,54 @@ def login():
 def profile(username):
     return f'{username}\'s profile'
 
+@app.route('/admin')
+def admin():
+    # Redirect to login
+    return redirect(url_for('login'))
+
+@app.route('/user-redirect/<username>')
+def user_redirect(username):
+    # Redirect to user profile
+    return redirect(url_for('profile', username=username))
+
+# Generate URLs programmatically
 with app.test_request_context():
-    print(url_for('index'))
-    print(url_for('login'))
-    print(url_for('login', next='/'))
-    print(url_for('profile', username='John Doe'))
+    print(url_for('index'))                              # Output: /
+    print(url_for('login'))                              # Output: /login
+    print(url_for('login', next='/'))                    # Output: /login?next=%2F
+    print(url_for('profile', username='John Doe'))       # Output: /user/John%20Doe
+    print(url_for('index', _external=True))              # Output: http://localhost/
+    print(url_for('static', filename='style.css'))       # Output: /static/style.css
 
 if __name__ == '__main__':
     app.run(debug=True)
 ```
 
 ## Templates
+
+### Template Rendering Flow
+
+```
+    ┌────────────────┐
+    │  View Function │
+    └───────┬────────┘
+            │
+            ↓
+    ┌────────────────┐
+    │ render_template│
+    └───────┬────────┘
+            │
+            ↓
+    ┌────────────────┐
+    │  Jinja2 Engine │
+    │  Process Template
+    └───────┬────────┘
+            │
+            ↓
+    ┌────────────────┐
+    │  HTML Response │
+    └────────────────┘
+```
 
 ### Basic Template Rendering
 
@@ -145,6 +304,24 @@ app = Flask(__name__)
 @app.route('/hello/<name>')
 def hello(name=None):
     return render_template('hello.html', name=name)
+
+@app.route('/users')
+def users():
+    users_list = [
+        {'id': 1, 'name': 'Alice', 'role': 'Admin'},
+        {'id': 2, 'name': 'Bob', 'role': 'User'},
+        {'id': 3, 'name': 'Charlie', 'role': 'User'}
+    ]
+    return render_template('users.html', users=users_list)
+
+@app.route('/dashboard')
+def dashboard():
+    context = {
+        'title': 'Dashboard',
+        'user': {'name': 'John Doe', 'email': 'john@example.com'},
+        'stats': {'views': 1500, 'posts': 42, 'comments': 128}
+    }
+    return render_template('dashboard.html', **context)
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -212,39 +389,185 @@ Child template (`templates/hello.html`):
 
 ### Jinja2 Template Engine
 
-*   `{{ variable }}`: Outputs a variable.
-*   `{% tag %}`: Template logic tag (e.g., `for`, `if`).
-*   `{{ variable|filter }}`: Applies a filter to a variable.
-*   `{% extends "base.html" %}`: Extends a base template.
-*   `{% block block_name %}{% endblock %}`: Defines a block for template inheritance.
-*   `{% include "template_name.html" %}`: Includes another template.
-*   `{% url_for 'view_name' arg1=value1 %}`: Generates a URL for a view.
+```python
+# Common Jinja2 Syntax:
+# {{ variable }}                    - Output variable
+# {% tag %}                         - Logic tag (if, for, etc.)
+# {{ variable|filter }}             - Apply filter
+# {# comment #}                     - Comment (not rendered)
+# {% extends "base.html" %}         - Template inheritance
+# {% block name %}{% endblock %}    - Define block
+# {% include "partial.html" %}      - Include template
+# {{ url_for('view_name') }}        - Generate URL
+```
+
+Example template (`templates/demo.html`):
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title|default('Default Title') }}</title>
+</head>
+<body>
+    {# This is a comment #}
+    
+    {# Variables #}
+    <h1>Hello {{ name|capitalize }}!</h1>
+    
+    {# Conditionals #}
+    {% if user.is_admin %}
+        <p>Welcome, Admin!</p>
+    {% elif user.is_authenticated %}
+        <p>Welcome, {{ user.name }}!</p>
+    {% else %}
+        <p>Please log in.</p>
+    {% endif %}
+    
+    {# Loops #}
+    <ul>
+    {% for item in items %}
+        <li>{{ loop.index }}. {{ item.name }} - ${{ item.price|round(2) }}</li>
+    {% else %}
+        <li>No items available</li>
+    {% endfor %}
+    </ul>
+    
+    {# URL generation #}
+    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('profile', username='john') }}">Profile</a>
+</body>
+</html>
+```
 
 ### Common Template Filters
 
-*   `safe`: Marks a string as safe for HTML output.
-*   `capitalize`: Capitalizes the first character of a string.
-*   `lower`, `upper`: Converts a string to lowercase or uppercase.
-*   `title`: Converts a string to title case.
-*   `trim`: Removes leading and trailing whitespace.
-*   `striptags`: Strips SGML/XML tags.
-*   `length`: Returns the length of a value.
-*   `default(value, default_value='')`: Provides a default value if a variable is undefined.
-*   `replace(old, new, count=None)`: Replaces occurrences of a substring.
-*   `format(value, *args, **kwargs)`: Formats a string using Python's string formatting.
+```python
+# String filters
+{{ 'hello world'|capitalize }}        # 'Hello world'
+{{ 'HELLO'|lower }}                   # 'hello'
+{{ 'hello'|upper }}                   # 'HELLO'
+{{ 'hello world'|title }}             # 'Hello World'
+{{ '  text  '|trim }}                 # 'text'
+{{ 'Hello <b>World</b>'|striptags }}  # 'Hello World'
+
+# Numeric filters
+{{ 42.5678|round }}                   # 43.0
+{{ 42.5678|round(2) }}                # 42.57
+{{ 42|abs }}                          # 42
+{{ -42|abs }}                         # 42
+
+# List filters
+{{ [1, 2, 3]|length }}                # 3
+{{ [3, 1, 2]|sort }}                  # [1, 2, 3]
+{{ [1, 2, 3]|reverse }}               # [3, 2, 1]
+{{ [1, 2, 3]|first }}                 # 1
+{{ [1, 2, 3]|last }}                  # 3
+{{ ['a', 'b', 'c']|join(', ') }}      # 'a, b, c'
+
+# Conditional filters
+{{ variable|default('N/A') }}         # Use default if undefined
+{{ html_content|safe }}               # Mark as safe HTML
+{{ none_value|default('Empty', true) }}  # Use default if falsy
+
+# Date/Time filters (requires datetime object)
+{{ date_obj|strftime('%Y-%m-%d') }}   # Format datetime
+
+# Custom example
+{{ 'hello {0}'|format('world') }}     # 'hello world'
+{{ 'old text'|replace('old', 'new') }}  # 'new text'
+```
 
 ## Forms
 
-### Basic Form
+### Form Handling Flow
+
+```
+    ┌──────────────┐
+    │  GET Request │
+    │  Show Form   │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │ User Fills   │
+    │ Form & Submit│
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │ POST Request │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │  Validation  │
+    └──────┬───────┘
+           │
+      ┌────┴────┐
+      │         │
+   (Pass)    (Fail)
+      │         │
+      ↓         ↓
+┌──────────┐ ┌──────────┐
+│ Process  │ │  Show    │
+│ & Redirect│ │  Errors  │
+└──────────┘ └──────────┘
+```
+
+### Basic Form Handling
+
+```python
+from flask import Flask, request, render_template, redirect, url_for
+
+app = Flask(__name__)
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        message = request.form.get('message')
+        
+        # Process form data
+        print(f"Name: {name}, Email: {email}, Message: {message}")
+        
+        return redirect(url_for('success'))
+    
+    return render_template('contact.html')
+
+@app.route('/success')
+def success():
+    return "Form submitted successfully!"
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+HTML template (`templates/contact.html`):
 
 ```html
-<form method="post">
-    <label for="name">Name:</label><br>
-    <input type="text" id="name" name="name"><br>
-    <label for="email">Email:</label><br>
-    <input type="email" id="email" name="email"><br>
-    <input type="submit" value="Submit">
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Form</title>
+</head>
+<body>
+    <h1>Contact Us</h1>
+    <form method="post">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br><br>
+        
+        <label for="message">Message:</label><br>
+        <textarea id="message" name="message" rows="5" cols="40" required></textarea><br><br>
+        
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
 ```
 
 ### Using Flask-WTF
@@ -255,32 +578,132 @@ Installation:
 pip install flask-wtf
 ```
 
-Configuration (in your app):
+Configuration:
 
 ```python
 import os
 from flask import Flask
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Email, Length, EqualTo
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your_secret_key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+```
+
+Flask-WTF Flow:
+
+```
+    ┌──────────────┐
+    │ Define Form  │
+    │ Class (WTF)  │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │ Instantiate  │
+    │ in View      │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │ Render in    │
+    │ Template     │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │ Validate on  │
+    │ Submit       │
+    └──────┬───────┘
+           │
+      ┌────┴────┐
+      │         │
+   (Valid)  (Invalid)
+      │         │
+      ↓         ↓
+┌──────────┐ ┌──────────┐
+│ Process  │ │  Show    │
+│ Data     │ │  Errors  │
+└──────────┘ └──────────┘
 ```
 
 ### Define a Form (forms.py)
 
 ```python
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, EmailField, BooleanField
-from wtforms.validators import DataRequired, Length, Email
+from wtforms import (
+    StringField, 
+    PasswordField, 
+    SubmitField, 
+    TextAreaField, 
+    BooleanField,
+    SelectField,
+    RadioField,
+    DateField
+)
+from wtforms.validators import (
+    DataRequired, 
+    Length, 
+    Email, 
+    EqualTo, 
+    ValidationError,
+    Regexp
+)
 
-class MyForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=20)])
-    email = EmailField('Email', validators=[DataRequired(), Email()])
-    message = TextAreaField('Message', validators=[DataRequired()])
-    agree = BooleanField('I agree to the terms', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+class ContactForm(FlaskForm):
+    name = StringField('Name', validators=[
+        DataRequired(message='Name is required'),
+        Length(min=2, max=50, message='Name must be between 2 and 50 characters')
+    ])
+    email = StringField('Email', validators=[
+        DataRequired(message='Email is required'),
+        Email(message='Invalid email address')
+    ])
+    message = TextAreaField('Message', validators=[
+        DataRequired(message='Message is required'),
+        Length(min=10, max=500, message='Message must be between 10 and 500 characters')
+    ])
+    submit = SubmitField('Send Message')
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[
+        DataRequired(),
+        Length(min=4, max=20),
+        Regexp('^[A-Za-z0-9_]+$', message='Username must contain only letters, numbers, and underscores')
+    ])
+    email = StringField('Email', validators=[
+        DataRequired(),
+        Email()
+    ])
+    password = PasswordField('Password', validators=[
+        DataRequired(),
+        Length(min=8, message='Password must be at least 8 characters')
+    ])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
+    agree = BooleanField('I agree to the Terms and Conditions', validators=[
+        DataRequired(message='You must agree to the terms')
+    ])
+    submit = SubmitField('Sign Up')
+
+class ProfileForm(FlaskForm):
+    bio = TextAreaField('Bio', validators=[Length(max=500)])
+    country = SelectField('Country', choices=[
+        ('', 'Select Country'),
+        ('us', 'United States'),
+        ('uk', 'United Kingdom'),
+        ('ca', 'Canada')
+    ])
+    gender = RadioField('Gender', choices=[
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other')
+    ])
+    birthdate = DateField('Birthdate', format='%Y-%m-%d')
+    submit = SubmitField('Update Profile')
 ```
 
 ### Render a Form in a Template
@@ -366,6 +789,33 @@ if __name__ == '__main__':
 
 ## Databases
 
+### Database Integration Flow
+
+```
+    ┌──────────────────┐
+    │  Configure DB    │
+    │  SQLAlchemy      │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  Define Models   │
+    │  db.Model        │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  Create Tables   │
+    │  db.create_all() │
+    └────────┬─────────┘
+             │
+             ↓
+    ┌──────────────────┐
+    │  CRUD Operations │
+    │  Query, Add, etc │
+    └──────────────────┘
+```
+
 ### Using Flask-SQLAlchemy
 
 Installation:
@@ -382,12 +832,33 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///site.db'
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = False  # Set to True to log SQL queries
+
 db = SQLAlchemy(app)
 ```
 
-### Define a Model
+Database URI examples:
+
+```python
+# SQLite (local file)
+'sqlite:///database.db'
+'sqlite:////absolute/path/to/database.db'
+
+# PostgreSQL
+'postgresql://username:password@localhost:5432/database_name'
+
+# MySQL
+'mysql://username:password@localhost:3306/database_name'
+
+# MySQL with PyMySQL
+'mysql+pymysql://username:password@localhost:3306/database_name'
+```
+
+### Define Models
 
 ```python
 from flask_sqlalchemy import SQLAlchemy
@@ -396,25 +867,71 @@ from datetime import datetime
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
-    password = db.Column(db.String(60), nullable=False)
-    posts = db.relationship('Post', backref='author', lazy=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    posts = db.relationship('Post', backref='author', lazy='dynamic', cascade='all, delete-orphan')
+    profile = db.relationship('Profile', backref='user', uselist=False, cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+        return f"<User {self.username}>"
 
 class Post(db.Model):
+    __tablename__ = 'posts'
+    
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    title = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(200), unique=True, nullable=False, index=True)
     content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    published = db.Column(db.Boolean, default=False)
+    views = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Foreign key
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Many-to-many relationship
+    tags = db.relationship('Tag', secondary='post_tags', backref=db.backref('posts', lazy='dynamic'))
 
     def __repr__(self):
-        return f"Post('{self.title}', '{self.date_posted}')"
+        return f"<Post {self.title}>"
+
+class Profile(db.Model):
+    __tablename__ = 'profiles'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    bio = db.Column(db.Text)
+    avatar = db.Column(db.String(200), default='default.jpg')
+    website = db.Column(db.String(200))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    def __repr__(self):
+        return f"<Profile for User {self.user_id}>"
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f"<Tag {self.name}>"
+
+# Association table for many-to-many relationship
+post_tags = db.Table('post_tags',
+    db.Column('post_id', db.Integer, db.ForeignKey('posts.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+)
 ```
 
 ### Create and Manage Tables
@@ -422,89 +939,425 @@ class Post(db.Model):
 ```python
 from yourapp import app, db
 
+# Create all tables
 with app.app_context():
-    db.create_all()  # Create tables
+    db.create_all()
 
-# In the Python shell:
-# from yourapp import db, User, Post
-# user_1 = User(username='Corey', email='corey@example.com')
-# db.session.add(user_1)
-# db.session.commit()
+# Drop all tables (careful!)
+with app.app_context():
+    db.drop_all()
+
+# Recreate all tables (drop and create)
+with app.app_context():
+    db.drop_all()
+    db.create_all()
+
+# Add sample data
+with app.app_context():
+    # Create user
+    user = User(username='john_doe', email='john@example.com', password_hash='hashed_password')
+    db.session.add(user)
+    db.session.commit()
+    
+    # Create post for user
+    post = Post(title='First Post', slug='first-post', content='Hello World!', user_id=user.id)
+    db.session.add(post)
+    db.session.commit()
+    
+    # Create multiple objects
+    users = [
+        User(username='alice', email='alice@example.com', password_hash='hash1'),
+        User(username='bob', email='bob@example.com', password_hash='hash2')
+    ]
+    db.session.add_all(users)
+    db.session.commit()
 ```
 
 ### Querying the Database
 
 ```python
-from yourapp import db, User, Post
+from yourapp import db, User, Post, Tag
+from sqlalchemy import and_, or_, not_
 
-# Get all users
-all_users = User.query.all()
+# Basic queries
+all_users = User.query.all()                              # Get all users
+first_user = User.query.first()                           # Get first user
+user = User.query.get(1)                                  # Get by primary key
+user = User.query.get_or_404(1)                           # Get or return 404
 
-# Filter users
-filtered_users = User.query.filter_by(username='Corey')
+# Filtering
+user = User.query.filter_by(username='john_doe').first()  # Simple filter
+users = User.query.filter(User.username == 'john').all()  # Complex filter
+active_users = User.query.filter_by(is_active=True).all()
 
-# Get a single user by ID
+# Multiple conditions
+users = User.query.filter(
+    and_(
+        User.is_active == True,
+        User.created_at > datetime(2024, 1, 1)
+    )
+).all()
+
+users = User.query.filter(
+    or_(
+        User.username == 'john',
+        User.username == 'alice'
+    )
+).all()
+
+# Ordering
+users = User.query.order_by(User.created_at.desc()).all()
+users = User.query.order_by(User.username.asc()).all()
+
+# Limiting
+users = User.query.limit(10).all()
+users = User.query.offset(5).limit(10).all()
+
+# Pagination
+page = 1
+per_page = 20
+pagination = User.query.paginate(page=page, per_page=per_page, error_out=False)
+users = pagination.items
+total = pagination.total
+
+# Counting
+user_count = User.query.count()
+active_count = User.query.filter_by(is_active=True).count()
+
+# Like queries (pattern matching)
+users = User.query.filter(User.username.like('%john%')).all()
+users = User.query.filter(User.email.ilike('%@GMAIL.COM')).all()  # Case-insensitive
+
+# In queries
+usernames = ['alice', 'bob', 'charlie']
+users = User.query.filter(User.username.in_(usernames)).all()
+
+# Relationships
 user = User.query.get(1)
+user_posts = user.posts.all()                             # Get user's posts
+user_posts = user.posts.filter_by(published=True).all()   # Filter related posts
 
-# Get a single user, handling 404 error
-user = User.query.get_or_404(1)
+post = Post.query.get(1)
+author = post.author                                      # Get post's author
 
-# Create a new user
-new_user = User(username='NewUser', email='new@example.com', password='password')
+# Joins
+results = db.session.query(User, Post).join(Post).all()
+results = User.query.join(Post).filter(Post.published == True).all()
+
+# Eager loading (avoid N+1 queries)
+from sqlalchemy.orm import joinedload
+users = User.query.options(joinedload(User.posts)).all()
+
+# CREATE
+new_user = User(username='jane_doe', email='jane@example.com', password_hash='hash')
 db.session.add(new_user)
 db.session.commit()
 
-# Update an existing user
+# UPDATE
 user = User.query.get(1)
-user.email = 'updated@example.com'
+user.email = 'newemail@example.com'
 db.session.commit()
 
-# Delete a user
+# Or update multiple fields
+User.query.filter_by(id=1).update({'email': 'updated@example.com', 'is_active': True})
+db.session.commit()
+
+# DELETE
 user = User.query.get(1)
 db.session.delete(user)
 db.session.commit()
 
-# Relationships
-user = User.query.get(1)
-posts = user.posts  # Access posts related to the user
+# Or delete with filter
+User.query.filter_by(is_active=False).delete()
+db.session.commit()
+
+# Bulk operations
+users = User.query.filter(User.is_active == False).all()
+for user in users:
+    db.session.delete(user)
+db.session.commit()
+
+# Rollback on error
+try:
+    user = User(username='test', email='test@example.com', password_hash='hash')
+    db.session.add(user)
+    db.session.commit()
+except Exception as e:
+    db.session.rollback()
+    print(f"Error: {e}")
 ```
 
 ## Static Files
 
+### Static File Structure
+
+```
+your_app/
+    ├── app.py
+    ├── templates/
+    │   └── index.html
+    └── static/
+        ├── css/
+        │   └── style.css
+        ├── js/
+        │   └── script.js
+        └── images/
+            └── logo.png
+```
+
 ### Configure Static Files
 
-Create a `static` folder in your app directory.
+```python
+from flask import Flask, url_for
 
-In your template:
+app = Flask(__name__, 
+    static_folder='static',      # Default: 'static'
+    static_url_path='/static'    # Default: '/static'
+)
+
+# Custom static folder
+app = Flask(__name__, 
+    static_folder='assets',
+    static_url_path='/assets'
+)
+
+# Generate static file URLs
+with app.test_request_context():
+    print(url_for('static', filename='css/style.css'))
+    # Output: /static/css/style.css
+```
+
+### Use in Templates
 
 ```html
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-<img src="{% static 'images/logo.png' %}">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My App</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <!-- Image -->
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</body>
+</html>
+```
+
+### Serving Static Files in Production
+
+```python
+# In development, Flask serves static files automatically
+# In production, use a web server like Nginx
+
+# Nginx configuration example
+"""
+location /static {
+    alias /path/to/your/app/static;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+"""
 ```
 
 ## Blueprints
 
+### Blueprint Architecture
+
+```
+    ┌─────────────────┐
+    │   Flask App     │
+    └────────┬────────┘
+             │
+      ┌──────┴──────┐
+      │             │
+      ↓             ↓
+┌───────────┐ ┌───────────┐
+│ Blueprint │ │ Blueprint │
+│   Auth    │ │   Blog    │
+└─────┬─────┘ └─────┬─────┘
+      │             │
+      ↓             ↓
+  ┌───────┐     ┌───────┐
+  │Routes │     │Routes │
+  │Views  │     │Views  │
+  └───────┘     └───────┘
+```
+
+### Application Structure with Blueprints
+
+```
+your_app/
+    ├── app.py
+    ├── config.py
+    ├── requirements.txt
+    ├── blueprints/
+    │   ├── __init__.py
+    │   ├── auth/
+    │   │   ├── __init__.py
+    │   │   ├── routes.py
+    │   │   ├── forms.py
+    │   │   └── templates/
+    │   │       └── auth/
+    │   │           ├── login.html
+    │   │           └── register.html
+    │   └── blog/
+    │       ├── __init__.py
+    │       ├── routes.py
+    │       ├── models.py
+    │       └── templates/
+    │           └── blog/
+    │               ├── index.html
+    │               └── post.html
+    ├── static/
+    └── templates/
+        └── base.html
+```
+
 ### Create a Blueprint
 
 ```python
+# blueprints/auth/__init__.py
 from flask import Blueprint
 
-main = Blueprint('main', __name__)
+auth_bp = Blueprint(
+    'auth',
+    __name__,
+    url_prefix='/auth',                    # All routes prefixed with /auth
+    template_folder='templates',            # Blueprint-specific templates
+    static_folder='static'                  # Blueprint-specific static files
+)
 
-@main.route('/')
-def index():
-    return "Main Blueprint Index"
+from . import routes
+
+# blueprints/auth/routes.py
+from flask import render_template, redirect, url_for, flash, request
+from . import auth_bp
+
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Handle login
+        return redirect(url_for('auth.dashboard'))
+    return render_template('auth/login.html')
+
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        # Handle registration
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html')
+
+@auth_bp.route('/logout')
+def logout():
+    # Handle logout
+    return redirect(url_for('main.index'))
+
+@auth_bp.route('/dashboard')
+def dashboard():
+    return render_template('auth/dashboard.html')
 ```
 
-### Register a Blueprint
+### Register Blueprints
 
 ```python
+# app.py
 from flask import Flask
-from yourapp.main import main
+from blueprints.auth import auth_bp
+from blueprints.blog import blog_bp
 
 app = Flask(__name__)
-app.register_blueprint(main)
+app.config['SECRET_KEY'] = 'your-secret-key'
+
+# Register blueprints
+app.register_blueprint(auth_bp)              # Prefix: /auth
+app.register_blueprint(blog_bp)              # Prefix: /blog
+
+# Register with custom URL prefix
+app.register_blueprint(auth_bp, url_prefix='/authentication')
+
+# Register at root level
+app.register_blueprint(blog_bp, url_prefix='/')
+
+@app.route('/')
+def index():
+    return "Main Index"
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### Blueprint with Error Handlers
+
+```python
+# blueprints/blog/__init__.py
+from flask import Blueprint, render_template
+
+blog_bp = Blueprint('blog', __name__, url_prefix='/blog')
+
+@blog_bp.errorhandler(404)
+def blog_not_found(e):
+    return render_template('blog/404.html'), 404
+
+@blog_bp.errorhandler(500)
+def blog_error(e):
+    return render_template('blog/500.html'), 500
+
+from . import routes
+```
+
+### Blueprint with Before/After Request Hooks
+
+```python
+# blueprints/auth/routes.py
+from flask import g, session
+from . import auth_bp
+
+@auth_bp.before_request
+def before_request():
+    """Runs before each request to this blueprint"""
+    g.user = session.get('user')
+
+@auth_bp.after_request
+def after_request(response):
+    """Runs after each request to this blueprint"""
+    response.headers['X-Blueprint'] = 'auth'
+    return response
+
+@auth_bp.teardown_request
+def teardown_request(exception):
+    """Runs after each request, even if there's an exception"""
+    if exception:
+        # Log the exception
+        print(f"Exception: {exception}")
+```
+
+### URL Generation with Blueprints
+
+```python
+from flask import url_for
+
+# Within the same blueprint
+url_for('login')                    # Relative to current blueprint
+url_for('.login')                   # Explicitly relative
+
+# From different blueprint
+url_for('auth.login')               # Fully qualified
+url_for('blog.index')               # Different blueprint
+
+# With parameters
+url_for('blog.post', post_id=123)   # /blog/post/123
+
+# External URLs
+url_for('auth.login', _external=True)  # http://example.com/auth/login
 ```
 
 ## Flask Extensions
@@ -522,40 +1375,101 @@ Configuration:
 ```python
 from flask import Flask
 from flask_mail import Mail, Message
+import os
 
 app = Flask(__name__)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
+
+# Email configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your_password'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+
 mail = Mail(app)
 ```
 
 Sending Emails:
 
 ```python
-from flask import Flask, render_template
-from flask_mail import Mail, Message
+from flask import render_template
+from flask_mail import Message
+from threading import Thread
 
-app = Flask(__name__)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your_password'
-mail = Mail(app)
-
-@app.route('/send')
-def send_email():
-    msg = Message("Hello",
-                  sender="your_email@gmail.com",
-                  recipients=["recipient@example.com"])
-    msg.body = "Hello Flask message sent from Flask-Mail"
+# Simple text email
+@app.route('/send-simple')
+def send_simple_email():
+    msg = Message(
+        subject="Test Email",
+        sender="noreply@example.com",
+        recipients=["user@example.com"]
+    )
+    msg.body = "This is a plain text email body"
     mail.send(msg)
-    return "Sent"
+    return "Email sent!"
+
+# HTML email
+@app.route('/send-html')
+def send_html_email():
+    msg = Message(
+        subject="Welcome!",
+        recipients=["user@example.com"]
+    )
+    msg.body = "This is the plain text fallback"
+    msg.html = render_template('email/welcome.html', username='John')
+    mail.send(msg)
+    return "HTML email sent!"
+
+# Email with attachment
+@app.route('/send-attachment')
+def send_attachment_email():
+    msg = Message(
+        subject="Document Attached",
+        recipients=["user@example.com"]
+    )
+    msg.body = "Please find the attached document."
+    
+    with app.open_resource("document.pdf") as fp:
+        msg.attach("document.pdf", "application/pdf", fp.read())
+    
+    mail.send(msg)
+    return "Email with attachment sent!"
+
+# Async email sending
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+@app.route('/send-async')
+def send_async():
+    msg = Message(
+        subject="Async Email",
+        recipients=["user@example.com"],
+        body="This email is sent asynchronously"
+    )
+    Thread(target=send_async_email, args=(app, msg)).start()
+    return "Email is being sent in background!"
+
+# Bulk emails
+@app.route('/send-bulk')
+def send_bulk_emails():
+    users = [
+        {'email': 'user1@example.com', 'name': 'Alice'},
+        {'email': 'user2@example.com', 'name': 'Bob'}
+    ]
+    
+    with mail.connect() as conn:
+        for user in users:
+            msg = Message(
+                subject="Bulk Email",
+                recipients=[user['email']],
+                body=f"Hello {user['name']}!"
+            )
+            conn.send(msg)
+    
+    return "Bulk emails sent!"
 ```
 
 ### Flask-Migrate
@@ -596,6 +1510,39 @@ Installation:
 pip install flask-login
 ```
 
+Authentication Flow:
+
+```
+    ┌──────────────┐
+    │ User Login   │
+    │ Submit Form  │
+    └──────┬───────┘
+           │
+           ↓
+    ┌──────────────┐
+    │  Validate    │
+    │  Credentials │
+    └──────┬───────┘
+           │
+      ┌────┴────┐
+      │         │
+   (Valid)  (Invalid)
+      │         │
+      ↓         ↓
+┌──────────┐ ┌──────────┐
+│login_user│ │  Show    │
+│Session   │ │  Error   │
+│Created   │ └──────────┘
+└────┬─────┘
+     │
+     ↓
+┌──────────────┐
+│  Access      │
+│  Protected   │
+│  Routes      │
+└──────────────┘
+```
+
 Configuration:
 
 ```python
@@ -603,40 +1550,130 @@ from flask import Flask
 from flask_login import LoginManager
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'  # Specify the login view
+app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'          # Redirect unauthorized users
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = 'info'
 ```
 
 User Model:
 
 ```python
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    # ... other fields ...
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
+    is_active = db.Column(db.Boolean, default=True)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+    # UserMixin provides these methods:
+    # - is_authenticated
+    # - is_active
+    # - is_anonymous
+    # - get_id()
 ```
 
-User Loader Callback:
+User Loader:
 
 ```python
-from yourapp import login_manager, User
+from flask_login import login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# Optional: handle invalid users
+@login_manager.unauthorized_handler
+def unauthorized():
+    return "You must be logged in to access this page", 403
 ```
 
-Protecting Views:
+Login/Logout Views:
 
 ```python
-from flask_login import login_required
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_user, logout_user, login_required, current_user
 
-@app.route('/protected')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        remember = request.form.get('remember', False)
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            login_user(user, remember=remember)
+            
+            # Redirect to next page or dashboard
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password', 'danger')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
 @login_required
-def protected():
-    return "Protected View"
+def logout():
+    logout_user()
+    flash('You have been logged out', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html', user=current_user)
+
+# Protect specific routes
+@app.route('/admin')
+@login_required
+def admin():
+    if not current_user.is_admin:
+        flash('Access denied', 'danger')
+        return redirect(url_for('index'))
+    return render_template('admin.html')
+```
+
+Using current_user:
+
+```python
+from flask_login import current_user
+
+@app.route('/profile')
+@login_required
+def profile():
+    # Access current logged-in user
+    username = current_user.username
+    email = current_user.email
+    is_authenticated = current_user.is_authenticated
+    
+    return render_template('profile.html', user=current_user)
+
+# In templates:
+# {% if current_user.is_authenticated %}
+#     <p>Welcome, {{ current_user.username }}!</p>
+#     <a href="{{ url_for('logout') }}">Logout</a>
+# {% else %}
+#     <a href="{{ url_for('login') }}">Login</a>
+# {% endif %}
 ```
 
 ## Testing

@@ -10,6 +10,39 @@ description: A comprehensive reference guide for Django, covering commands, mode
 
 This cheat sheet provides an exhaustive overview of the Django web framework, covering essential commands, concepts, and code snippets for efficient Django development. It aims to be a one-stop reference for common tasks and best practices.
 
+## Django Architecture Overview
+
+### MTV Pattern (Model-Template-View)
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                       Django Request-Response Cycle                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌────────────┐
+│ Browser  │→→│ URL Conf │→→│ View     │→→│ Model    │→→│ Database   │
+│ (Client) │   │ (urls.py)│   │ (views)  │   │ (ORM)    │   │            │
+└──────────┘   └──────────┘   └────┬─────┘   └────┬─────┘   └────────────┘
+      ↑                            │              │
+      │                            ↓              ↓
+      │                       ┌──────────┐   ┌────────────┐
+      │                       │ Template │←──│ QuerySet   │
+      │                       │ (.html)  │   │ (data)     │
+      │                       └────┬─────┘   └────────────┘
+      │                            │
+      └────────────────────────────┘
+                   HTML Response
+
+Flow:
+1. Browser sends HTTP request
+2. URL dispatcher matches URL pattern → calls View
+3. View queries Model (ORM) → Database
+4. Database returns data as QuerySet
+5. View passes data to Template
+6. Template renders HTML
+7. View returns HTTP response to Browser
+```
+
 ## Getting Started
 
 ### Installation
@@ -109,6 +142,78 @@ class MyModel(models.Model):
 *   `unique_together`: Defines a set of fields that, taken together, must be unique.
 *   `index_together`: Defines a set of fields that should be indexed together.
 *   `get_latest_by`: Specifies a field to use for retrieving the "latest" object.
+
+### ORM Query Flow
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│                      Django ORM Query Execution                    │
+└────────────────────────────────────────────────────────────────────┘
+
+┌──────────────┐
+│ Model Class  │  MyModel.objects.filter(is_active=True)
+│ (MyModel)    │
+└──────┬───────┘
+       │
+       ↓
+┌──────────────────┐
+│ Manager          │  Default: objects = models.Manager()
+│ (.objects)       │  Custom: active_objects = ActiveManager()
+└────────┬─────────┘
+         │
+         ↓
+┌─────────────────────────────────────┐
+│ QuerySet                            │  Lazy evaluation - not executed yet
+│ .filter() .exclude() .order_by()    │  Chainable methods
+│ .values() .annotate() .aggregate()  │
+└────────┬────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────┐
+│ Evaluation Trigger                  │  Query executes when:
+│ • list(qs) / for item in qs        │  - Iterating
+│ • qs[0] / qs[:10]                  │  - Slicing
+│ • len(qs) / bool(qs)               │  - Len/bool check
+│ • qs.count() / .exists()           │  - Aggregation
+└────────┬────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────┐
+│ SQL Query Generation                │  QuerySet → SQL translation
+│ SELECT * FROM myapp_mymodel         │  ORM builds SQL statement
+│ WHERE is_active = TRUE;             │
+└────────┬────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────┐
+│ Database Execution                  │  PostgreSQL / MySQL / SQLite
+│ (via database adapter)              │  DB executes query
+└────────┬────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────┐
+│ Result Set (raw data)               │  Raw database rows
+│ [(1, 'Item1', True), ...]           │  Tuples/dictionaries
+└────────┬────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────┐
+│ Python Objects                      │  Model instances
+│ [<MyModel: Item1>, ...]             │  Full object with methods
+└─────────────────────────────────────┘
+
+QuerySet Caching:
+• First evaluation: Query executed, results cached
+• Subsequent access: Returns cached results
+• Slicing with step doesn't cache: qs[::2]
+
+Common Patterns:
+MyModel.objects.all()              → SELECT * FROM myapp_mymodel
+MyModel.objects.get(pk=1)          → SELECT * ... WHERE id = 1 LIMIT 1
+MyModel.objects.filter(name='x')   → SELECT * ... WHERE name = 'x'
+MyModel.objects.exclude(is_active=False) → SELECT * ... WHERE NOT is_active = FALSE
+MyModel.objects.values('name')     → SELECT name FROM myapp_mymodel
+```
 
 ### Querying the Database
 
@@ -544,6 +649,72 @@ def my_model_form_view(request):
     return render(request, 'myapp/mymodel_form.html', {'form': form})
 ```
 
+### Form Processing Flow
+
+```text
+┌──────────────┐
+│ HTTP Request │
+└──────┬───────┘
+       │
+       ↓
+┌────────────────────────┐
+│ request.method == ?    │
+└──────┬─────────┬───────┘
+       │         │
+   GET │         │ POST
+       │         │
+       ↓         ↓
+┌─────────┐  ┌──────────────────┐
+│ Create  │  │ Create form with │
+│ empty   │  │ request.POST     │
+│ form    │  │ & request.FILES  │
+└────┬────┘  └────────┬─────────┘
+     │                │
+     │                ↓
+     │        ┌───────────────┐
+     │        │ form.is_valid │
+     │        │    check      │
+     │        └────┬──────┬───┘
+     │             │      │
+     │         YES │      │ NO
+     │             │      │
+     │             ↓      ↓
+     │      ┌─────────────────┐  ┌────────────────┐
+     │      │ Access cleaned  │  │ Form with      │
+     │      │ data & process  │  │ errors         │
+     │      └────────┬────────┘  └──────┬─────────┘
+     │               │                  │
+     │               ↓                  │
+     │      ┌─────────────────┐        │
+     │      │ Save to DB or   │        │
+     │      │ send email      │        │
+     │      └────────┬────────┘        │
+     │               │                  │
+     │               ↓                  │
+     │      ┌─────────────────┐        │
+     │      │ redirect() to   │        │
+     │      │ success page    │        │
+     │      └─────────────────┘        │
+     │                                  │
+     └──────────────┬───────────────────┘
+                    ↓
+           ┌─────────────────┐
+           │ render() form   │
+           │ template        │
+           └────────┬────────┘
+                    ↓
+           ┌─────────────────┐
+           │  HTTP Response  │
+           └─────────────────┘
+
+Key Points:
+• GET: Display empty or pre-filled form
+• POST: Validate and process submitted data
+• Always use {% csrf_token %} in templates
+• Use cleaned_data only after is_valid() returns True
+• Follow Post/Redirect/Get pattern to prevent duplicate submissions
+```
+
 ## Admin Interface
 
 ### Register a Model (admin.py)
@@ -679,6 +850,53 @@ MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware', # Add for caching
     'django.middleware.cache.FetchFromCacheMiddleware', # Add for caching
 ]
+```
+
+**Middleware Pipeline Flow:**
+
+```text
+HTTP Request
+     │
+     ↓
+┌────────────────────────────┐
+│ SecurityMiddleware         │ ← HTTPS redirect, security headers
+├────────────────────────────┤
+│ SessionMiddleware          │ ← Load session data
+├────────────────────────────┤
+│ CommonMiddleware           │ ← URL normalization, user-agent handling
+├────────────────────────────┤
+│ CsrfViewMiddleware         │ ← CSRF token validation
+├────────────────────────────┤
+│ AuthenticationMiddleware   │ ← Add request.user
+├────────────────────────────┤
+│ MessageMiddleware          │ ← Flash messages
+├────────────────────────────┤
+│ XFrameOptionsMiddleware    │ ← Clickjacking protection
+└────────────┬───────────────┘
+             ↓
+        ┌─────────┐
+        │  View   │ ← Process request
+        └────┬────┘
+             ↓
+┌────────────────────────────┐
+│ XFrameOptionsMiddleware    │ ← Add X-Frame-Options header
+├────────────────────────────┤
+│ MessageMiddleware          │ ← Process messages
+├────────────────────────────┤
+│ AuthenticationMiddleware   │ ← (No response processing)
+├────────────────────────────┤
+│ CsrfViewMiddleware         │ ← Add CSRF token to response
+├────────────────────────────┤
+│ CommonMiddleware           │ ← Add Content-Length, ETags
+├────────────────────────────┤
+│ SessionMiddleware          │ ← Save session data
+├────────────────────────────┤
+│ SecurityMiddleware         │ ← Add security headers
+└────────────┬───────────────┘
+             ↓
+       HTTP Response
+
+Note: Middleware processes request top-down, response bottom-up
 ```
 
 ### Caching Configuration
@@ -869,9 +1087,155 @@ Use `django-security` or similar package to set security headers.
 
 ### Authentication
 
-Use Django's built-in authentication
+#### Authentication Flow
+
+```text
+┌───────────────────────────────────────────────────────────────────┐
+│                   Django Authentication Flow                      │
+└───────────────────────────────────────────────────────────────────┘
+
+Login Request (POST /login/)
+     │
+     ↓
+┌─────────────────────────────────────┐
+│ authenticate(username, password)    │  Check credentials
+└────────┬───────────────┬────────────┘
+         │               │
+    Valid│               │Invalid
+         ↓               ↓
+┌─────────────────┐  ┌─────────────────────┐
+│ Return User     │  │ Return None         │
+│ object          │  │                     │
+└────┬────────────┘  └────┬────────────────┘
+     │                    │
+     ↓                    ↓
+┌─────────────────┐  ┌─────────────────────┐
+│ login(request,  │  │ Show error message  │
+│ user)           │  │ "Invalid login"     │
+└────┬────────────┘  └─────────────────────┘
+     │
+     ↓
+┌──────────────────────────────────────┐
+│ Create Session                       │  Session framework
+│ • Generate session_key               │
+│ • Store in database/cache            │
+│ • Set cookie: sessionid=abc123       │
+└────┬─────────────────────────────────┘
+     │
+     ↓
+┌──────────────────────────────────────┐
+│ Redirect to success page             │
+└──────────────────────────────────────┘
+
+
+Protected View Request (GET /dashboard/)
+     │
+     ↓
+┌──────────────────────────────────────┐
+│ AuthenticationMiddleware             │  Runs on every request
+└────┬─────────────────────────────────┘
+     │
+     ↓
+┌──────────────────────────────────────┐
+│ Read sessionid cookie                │
+└────┬─────────────────────────────────┘
+     │
+     ↓
+┌──────────────────────────────────────┐
+│ Load session from backend            │  Database/cache lookup
+└────┬──────────────┬──────────────────┘
+     │              │
+ Found│              │Not Found / Expired
+     │              │
+     ↓              ↓
+┌─────────────┐  ┌──────────────────────┐
+│ Get user_id │  │ request.user =       │
+│ from session│  │ AnonymousUser()      │
+└──┬──────────┘  └──────────────────────┘
+   │
+   ↓
+┌─────────────────────────────┐
+│ Load User from database     │
+│ request.user = User object  │
+└──┬──────────────────────────┘
+   │
+   ↓
+┌─────────────────────────────────────┐
+│ View with @login_required           │
+└───┬─────────────────┬───────────────┘
+    │                 │
+Authenticated         │Not Authenticated
+    │                 │
+    ↓                 ↓
+┌─────────────┐  ┌──────────────────────┐
+│ Execute     │  │ Redirect to          │
+│ view code   │  │ /accounts/login/     │
+│             │  │ ?next=/dashboard/    │
+└─────────────┘  └──────────────────────┘
+
+Permission Check Flow:
+┌──────────────────────────────────────┐
+│ @permission_required('app.perm')     │
+└────┬─────────────────────────────────┘
+     │
+     ↓
+┌──────────────────────────────────────┐
+│ request.user.has_perm('app.perm')    │
+└────┬──────────────┬──────────────────┘
+     │              │
+   True│            │False
+     │              │
+     ↓              ↓
+┌─────────────┐  ┌──────────────────────┐
+│ Execute     │  │ PermissionDenied     │
+│ view        │  │ (403 Forbidden)      │
+└─────────────┘  └──────────────────────┘
+
+Key Components:
+• authenticate(): Verify credentials against backend
+• login(): Create session and set cookie
+• logout(): Delete session and clear cookie
+• @login_required: Decorator for protected views
+• request.user: Current user (User or AnonymousUser)
+• has_perm(): Check user permissions
+```
+
+Use Django's built-in authentication system:
+
 ```python
-import TestCase
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+
+# Login a user
+def login_view(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        # Redirect to a success page
+    else:
+        # Return an 'invalid login' error message
+        pass
+
+# Logout a user
+def logout_view(request):
+    logout(request)
+    # Redirect to a success page
+
+# Require login for a view
+@login_required
+def my_protected_view(request):
+    # This view requires authentication
+    return render(request, 'myapp/protected.html')
+```
+
+## Testing
+
+### Unit Tests
+
+```python
+from django.test import TestCase
 from .models import MyModel
 
 class MyModelTest(TestCase):
@@ -1298,6 +1662,7 @@ def my_view(request):
     logger.info("My view was accessed")
     try:
         # ... some code that might raise an exception ...
+        pass
     except Exception as e:
         logger.exception("An error occurred")
 ```
@@ -1470,6 +1835,365 @@ if settings.DEBUG:
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
     ]
+```
+
+## Common Patterns
+
+### Pagination
+
+```python
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import render
+from .models import MyModel
+
+def paginated_list_view(request):
+    items = MyModel.objects.all().order_by('-created_at')
+    paginator = Paginator(items, 25)  # Show 25 items per page
+
+    page = request.GET.get('page')
+    try:
+        paginated_items = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        paginated_items = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page
+        paginated_items = paginator.page(paginator.num_pages)
+
+    return render(request, 'myapp/list.html', {'items': paginated_items})
+```
+
+Template for pagination:
+
+```html
+<div class="pagination">
+    <span class="step-links">
+        {% if items.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ items.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ items.number }} of {{ items.paginator.num_pages }}
+        </span>
+
+        {% if items.has_next %}
+            <a href="?page={{ items.next_page_number }}">next</a>
+            <a href="?page={{ items.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+```
+
+With class-based views:
+
+```python
+from django.views.generic import ListView
+
+class MyModelListView(ListView):
+    model = MyModel
+    paginate_by = 25
+    template_name = 'myapp/list.html'
+    context_object_name = 'items'
+    ordering = ['-created_at']
+```
+
+### Custom User Model
+
+Using `AbstractUser` (extends default User):
+
+```python
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class CustomUser(AbstractUser):
+    # Add custom fields
+    bio = models.TextField(max_length=500, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    phone_number = models.CharField(max_length=15, blank=True)
+
+    def __str__(self):
+        return self.username
+```
+
+Using `AbstractBaseUser` (complete custom user):
+
+```python
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.db import models
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+    def __str__(self):
+        return self.email
+```
+
+In `settings.py`:
+
+```python
+AUTH_USER_MODEL = 'myapp.CustomUser'
+```
+
+### AJAX Patterns
+
+JSON response view:
+
+```python
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from .models import MyModel
+
+@require_http_methods(["POST"])
+def ajax_create_item(request):
+    try:
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+
+        item = MyModel.objects.create(name=name, description=description)
+
+        return JsonResponse({
+            'success': True,
+            'id': item.id,
+            'name': item.name,
+            'message': 'Item created successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@require_http_methods(["GET"])
+def ajax_get_items(request):
+    items = MyModel.objects.filter(is_active=True).values('id', 'name', 'description')
+    return JsonResponse({'items': list(items)})
+```
+
+JavaScript (using Fetch API):
+
+```html
+<script>
+// POST request
+fetch('/ajax/create-item/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: new URLSearchParams({
+        'name': 'New Item',
+        'description': 'Item description'
+    })
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success) {
+        console.log('Item created:', data.id);
+    } else {
+        console.error('Error:', data.error);
+    }
+});
+
+// GET request
+fetch('/ajax/get-items/')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Items:', data.items);
+    });
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+```
+
+### Custom Model Managers
+
+```python
+from django.db import models
+
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        from django.utils import timezone
+        return super().get_queryset().filter(
+            is_active=True,
+            published_date__lte=timezone.now()
+        )
+
+class MyModel(models.Model):
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    published_date = models.DateTimeField(null=True, blank=True)
+
+    # Default manager (used for admin, migrations)
+    objects = models.Manager()
+
+    # Custom managers
+    active = ActiveManager()
+    published = PublishedManager()
+
+    def __str__(self):
+        return self.name
+
+# Usage:
+all_items = MyModel.objects.all()  # All items
+active_items = MyModel.active.all()  # Only active items
+published_items = MyModel.published.all()  # Only published items
+```
+
+### Custom Template Tags and Filters
+
+Create `myapp/templatetags/myapp_tags.py`:
+
+```python
+from django import template
+from django.utils.safestring import mark_safe
+import markdown
+
+register = template.Library()
+
+# Simple tag
+@register.simple_tag
+def current_time(format_string):
+    from datetime import datetime
+    return datetime.now().strftime(format_string)
+
+# Inclusion tag (renders a template)
+@register.inclusion_tag('myapp/tags/show_results.html')
+def show_results(poll):
+    choices = poll.choice_set.all()
+    return {'choices': choices}
+
+# Filter
+@register.filter(name='multiply')
+def multiply(value, arg):
+    """Multiply the value by the arg"""
+    try:
+        return int(value) * int(arg)
+    except (ValueError, TypeError):
+        return ''
+
+# Filter with mark_safe (be careful with user input!)
+@register.filter(name='markdown_to_html')
+def markdown_to_html(text):
+    """Convert markdown to HTML"""
+    return mark_safe(markdown.markdown(text))
+
+# Assignment tag (stores result in variable)
+@register.simple_tag
+def get_item_count(category):
+    from .models import MyModel
+    return MyModel.objects.filter(category=category).count()
+```
+
+Usage in templates:
+
+```html
+{% load myapp_tags %}
+
+<!-- Simple tag -->
+<p>Current time: {% current_time "%Y-%m-%d %H:%M" %}</p>
+
+<!-- Inclusion tag -->
+{% show_results poll_object %}
+
+<!-- Filter -->
+<p>{{ 5|multiply:3 }}</p>  <!-- Outputs: 15 -->
+
+<!-- Markdown filter -->
+<div>{{ my_markdown_text|markdown_to_html }}</div>
+
+<!-- Assignment tag -->
+{% get_item_count 'electronics' as count %}
+<p>Total items: {{ count }}</p>
+```
+
+### File Upload with Progress
+
+Model:
+
+```python
+class Document(models.Model):
+    title = models.CharField(max_length=200)
+    uploaded_file = models.FileField(upload_to='documents/%Y/%m/%d/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+```
+
+Form:
+
+```python
+from django import forms
+from .models import Document
+
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['title', 'uploaded_file']
+        widgets = {
+            'uploaded_file': forms.FileInput(attrs={'accept': '.pdf,.doc,.docx'}),
+        }
+```
+
+View:
+
+```python
+from django.shortcuts import render, redirect
+from .forms import DocumentForm
+
+def upload_file(request):
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            document = form.save()
+            return redirect('document_detail', pk=document.pk)
+    else:
+        form = DocumentForm()
+    return render(request, 'myapp/upload.html', {'form': form})
 ```
 
 ## Tips and Best Practices

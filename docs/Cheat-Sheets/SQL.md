@@ -238,6 +238,92 @@ DELETE FROM table_name;
 
 ## Data Query Language (DQL)
 
+### SQL Query Execution Flow
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│                   SQL Query Execution Order                        │
+└────────────────────────────────────────────────────────────────────┘
+
+Written Order:                    Execution Order:
+┌─────────────────┐               ┌─────────────────┐
+│ 1. SELECT       │               │ 1. FROM         │
+│ 2. FROM         │               │ 2. JOIN         │
+│ 3. JOIN         │               │ 3. WHERE        │
+│ 4. WHERE        │               │ 4. GROUP BY     │
+│ 5. GROUP BY     │               │ 5. HAVING       │
+│ 6. HAVING       │               │ 6. SELECT       │
+│ 7. ORDER BY     │               │ 7. DISTINCT     │
+│ 8. LIMIT/OFFSET │               │ 8. ORDER BY     │
+└─────────────────┘               │ 9. LIMIT/OFFSET │
+                                  └─────────────────┘
+
+Detailed Execution Flow:
+
+1. FROM & JOIN
+   ┌──────────────────────────────────────┐
+   │ Load tables and create Cartesian     │
+   │ product, then apply JOIN conditions  │
+   └────────────┬─────────────────────────┘
+                ↓
+2. WHERE
+   ┌──────────────────────────────────────┐
+   │ Filter rows based on conditions      │
+   │ (before grouping)                    │
+   └────────────┬─────────────────────────┘
+                ↓
+3. GROUP BY
+   ┌──────────────────────────────────────┐
+   │ Group rows by specified columns      │
+   └────────────┬─────────────────────────┘
+                ↓
+4. HAVING
+   ┌──────────────────────────────────────┐
+   │ Filter groups based on aggregate     │
+   │ conditions (after grouping)          │
+   └────────────┬─────────────────────────┘
+                ↓
+5. SELECT
+   ┌──────────────────────────────────────┐
+   │ Evaluate expressions and select      │
+   │ columns (aggregate functions here)   │
+   └────────────┬─────────────────────────┘
+                ↓
+6. DISTINCT
+   ┌──────────────────────────────────────┐
+   │ Remove duplicate rows if specified   │
+   └────────────┬─────────────────────────┘
+                ↓
+7. ORDER BY
+   ┌──────────────────────────────────────┐
+   │ Sort the result set                  │
+   └────────────┬─────────────────────────┘
+                ↓
+8. LIMIT/OFFSET
+   ┌──────────────────────────────────────┐
+   │ Restrict number of rows returned     │
+   └────────────┬─────────────────────────┘
+                ↓
+        ┌───────────────┐
+        │ Final Result  │
+        └───────────────┘
+
+Example Query Breakdown:
+SELECT department, AVG(salary) as avg_sal      -- Step 6: Select & aggregate
+FROM employees                                  -- Step 1: Load table
+WHERE hire_date > '2020-01-01'                 -- Step 3: Filter rows
+GROUP BY department                             -- Step 4: Group by dept
+HAVING AVG(salary) > 50000                     -- Step 5: Filter groups
+ORDER BY avg_sal DESC                          -- Step 7: Sort results
+LIMIT 10;                                      -- Step 8: Limit output
+
+Key Points:
+• WHERE filters individual rows (before aggregation)
+• HAVING filters groups (after aggregation)
+• Cannot use column aliases from SELECT in WHERE (not executed yet)
+• Can use column aliases from SELECT in ORDER BY (executed after SELECT)
+```
+
 ### SELECT
 
 ```sql
@@ -331,6 +417,108 @@ Visualise joins:
     ![Image not found, use the link below](../assets/img/sqlJoinsSummary.png){ width="100%" }
     <figcaption>https://www.atlassian.com/data/sql/sql-join-types-explained-visually</figcaption>
 </figure>
+
+### Join Types Visual Guide
+
+```text
+Sample Tables:
+employees (Table A)          departments (Table B)
+┌────┬───────┬────────┐     ┌────┬────────────┐
+│ id │ name  │ dept_id│     │ id │ dept_name  │
+├────┼───────┼────────┤     ├────┼────────────┤
+│ 1  │ Alice │   10   │     │ 10 │ Sales      │
+│ 2  │ Bob   │   20   │     │ 20 │ Marketing  │
+│ 3  │ Carol │   10   │     │ 30 │ IT         │
+│ 4  │ David │  NULL  │     └────┴────────────┘
+└────┴───────┴────────┘
+
+
+INNER JOIN (Intersection only)
+┌─────────┐
+│    A    │
+│  ┌───┐  │    Returns only matching rows from both tables
+│  │ ∩ │  │    Result: Alice(Sales), Bob(Marketing), Carol(Sales)
+│  └───┘  │    Excludes: David (no dept), IT dept (no employees)
+│    B    │
+└─────────┘
+SQL: SELECT * FROM employees e INNER JOIN departments d ON e.dept_id = d.id;
+
+
+LEFT JOIN / LEFT OUTER JOIN (All from A + matching from B)
+┌─────────┐
+│████ A ██│
+│██┌───┐██│    Returns all rows from LEFT table + matching from right
+│██│ ∩ │  │    Result: Alice(Sales), Bob(Marketing), Carol(Sales), David(NULL)
+│██└───┘  │    David has NULL for dept_name
+│    B    │
+└─────────┘
+SQL: SELECT * FROM employees e LEFT JOIN departments d ON e.dept_id = d.id;
+
+
+RIGHT JOIN / RIGHT OUTER JOIN (All from B + matching from A)
+┌─────────┐
+│    A    │
+│  ┌───┐██│    Returns all rows from RIGHT table + matching from left
+│  │ ∩ │██│    Result: Alice(Sales), Bob(Marketing), Carol(Sales), NULL(IT)
+│  └───┘██│    IT dept has NULL for employee name
+│████ B ██│
+└─────────┘
+SQL: SELECT * FROM employees e RIGHT JOIN departments d ON e.dept_id = d.id;
+
+
+FULL OUTER JOIN (All from both tables)
+┌─────────┐
+│████ A ██│
+│██┌───┐██│    Returns all rows from both tables
+│██│ ∩ │██│    Result: Alice(Sales), Bob(Marketing), Carol(Sales),
+│██└───┘██│             David(NULL), NULL(IT)
+│████ B ██│    Unmatched rows have NULL for missing side
+└─────────┘
+SQL: SELECT * FROM employees e FULL OUTER JOIN departments d ON e.dept_id = d.id;
+
+
+LEFT JOIN - Exclusive (Only from A, not in B)
+┌─────────┐
+│████ A   │
+│  ┌───┐  │    Returns rows from LEFT table with NO match in right
+│  │   │  │    Result: David (no department assigned)
+│  └───┘  │    Use: WHERE d.id IS NULL
+│    B    │
+└─────────┘
+SQL: SELECT * FROM employees e LEFT JOIN departments d ON e.dept_id = d.id
+     WHERE d.id IS NULL;
+
+
+RIGHT JOIN - Exclusive (Only from B, not in A)
+┌─────────┐
+│    A    │
+│  ┌───┐  │    Returns rows from RIGHT table with NO match in left
+│  │   │  │    Result: IT department (no employees)
+│  └───┘  │    Use: WHERE e.id IS NULL
+│   ████ B│
+└─────────┘
+SQL: SELECT * FROM employees e RIGHT JOIN departments d ON e.dept_id = d.id
+     WHERE e.id IS NULL;
+
+
+CROSS JOIN (Cartesian Product)
+┌─────────┐
+│ A  ×  B │    Every row from A paired with every row from B
+│         │    Result: 4 employees × 3 departments = 12 rows
+│  All    │    Use: Generating combinations
+│  Pairs  │
+└─────────┘
+SQL: SELECT * FROM employees CROSS JOIN departments;
+
+
+SELF JOIN (Table joins with itself)
+    employees e1          employees e2
+    (employees)    JOIN   (managers)
+
+    Used for hierarchical data (e.g., employee-manager relationships)
+SQL: SELECT e1.name as employee, e2.name as manager
+     FROM employees e1 JOIN employees e2 ON e1.manager_id = e2.id;
+```
 
 ### INNER JOIN
 
@@ -477,6 +665,131 @@ JOIN employee_summary es ON d.id = es.department_id;
 
 ## Window Functions
 
+### Window Functions Visual Example
+
+```text
+Sample Data:
+┌─────┬────────────┬────────┬────────┐
+│ id  │ department │ name   │ salary │
+├─────┼────────────┼────────┼────────┤
+│ 1   │ Sales      │ Alice  │ 70000  │
+│ 2   │ Sales      │ Bob    │ 65000  │
+│ 3   │ Sales      │ Carol  │ 80000  │
+│ 4   │ IT         │ David  │ 90000  │
+│ 5   │ IT         │ Eve    │ 85000  │
+│ 6   │ IT         │ Frank  │ 75000  │
+└─────┴────────────┴────────┴────────┘
+
+
+ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC)
+    → Assigns unique sequential number within each partition
+
+┌────────────┬────────┬────────┬────────────┐
+│ department │ name   │ salary │ row_number │
+├────────────┼────────┼────────┼────────────┤
+│ Sales      │ Carol  │ 80000  │     1      │  ← Highest in Sales
+│ Sales      │ Alice  │ 70000  │     2      │
+│ Sales      │ Bob    │ 65000  │     3      │  ← Lowest in Sales
+├────────────┼────────┼────────┼────────────┤
+│ IT         │ David  │ 90000  │     1      │  ← Highest in IT (resets)
+│ IT         │ Eve    │ 85000  │     2      │
+│ IT         │ Frank  │ 75000  │     3      │  ← Lowest in IT
+└────────────┴────────┴────────┴────────────┘
+Partitions reset numbering
+Use: Get top N per group (WHERE row_number <= N)
+
+
+RANK() vs DENSE_RANK() - Handling Ties
+
+Sample with ties:
+┌────────┬────────┐
+│ name   │ score  │
+├────────┼────────┤
+│ Alice  │ 95     │
+│ Bob    │ 90     │
+│ Carol  │ 90     │  ← Tie
+│ David  │ 85     │
+│ Eve    │ 80     │
+└────────┴────────┘
+
+RANK() OVER (ORDER BY score DESC)  →  Gaps after ties
+┌────────┬────────┬──────┐
+│ name   │ score  │ rank │
+├────────┼────────┼──────┤
+│ Alice  │ 95     │  1   │
+│ Bob    │ 90     │  2   │
+│ Carol  │ 90     │  2   │  ← Tied for 2nd
+│ David  │ 85     │  4   │  ← Gap! (skips 3)
+│ Eve    │ 80     │  5   │
+└────────┴────────┴──────┘
+
+DENSE_RANK() OVER (ORDER BY score DESC)  →  No gaps
+┌────────┬────────┬────────────┐
+│ name   │ score  │ dense_rank │
+├────────┼────────┼────────────┤
+│ Alice  │ 95     │     1      │
+│ Bob    │ 90     │     2      │
+│ Carol  │ 90     │     2      │  ← Tied for 2nd
+│ David  │ 85     │     3      │  ← No gap
+│ Eve    │ 80     │     4      │
+└────────┴────────┴────────────┘
+
+
+LAG() and LEAD() - Access Adjacent Rows
+
+LAG(salary, 1) OVER (ORDER BY id)  →  Previous row value
+LEAD(salary, 1) OVER (ORDER BY id) →  Next row value
+
+┌─────┬────────┬─────────────┬──────────────┬───────────────┐
+│ id  │ salary │ lag(salary) │ lead(salary) │ salary_change │
+├─────┼────────┼─────────────┼──────────────┼───────────────┤
+│ 1   │ 70000  │    NULL     │   65000      │     N/A       │
+│ 2   │ 65000  │   70000     │   80000      │   -5000       │
+│ 3   │ 80000  │   65000     │   90000      │   +15000      │
+│ 4   │ 90000  │   80000     │   85000      │   +10000      │
+│ 5   │ 85000  │   90000     │   75000      │   -5000       │
+│ 6   │ 75000  │   85000     │    NULL      │   -10000      │
+└─────┴────────┴─────────────┴──────────────┴───────────────┘
+        salary_change = salary - LAG(salary)
+Use: Calculate differences, detect trends
+
+
+Running Total with SUM() OVER()
+
+SUM(salary) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+
+┌─────┬────────┬────────┬───────────────┐
+│ id  │ name   │ salary │ running_total │
+├─────┼────────┼────────┼───────────────┤
+│ 1   │ Alice  │ 70000  │    70000      │  ← 70000
+│ 2   │ Bob    │ 65000  │   135000      │  ← 70000 + 65000
+│ 3   │ Carol  │ 80000  │   215000      │  ← 135000 + 80000
+│ 4   │ David  │ 90000  │   305000      │  ← 215000 + 90000
+│ 5   │ Eve    │ 85000  │   390000      │  ← 305000 + 85000
+│ 6   │ Frank  │ 75000  │   465000      │  ← 390000 + 75000
+└─────┴────────┴────────┴───────────────┘
+Use: Cumulative sums, YTD calculations
+
+
+Moving Average (Last 3 rows)
+
+AVG(salary) OVER (ORDER BY id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)
+
+┌─────┬────────┬────────┬────────────────┐
+│ id  │ name   │ salary │ moving_avg_3   │
+├─────┼────────┼────────┼────────────────┤
+│ 1   │ Alice  │ 70000  │   70000.00     │  ← Only 1 row: 70000/1
+│ 2   │ Bob    │ 65000  │   67500.00     │  ← 2 rows: (70000+65000)/2
+│ 3   │ Carol  │ 80000  │   71666.67     │  ← 3 rows: (70+65+80)/3
+│ 4   │ David  │ 90000  │   78333.33     │  ← Last 3: (65+80+90)/3
+│ 5   │ Eve    │ 85000  │   85000.00     │  ← Last 3: (80+90+85)/3
+│ 6   │ Frank  │ 75000  │   83333.33     │  ← Last 3: (90+85+75)/3
+└─────┴────────┴────────┴────────────────┘
+Use: Smoothing data, trend analysis
+```
+
+### Basic Window Function Syntax
+
 ```sql
 SELECT
     first_name,
@@ -500,6 +813,136 @@ Common Window Functions:
 *   `NTH_VALUE(column, n)`: Returns the nth value in a window frame.
 
 ## Transaction Control Language (TCL)
+
+### Transaction Flow
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│                       Transaction Lifecycle                        │
+└────────────────────────────────────────────────────────────────────┘
+
+Normal Transaction (Success Path):
+┌──────────────────┐
+│ Auto-commit mode │  Default: Each statement commits immediately
+└────────┬─────────┘
+         │
+         ↓
+    ┌─────────────────────┐
+    │ BEGIN TRANSACTION   │  Start explicit transaction
+    └──────────┬──────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ UPDATE accounts          │  Changes held in memory
+    │ SET balance = balance-100│  Not yet visible to other
+    │ WHERE id = 1;            │  transactions
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ UPDATE accounts          │  Multiple operations can be
+    │ SET balance = balance+100│  grouped together
+    │ WHERE id = 2;            │
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ COMMIT                   │  ✅ All changes saved permanently
+    └──────────────────────────┘  Other transactions can now see changes
+
+
+Rollback Transaction (Error Path):
+    ┌─────────────────────┐
+    │ BEGIN TRANSACTION   │
+    └──────────┬──────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ UPDATE accounts          │  First operation succeeds
+    │ SET balance = balance-100│
+    │ WHERE id = 1;            │
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ UPDATE accounts          │  ❌ Error occurs!
+    │ SET balance = balance+100│  (e.g., constraint violation,
+    │ WHERE id = 999;          │   network error, etc.)
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ ROLLBACK                 │  🔄 All changes discarded
+    └──────────────────────────┘  Database returns to state before BEGIN
+
+
+Savepoint Transaction (Partial Rollback):
+    ┌─────────────────────┐
+    │ BEGIN TRANSACTION   │
+    └──────────┬──────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ INSERT INTO orders(...)  │  First operation
+    │ VALUES (...);            │
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ SAVEPOINT sp1            │  📌 Mark this point
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ INSERT INTO order_items  │  Second operation
+    │ VALUES (...);            │
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ SAVEPOINT sp2            │  📌 Mark another point
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ UPDATE inventory         │  ❌ Error occurs
+    │ SET quantity = -5;       │  (invalid negative qty)
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ ROLLBACK TO sp2          │  🔄 Undo only after sp2
+    └──────────┬───────────────┘  (orders and order_items remain)
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ UPDATE inventory         │  Retry with correct values
+    │ SET quantity = quantity-5│
+    └──────────┬───────────────┘
+               │
+               ↓
+    ┌──────────────────────────┐
+    │ COMMIT                   │  ✅ Save all changes
+    └──────────────────────────┘
+
+
+Transaction Isolation Levels:
+┌────────────────────────┬─────────────┬─────────────┬─────────────┐
+│ Isolation Level        │ Dirty Read  │ Non-repeat  │ Phantom     │
+│                        │             │ Read        │ Read        │
+├────────────────────────┼─────────────┼─────────────┼─────────────┤
+│ READ UNCOMMITTED       │   Possible  │   Possible  │   Possible  │
+│ READ COMMITTED         │   Prevented │   Possible  │   Possible  │
+│ REPEATABLE READ        │   Prevented │   Prevented │   Possible  │
+│ SERIALIZABLE           │   Prevented │   Prevented │   Prevented │
+└────────────────────────┴─────────────┴─────────────┴─────────────┘
+
+ACID Properties:
+• Atomicity:    All or nothing - entire transaction succeeds or fails
+• Consistency:  Database remains in valid state before/after transaction
+• Isolation:    Concurrent transactions don't interfere with each other
+• Durability:   Committed changes survive system crashes
+```
 
 ### START TRANSACTION (or BEGIN)
 
@@ -751,6 +1194,323 @@ ROLLBACK; -- Discard changes
 *   **Encryption:** Encrypt sensitive data at rest and in transit.
 *   **Auditing:** Enable auditing to track database activity.
 *   **SQL Injection Prevention:** Use parameterized queries or prepared statements to prevent SQL injection attacks.
+
+## Common Patterns
+
+### Pagination
+
+**Method 1: LIMIT/OFFSET (Simple but slow for large offsets)**
+```sql
+-- Page 1 (rows 1-10)
+SELECT * FROM products
+ORDER BY id
+LIMIT 10 OFFSET 0;
+
+-- Page 2 (rows 11-20)
+SELECT * FROM products
+ORDER BY id
+LIMIT 10 OFFSET 10;
+
+-- Page N (calculate offset)
+-- offset = (page_number - 1) * page_size
+SELECT * FROM products
+ORDER BY id
+LIMIT 10 OFFSET 20;  -- Page 3
+```
+
+**Method 2: Keyset Pagination (Faster for large datasets)**
+```sql
+-- First page
+SELECT * FROM products
+ORDER BY id
+LIMIT 10;
+
+-- Next page (using last id from previous page)
+SELECT * FROM products
+WHERE id > 10  -- Last id from previous page
+ORDER BY id
+LIMIT 10;
+
+-- Previous page
+SELECT * FROM products
+WHERE id < 50  -- First id from current page
+ORDER BY id DESC
+LIMIT 10;
+```
+
+**Method 3: ROW_NUMBER() for Complex Pagination**
+```sql
+WITH numbered_products AS (
+    SELECT *,
+           ROW_NUMBER() OVER (ORDER BY id) AS row_num
+    FROM products
+)
+SELECT * FROM numbered_products
+WHERE row_num BETWEEN 11 AND 20;  -- Page 2
+```
+
+### Upsert (Insert or Update)
+
+**MySQL: INSERT ... ON DUPLICATE KEY UPDATE**
+```sql
+INSERT INTO users (id, name, email, login_count)
+VALUES (1, 'Alice', 'alice@example.com', 1)
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    email = VALUES(email),
+    login_count = login_count + 1;
+```
+
+**PostgreSQL: INSERT ... ON CONFLICT**
+```sql
+INSERT INTO users (id, name, email, login_count)
+VALUES (1, 'Alice', 'alice@example.com', 1)
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    email = EXCLUDED.email,
+    login_count = users.login_count + 1;
+```
+
+**Standard SQL: MERGE (SQL Server, Oracle)**
+```sql
+MERGE INTO users AS target
+USING (SELECT 1 AS id, 'Alice' AS name, 'alice@example.com' AS email) AS source
+ON target.id = source.id
+WHEN MATCHED THEN
+    UPDATE SET name = source.name, email = source.email
+WHEN NOT MATCHED THEN
+    INSERT (id, name, email) VALUES (source.id, source.name, source.email);
+```
+
+### Recursive CTEs (Hierarchical Data)
+
+**Employee Hierarchy (Manager-Employee relationship)**
+```sql
+WITH RECURSIVE employee_hierarchy AS (
+    -- Anchor member: Start with top-level employees (no manager)
+    SELECT id, name, manager_id, 1 AS level, name AS path
+    FROM employees
+    WHERE manager_id IS NULL
+
+    UNION ALL
+
+    -- Recursive member: Join with employees table
+    SELECT e.id, e.name, e.manager_id,
+           eh.level + 1,
+           eh.path || ' > ' || e.name
+    FROM employees e
+    INNER JOIN employee_hierarchy eh ON e.manager_id = eh.id
+)
+SELECT * FROM employee_hierarchy
+ORDER BY level, name;
+```
+
+**Category Tree (Parent-Child relationship)**
+```sql
+WITH RECURSIVE category_tree AS (
+    -- Root categories
+    SELECT id, name, parent_id, 0 AS depth
+    FROM categories
+    WHERE parent_id IS NULL
+
+    UNION ALL
+
+    -- Child categories
+    SELECT c.id, c.name, c.parent_id, ct.depth + 1
+    FROM categories c
+    INNER JOIN category_tree ct ON c.parent_id = ct.id
+    WHERE ct.depth < 10  -- Prevent infinite loops
+)
+SELECT * FROM category_tree;
+```
+
+### Top N Per Group
+
+**Method 1: Using Window Functions (ROW_NUMBER)**
+```sql
+WITH ranked_employees AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rank
+    FROM employees
+)
+SELECT department_id, name, salary
+FROM ranked_employees
+WHERE rank <= 3;  -- Top 3 highest paid per department
+```
+
+**Method 2: Using Correlated Subquery**
+```sql
+SELECT e1.*
+FROM employees e1
+WHERE (
+    SELECT COUNT(*)
+    FROM employees e2
+    WHERE e2.department_id = e1.department_id
+      AND e2.salary >= e1.salary
+) <= 3;
+```
+
+### Finding Duplicates
+
+**Find Duplicate Rows**
+```sql
+-- Count duplicates
+SELECT email, COUNT(*) as count
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+-- Get all duplicate records
+SELECT u.*
+FROM users u
+INNER JOIN (
+    SELECT email
+    FROM users
+    GROUP BY email
+    HAVING COUNT(*) > 1
+) dupes ON u.email = dupes.email
+ORDER BY u.email, u.id;
+```
+
+**Delete Duplicates (Keep First Occurrence)**
+```sql
+-- Using ROW_NUMBER (PostgreSQL, SQL Server, MySQL 8.0+)
+DELETE FROM users
+WHERE id IN (
+    SELECT id
+    FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) AS rn
+        FROM users
+    ) t
+    WHERE rn > 1
+);
+
+-- Using Self-Join (Works in all databases)
+DELETE u1
+FROM users u1
+INNER JOIN users u2
+WHERE u1.email = u2.email
+  AND u1.id > u2.id;
+```
+
+### Pivot and Unpivot
+
+**Pivot: Rows to Columns**
+```sql
+-- Convert quarterly sales data from rows to columns
+SELECT
+    product_id,
+    MAX(CASE WHEN quarter = 'Q1' THEN sales END) AS Q1_sales,
+    MAX(CASE WHEN quarter = 'Q2' THEN sales END) AS Q2_sales,
+    MAX(CASE WHEN quarter = 'Q3' THEN sales END) AS Q3_sales,
+    MAX(CASE WHEN quarter = 'Q4' THEN sales END) AS Q4_sales
+FROM quarterly_sales
+GROUP BY product_id;
+
+-- Or using PIVOT (SQL Server, Oracle)
+SELECT *
+FROM (SELECT product_id, quarter, sales FROM quarterly_sales)
+PIVOT (
+    SUM(sales)
+    FOR quarter IN ([Q1], [Q2], [Q3], [Q4])
+) AS pivoted;
+```
+
+**Unpivot: Columns to Rows**
+```sql
+-- Convert columnar quarterly data to rows
+SELECT product_id, 'Q1' AS quarter, Q1_sales AS sales FROM products WHERE Q1_sales IS NOT NULL
+UNION ALL
+SELECT product_id, 'Q2', Q2_sales FROM products WHERE Q2_sales IS NOT NULL
+UNION ALL
+SELECT product_id, 'Q3', Q3_sales FROM products WHERE Q3_sales IS NOT NULL
+UNION ALL
+SELECT product_id, 'Q4', Q4_sales FROM products WHERE Q4_sales IS NOT NULL;
+```
+
+### Running Totals and Moving Averages
+
+**Running Total**
+```sql
+SELECT
+    order_date,
+    daily_revenue,
+    SUM(daily_revenue) OVER (
+        ORDER BY order_date
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS cumulative_revenue
+FROM daily_sales;
+```
+
+**Moving Average (Last 7 days)**
+```sql
+SELECT
+    order_date,
+    daily_revenue,
+    AVG(daily_revenue) OVER (
+        ORDER BY order_date
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) AS moving_avg_7day
+FROM daily_sales;
+```
+
+### Gap and Island Problem
+
+**Find Consecutive Sequences**
+```sql
+-- Find consecutive date ranges
+WITH grouped_dates AS (
+    SELECT
+        date,
+        ROW_NUMBER() OVER (ORDER BY date) AS rn,
+        DATEADD(DAY, -ROW_NUMBER() OVER (ORDER BY date), date) AS grp
+    FROM attendance
+)
+SELECT
+    MIN(date) AS start_date,
+    MAX(date) AS end_date,
+    COUNT(*) AS consecutive_days
+FROM grouped_dates
+GROUP BY grp
+ORDER BY start_date;
+```
+
+### Generate Series (Number/Date Ranges)
+
+**PostgreSQL:**
+```sql
+-- Generate numbers 1 to 100
+SELECT generate_series(1, 100) AS n;
+
+-- Generate date range
+SELECT generate_series(
+    '2024-01-01'::date,
+    '2024-12-31'::date,
+    '1 day'::interval
+) AS date;
+```
+
+**MySQL 8.0+ (Using Recursive CTE):**
+```sql
+-- Generate numbers 1 to 100
+WITH RECURSIVE numbers AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1 FROM numbers WHERE n < 100
+)
+SELECT n FROM numbers;
+
+-- Generate date range
+WITH RECURSIVE dates AS (
+    SELECT '2024-01-01' AS date
+    UNION ALL
+    SELECT DATE_ADD(date, INTERVAL 1 DAY)
+    FROM dates
+    WHERE date < '2024-12-31'
+)
+SELECT date FROM dates;
+```
 
 ## Best Practices
 

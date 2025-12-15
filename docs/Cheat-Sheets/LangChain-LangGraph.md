@@ -712,27 +712,14 @@ compiled_ckpt.resume(run["checkpoint_id"])
 
 **Diagram:**
 ```text
-
-# Simple API key guard
-API_KEY = "changeme"
-@app.middleware("http")
-async def auth(request: Request, call_next):
-        if request.headers.get("x-api-key") != API_KEY:
-                raise HTTPException(status_code=401, detail="Unauthorized")
-        return await call_next(request)
 ┌────────┐   ┌────────────┐   ┌──────────────┐
 │ Input  │→→│ Router Node │→→│ Branch A      │
 └────────┘   └────┬───────┘   └─────┬────────┘
                   │                │
-
-**Test/Call with curl:**
-```bash
-curl -X POST "http://localhost:8000/chain/invoke" \
-    -H "x-api-key: changeme" \
-    -H "Content-Type: application/json" \
-    -d '{"input": {"question": "Hello"}}'
-```
-                  └──────→─────────┘ Branch B
+                  ↓                ↓
+         ┌────────────────────────────┐
+         │  Branch B                  │
+         └────────────────────────────┘
 ```
 
 **Code:**
@@ -827,6 +814,25 @@ add_routes(app, graph, path="/graph")
 
 # Run
 # uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Add Authentication:**
+```python
+# Simple API key guard
+API_KEY = "changeme"
+@app.middleware("http")
+async def auth(request: Request, call_next):
+    if request.headers.get("x-api-key") != API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return await call_next(request)
+```
+
+**Test/Call with curl:**
+```bash
+curl -X POST "http://localhost:8000/chain/invoke" \
+    -H "x-api-key: changeme" \
+    -H "Content-Type: application/json" \
+    -d '{"input": {"question": "Hello"}}'
 ```
 
 **Tips:**
@@ -968,6 +974,743 @@ def test_parser_deterministic(monkeypatch):
     chain = FakeLLM() | parser  # type: ignore
     assert chain.invoke({}) == "ok"
 ```
+
+## RAG with LCEL (Modern Pattern)
+**Brief:** Build RAG pipelines using LCEL pipe operator for clean composition.
+
+**Diagram:**
+```text
+┌──────────┐   ┌───────────┐   ┌─────────────┐   ┌─────────┐   ┌──────────┐
+│ Question │→→│ Retriever │→→│ Retrieved   │→→│ Prompt  │→→│ LLM      │
+│          │   │ (vector)  │   │ Context     │   │ + Ctx   │   │ Answer   │
+└──────────┘   └───────────┘   └─────────────┘   └─────────┘   └──────────┘
+                     ↑                                                ↓
+                     │ similarity search                              │
+              ┌──────────────┐                                ┌───────────┐
+              │ Vector Store │                                │ Parsed    │
+              │ (embeddings) │                                │ Response  │
+              └──────────────┘                                └───────────┘
+```
+
+**Code:**
+```python
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_community.vectorstores import FAISS
+
+# Setup
+llm = ChatOpenAI(model="gpt-4o-mini")
+embeddings = OpenAIEmbeddings()
+vectorstore = FAISS.from_texts(
+    ["LangChain simplifies LLM apps", "LCEL enables composition"],
+    embeddings
+)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
+
+# Build RAG chain with LCEL
+template = """Answer based on context:
+Context: {context}
+Question: {question}
+Answer:"""
+
+prompt = ChatPromptTemplate.from_template(template)
+
+rag_chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+# Use
+answer = rag_chain.invoke("What is LangChain?")
+```
+
+**Tips:**
+- Use `RunnablePassthrough()` to preserve input in parallel branches
+- Chain components with `|` for readable pipelines
+- Add `.with_config({"run_name": "rag"})` for better tracing
+
+## Conversational RAG
+**Brief:** RAG with conversation history for follow-up questions.
+
+**Diagram:**
+```text
+┌──────────────┐   ┌──────────────────┐   ┌───────────┐   ┌──────────┐
+│ New Question │→→│ + Chat History   │→→│ Retriever │→→│ Context  │
+└──────────────┘   └────────┬─────────┘   └───────────┘   └────┬─────┘
+                            │                                   │
+                            ↓                                   ↓
+                   ┌─────────────────┐              ┌────────────────────┐
+                   │ Reformulated    │              │ Answer with        │
+                   │ Question        │──────────────→│ Context + History  │
+                   └─────────────────┘              └────────────────────┘
+                            ↑                                   │
+                            │                                   ↓
+                   ┌─────────────────┐              ┌────────────────────┐
+                   │ History Buffer  │←─────────────│ Update History     │
+                   │ (last N turns)  │              └────────────────────┘
+                   └─────────────────┘
+```
+
+**Code:**
+```python
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts import MessagesPlaceholder
+
+# Contextualize question based on chat history
+contextualize_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Reformulate question using chat history."),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+
+history_aware_retriever = create_history_aware_retriever(
+    llm, retriever, contextualize_prompt
+)
+
+# Answer with retrieved context
+qa_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Answer using context:\n{context}"),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+
+qa_chain = create_stuff_documents_chain(llm, qa_prompt)
+rag_chain = create_retrieval_chain(history_aware_retriever, qa_chain)
+
+# Use with history
+from langchain_core.messages import HumanMessage, AIMessage
+
+chat_history = [
+    HumanMessage(content="What is LangChain?"),
+    AIMessage(content="LangChain is a framework for LLM apps."),
+]
+
+result = rag_chain.invoke({
+    "input": "What does it simplify?",
+    "chat_history": chat_history
+})
+```
+
+**Tips:**
+- Store `chat_history` in session/database for multi-turn conversations
+- Limit history to last 10 messages to control context window
+- Use `ConversationBufferMemory` for automatic history management
+
+## Structured Output with Pydantic
+**Brief:** Get typed, validated responses using `with_structured_output`.
+
+**Diagram:**
+```text
+┌──────────┐   ┌────────────┐   ┌─────────────┐   ┌──────────────┐
+│ Prompt   │→→│ LLM        │→→│ JSON Schema │→→│ Pydantic     │
+│ + Schema │   │ (function  │   │ Validation  │   │ Object       │
+└──────────┘   │  calling)  │   └─────────────┘   └──────┬───────┘
+               └────────────┘            ↓                │ typed
+                      │                  │                ↓
+                      │           ✓ Valid JSON    ┌──────────────┐
+                      │                  │         │ .name, .age  │
+                      │           ✗ Invalid        │ .email       │
+                      └──────────→ Retry/Error     └──────────────┘
+```
+
+**Code:**
+```python
+from pydantic import BaseModel, Field
+from langchain_openai import ChatOpenAI
+
+class Person(BaseModel):
+    name: str = Field(description="Person's full name")
+    age: int = Field(description="Person's age")
+    email: str = Field(description="Email address")
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+structured_llm = llm.with_structured_output(Person)
+
+# Get typed output
+person = structured_llm.invoke("Extract info: John Doe, 30 years old, john@example.com")
+print(f"{person.name} is {person.age}")  # Typed access
+
+# In a chain
+from langchain_core.prompts import ChatPromptTemplate
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Extract person information from text."),
+    ("human", "{text}")
+])
+
+chain = prompt | structured_llm
+result = chain.invoke({"text": "Jane Smith, age 25, jane@test.com"})
+```
+
+**Tips:**
+- Use `Field(description=...)` for better extraction accuracy
+- Works with OpenAI, Anthropic (function calling support required)
+- Fallback to `PydanticOutputParser` for models without native support
+
+## Async Operations
+**Brief:** Use async for concurrent operations and better throughput.
+
+**Diagram:**
+```text
+Sync (Sequential):                 Async (Parallel):
+┌──────┐                           ┌──────────────────────┐
+│ Q1   │ 2s                        │ Q1 │ Q2 │ Q3 │      │
+├──────┤                           └──┬───┴──┬─┴──┬───────┘
+│ Q2   │ 2s    Total: 6s              ↓      ↓    ↓       Total: 2s
+├──────┤                           ┌────────────────────┐
+│ Q3   │ 2s                        │ All complete       │
+└──────┘                           └────────────────────┘
+
+asyncio.gather() enables parallel execution:
+┌───────────┐   ┌───────────┐   ┌───────────┐
+│ ainvoke() │   │ ainvoke() │   │ ainvoke() │
+│ Task 1    │   │ Task 2    │   │ Task 3    │
+└─────┬─────┘   └─────┬─────┘   └─────┬─────┘
+      └───────────────┴───────────────┘
+                      │
+              ┌───────▼────────┐
+              │ await gather() │
+              └───────┬────────┘
+                      ↓
+              ┌────────────────┐
+              │ All Results    │
+              └────────────────┘
+```
+
+**Code:**
+```python
+import asyncio
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI()
+
+# Single async call
+async def ask_question():
+    response = await llm.ainvoke("What is AI?")
+    return response.content
+
+# Concurrent calls
+async def ask_multiple():
+    questions = ["What is AI?", "What is ML?", "What is NLP?"]
+    tasks = [llm.ainvoke(q) for q in questions]
+    responses = await asyncio.gather(*tasks)
+    return [r.content for r in responses]
+
+# Async streaming
+async def stream_response():
+    async for chunk in llm.astream("Explain quantum computing"):
+        print(chunk.content, end="", flush=True)
+
+# Run async
+asyncio.run(ask_multiple())
+```
+
+**Tips:**
+- Use `ainvoke()`, `astream()`, `abatch()` for async variants
+- Combine with `asyncio.gather()` for parallel LLM calls
+- Set concurrency limits to avoid rate limiting: `asyncio.Semaphore(5)`
+
+## Error Handling & Retries
+**Brief:** Handle failures gracefully with retries and fallbacks.
+
+**Diagram:**
+```text
+Exponential Backoff:                 Fallback Chain:
+┌────────────┐                       ┌─────────────┐
+│ Try Call   │                       │ GPT-4o      │
+└─────┬──────┘                       │ (primary)   │
+      │                              └──────┬──────┘
+      ↓ Error                               │ Error
+┌────────────┐                              ↓
+│ Wait 2^0=1s│                       ┌─────────────┐
+└─────┬──────┘                       │ GPT-4o-mini │
+      │                              │ (fallback)  │
+      ↓ Error                        └──────┬──────┘
+┌────────────┐                              │ Error
+│ Wait 2^1=2s│                              ↓
+└─────┬──────┘                       ┌─────────────┐
+      │                              │ GPT-3.5     │
+      ↓ Error                        │ (fallback2) │
+┌────────────┐                       └──────┬──────┘
+│ Wait 2^2=4s│                              │
+└─────┬──────┘                              ↓
+      │                              ┌─────────────┐
+      ↓ Success/Fail                 │ Response or │
+┌────────────┐                       │ Final Error │
+│ Return     │                       └─────────────┘
+└────────────┘
+```
+
+**Code:**
+```python
+from langchain_core.runnables import RunnableRetry
+from langchain.callbacks.manager import CallbackManager
+import time
+
+# Retry with exponential backoff
+def retry_with_backoff(func, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+            wait_time = 2 ** attempt
+            print(f"Retry {attempt+1} after {wait_time}s: {e}")
+            time.sleep(wait_time)
+
+# Use with chain
+try:
+    result = retry_with_backoff(lambda: chain.invoke({"question": "test"}))
+except Exception as e:
+    result = "Service unavailable, please try again later."
+
+# Fallback chain
+from langchain_core.runnables import RunnableWithFallbacks
+
+primary_chain = prompt | ChatOpenAI(model="gpt-4o")
+fallback_chain = prompt | ChatOpenAI(model="gpt-4o-mini")
+
+chain_with_fallback = primary_chain.with_fallbacks([fallback_chain])
+result = chain_with_fallback.invoke({"question": "test"})
+```
+
+**Tips:**
+- Always set timeouts for production: `with_config({"timeout": 30})`
+- Log errors with context for debugging
+- Use fallback chains for model unavailability
+
+## Multi-Query Retrieval
+**Brief:** Generate multiple search queries for better recall.
+
+**Diagram:**
+```text
+┌──────────────────┐
+│ Original Query:  │
+│ "LangChain uses" │
+└────────┬─────────┘
+         │
+         ↓ LLM generates variations
+┌────────────────────────────────┐
+│ Query 1: "How to use LangChain"│
+│ Query 2: "LangChain usage"     │──→ ┌───────────┐
+│ Query 3: "LangChain examples"  │    │ Retriever │
+│ Query 4: "LangChain guide"     │    └─────┬─────┘
+└────────────────────────────────┘          │
+                                            ↓
+                              ┌──────────────────────────┐
+                              │ Doc1, Doc2, Doc3, Doc4   │
+                              │ Doc2, Doc5, Doc6         │
+                              │ Doc1, Doc7, Doc8         │
+                              │ Doc3, Doc9, Doc10        │
+                              └────────────┬─────────────┘
+                                           │ deduplicate
+                                           ↓
+                              ┌──────────────────────────┐
+                              │ Unique: Doc1-10 (merged) │
+                              │ Better recall vs single  │
+                              └──────────────────────────┘
+```
+
+**Code:**
+```python
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(temperature=0)
+retriever = vectorstore.as_retriever()
+
+# Generates 3-5 variations of the query
+multi_query_retriever = MultiQueryRetriever.from_llm(
+    retriever=retriever,
+    llm=llm
+)
+
+# Single query → multiple searches → deduplicated results
+question = "What are the benefits of LangChain?"
+docs = multi_query_retriever.invoke(question)
+
+# Use in RAG chain
+rag_chain = (
+    {"context": multi_query_retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+```
+
+**Tips:**
+- Improves recall by 20-30% vs single query
+- Slower due to multiple retrievals (use caching)
+- Good for ambiguous or complex questions
+
+## Hybrid Retrieval (Dense + Sparse)
+**Brief:** Combine semantic search (vectors) with keyword search (BM25) for best recall.
+
+**Diagram:**
+```text
+┌──────────────┐
+│ User Query:  │
+│ "python RAG" │
+└──────┬───────┘
+       │
+       ├──────────────────────────────────┐
+       │                                  │
+       ↓ Dense (Semantic)                 ↓ Sparse (Keyword)
+┌──────────────────┐              ┌──────────────────┐
+│ Embedding Model  │              │ BM25 Algorithm   │
+│ "RAG concepts"   │              │ Exact: "python"  │
+│ "retrieval apps" │              │ Exact: "RAG"     │
+└────────┬─────────┘              └────────┬─────────┘
+         │                                 │
+         ↓                                 ↓
+┌────────────────────┐          ┌────────────────────┐
+│ Semantic Results:  │          │ Keyword Results:   │
+│ Doc1 (score: 0.92) │          │ Doc3 (score: 8.5)  │
+│ Doc2 (score: 0.87) │          │ Doc1 (score: 7.2)  │
+│ Doc4 (score: 0.81) │          │ Doc5 (score: 6.8)  │
+└────────┬───────────┘          └────────┬───────────┘
+         │                               │
+         └───────────┬───────────────────┘
+                     ↓ Reciprocal Rank Fusion (RRF)
+         ┌───────────────────────────┐
+         │ Combined & Reranked:      │
+         │ Doc1 (both methods)       │
+         │ Doc3 (keyword strong)     │
+         │ Doc2 (semantic strong)    │
+         │ Doc4, Doc5...             │
+         └───────────────────────────┘
+```
+
+**Code:**
+```python
+from langchain.retrievers import EnsembleRetriever
+from langchain_community.retrievers import BM25Retriever
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+
+# Setup documents
+docs = [
+    "Python is great for RAG applications",
+    "LangChain simplifies retrieval-augmented generation",
+    "Vector databases store embeddings efficiently",
+    "BM25 is a keyword-based ranking algorithm"
+]
+
+# Dense retriever (semantic/vector)
+embeddings = OpenAIEmbeddings()
+vectorstore = FAISS.from_texts(docs, embeddings)
+dense_retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+
+# Sparse retriever (keyword/BM25)
+sparse_retriever = BM25Retriever.from_texts(docs)
+sparse_retriever.k = 3
+
+# Hybrid: Combine both with weights
+hybrid_retriever = EnsembleRetriever(
+    retrievers=[dense_retriever, sparse_retriever],
+    weights=[0.5, 0.5]  # Equal weight, tune as needed
+)
+
+# Retrieves using both methods, merges results
+results = hybrid_retriever.invoke("python RAG")
+
+# Use in RAG chain
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
+rag_chain = (
+    {"context": hybrid_retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+```
+
+**Tips:**
+- Hybrid typically improves recall by 15-25% vs dense-only
+- Tune weights based on your data: [0.7, 0.3] for more semantic, [0.3, 0.7] for more keyword
+- BM25 excels at exact matches (product codes, names), vectors at concepts
+- For production, use Elasticsearch/Pinecone hybrid search endpoints (faster)
+
+## Contextual Compression
+**Brief:** Compress retrieved documents to only relevant parts.
+
+**Diagram:**
+```text
+┌──────────┐   ┌───────────┐   ┌─────────────────────────┐
+│ Question │→→│ Retriever │→→│ 10 Full Documents       │
+└──────────┘   └───────────┘   │ (1000 tokens each)      │
+                               └───────────┬─────────────┘
+                                           │
+                                           ↓ Compressor LLM
+                               ┌───────────────────────────┐
+                               │ Extract relevant snippets:│
+                               │ Doc1: "...relevant..."    │
+                               │ Doc2: "...key part..."    │
+                               │ Doc3: "...answer..."      │
+                               └───────────┬───────────────┘
+                                           │ 50-80% reduction
+                                           ↓
+                               ┌───────────────────────────┐
+                               │ Compressed Context        │
+                               │ (200 tokens total)        │
+                               └───────────┬───────────────┘
+                                           │
+                                           ↓
+                               ┌───────────────────────────┐
+                               │ Final Answer (cheaper +   │
+                               │ more focused)             │
+                               └───────────────────────────┘
+```
+
+**Code:**
+```python
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+llm = ChatOpenAI(temperature=0)
+base_retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+
+# Extract only relevant parts from each doc
+compressor = LLMChainExtractor.from_llm(llm)
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor,
+    base_retriever=base_retriever
+)
+
+# Retrieves 10 docs, compresses to relevant snippets
+compressed_docs = compression_retriever.invoke("What is LCEL?")
+
+# Use in RAG
+rag_chain = (
+    {"context": compression_retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+```
+
+**Tips:**
+- Reduces token usage by 50-80% (saves cost)
+- Improves answer quality by removing noise
+- Slower due to compression LLM calls
+
+## Streaming Responses
+**Brief:** Stream tokens for better UX in chat applications.
+
+**Diagram:**
+```text
+Non-Streaming (Batch):              Streaming (Token-by-Token):
+┌────────────┐                      ┌────────────┐
+│ User waits │                      │ User sees  │
+│ 5 seconds  │                      │ "The"      │ 200ms
+└──────┬─────┘                      ├────────────┤
+       │                            │ "The sky"  │ 400ms
+       ↓                            ├────────────┤
+┌────────────────────┐              │ "The sky   │ 600ms
+│ Full response:     │              │  is blue"  │
+│ "The sky is blue   │              └──────┬─────┘
+│  because of Rayle- │                     │
+│  igh scattering."  │              Better perceived speed!
+└────────────────────┘
+
+Flow:
+┌──────────┐   ┌─────────┐   ┌──────────┐   ┌──────────┐
+│ Prompt   │→→│ LLM     │→→│ Token 1  │→→│ Display  │
+└──────────┘   └────┬────┘   ├──────────┤   └──────────┘
+                    │        │ Token 2  │→→
+                    │        ├──────────┤
+                    └───────→│ Token 3  │→→
+                             └──────────┘
+```
+
+**Code:**
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+llm = ChatOpenAI(streaming=True)
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are helpful."),
+    ("user", "{question}")
+])
+
+chain = prompt | llm
+
+# Stream tokens
+for chunk in chain.stream({"question": "Explain quantum computing"}):
+    print(chunk.content, end="", flush=True)
+
+# Async streaming
+async for chunk in chain.astream({"question": "test"}):
+    print(chunk.content, end="", flush=True)
+
+# With callbacks
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
+llm = ChatOpenAI(
+    streaming=True,
+    callbacks=[StreamingStdOutCallbackHandler()]
+)
+```
+
+**Tips:**
+- Essential for chat UX (perceived speed improvement)
+- Use `astream_events()` for granular control (tokens, tool calls)
+- Buffer partial responses for display
+
+## Function/Tool Calling
+**Brief:** Let LLM call functions with structured arguments.
+
+**Diagram:**
+```text
+┌──────────────────────┐
+│ User: "Weather in   │
+│        NYC and       │
+│        12 * 15?"     │
+└──────────┬───────────┘
+           │
+           ↓
+┌──────────────────────┐   Available Tools:
+│ LLM Decides:         │   ┌─────────────────┐
+│                      │   │ get_weather()   │
+│ 1. get_weather(NYC)  │←──│ calculate()     │
+│ 2. calculate(12*15)  │   │ search()        │
+└──────────┬───────────┘   └─────────────────┘
+           │
+           ↓
+┌──────────────────────────────────┐
+│ Execute Tools:                   │
+│ ┌────────────────────────────┐   │
+│ │ Tool 1: get_weather("NYC") │   │
+│ │ Result: "Sunny, 72°F"      │   │
+│ └────────────────────────────┘   │
+│ ┌────────────────────────────┐   │
+│ │ Tool 2: calculate("12*15") │   │
+│ │ Result: 180                │   │
+│ └────────────────────────────┘   │
+└──────────────┬───────────────────┘
+               │
+               ↓
+┌──────────────────────────────────┐
+│ LLM Synthesizes:                 │
+│ "NYC weather is sunny and 72°F.  │
+│  12 * 15 = 180"                  │
+└──────────────────────────────────┘
+```
+
+**Code:**
+```python
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI
+
+@tool
+def get_weather(city: str) -> str:
+    """Get current weather for a city."""
+    # In production, call actual API
+    return f"Weather in {city}: Sunny, 72°F"
+
+@tool
+def calculate(expression: str) -> float:
+    """Evaluate a mathematical expression."""
+    return eval(expression)
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+llm_with_tools = llm.bind_tools([get_weather, calculate])
+
+# LLM decides which tool to call
+response = llm_with_tools.invoke("What's the weather in NYC?")
+tool_calls = response.tool_calls
+
+# Execute tool
+if tool_calls:
+    tool_name = tool_calls[0]["name"]
+    tool_args = tool_calls[0]["args"]
+    if tool_name == "get_weather":
+        result = get_weather.invoke(tool_args)
+
+# Or use agent for automatic execution
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+
+agent = create_tool_calling_agent(llm, [get_weather, calculate], prompt)
+executor = AgentExecutor(agent=agent, tools=[get_weather, calculate])
+result = executor.invoke({"input": "Weather in SF and calculate 15*23"})
+```
+
+**Tips:**
+- Use clear docstrings (LLM uses them for tool selection)
+- Add type hints for better argument parsing
+- Validate tool outputs before returning to user
+
+## Batch Processing
+**Brief:** Process multiple inputs efficiently in parallel.
+
+**Diagram:**
+```text
+Sequential Processing:              Batch Processing (max_concurrency=3):
+┌──────────┐                       ┌──────────┐ ┌──────────┐ ┌──────────┐
+│ Input 1  │ 1s                    │ Input 1  │ │ Input 2  │ │ Input 3  │
+├──────────┤                       └────┬─────┘ └────┬─────┘ └────┬─────┘
+│ Input 2  │ 1s   Total: 5s             │            │            │
+├──────────┤                             ─────────────────────────
+│ Input 3  │ 1s                                  │
+├──────────┤                                     ↓
+│ Input 4  │ 1s                         ┌────────────────┐
+├──────────┤                            │ Process batch  │
+│ Input 5  │ 1s                         │ concurrently   │
+└──────────┘                            └───────┬────────┘
+                                               │
+                                               ↓
+                                    ┌──────────┐ ┌──────────┐
+                                    │ Input 4  │ │ Input 5  │
+                                    └────┬─────┘ └────┬─────┘
+                                          ──────────────
+                                              │  Total: 2s (2.5x faster)
+                                              ↓
+                                    ┌─────────────────┐
+                                    │ All 5 Results   │
+                                    └─────────────────┘
+```
+
+**Code:**
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+llm = ChatOpenAI()
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Translate to French."),
+    ("user", "{text}")
+])
+
+chain = prompt | llm
+
+# Batch invoke
+inputs = [{"text": "hello"}, {"text": "goodbye"}, {"text": "thank you"}]
+results = chain.batch(inputs)
+
+# With concurrency limit
+results = chain.batch(inputs, config={"max_concurrency": 5})
+
+# Async batch
+import asyncio
+results = asyncio.run(chain.abatch(inputs))
+
+# Stream multiple
+for output in chain.batch(inputs):
+    print(output.content)
+```
+
+**Tips:**
+- Set `max_concurrency` to avoid rate limits (default: 4)
+- Use `abatch()` for better throughput with async
+- Batch size: 10-50 for optimal performance
 
 ## Advanced Patterns (Reflection, ReAct, tools in graphs)
 **Brief:** Improve reliability with self-critique, tool use, and ReAct.
