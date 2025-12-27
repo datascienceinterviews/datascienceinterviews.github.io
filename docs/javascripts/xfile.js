@@ -8,9 +8,9 @@ for (var i = 0; i < enumNavi.length; i++) {
 }
 
 // Make Free Tools link open in a new tab
-document.addEventListener('DOMContentLoaded', function() {
-	var links = document.querySelectorAll('a[href="https://singhsidhukuldeep.github.io/Free-Tools/"]');
-	links.forEach(function(link) {
+document.addEventListener('DOMContentLoaded', function () {
+	var links = document.querySelectorAll('a[href="https://onlinetoolsvault.com"]');
+	links.forEach(function (link) {
 		link.setAttribute('target', '_blank');
 		link.setAttribute('rel', 'noopener noreferrer');
 	});
