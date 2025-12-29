@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://singhsidhukuldeep.github.io/sitemap.xml
+Sitemap: https://dsprep.com/sitemap.xml
