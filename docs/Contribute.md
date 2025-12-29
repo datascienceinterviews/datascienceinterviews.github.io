@@ -6,7 +6,7 @@ hide:
     -toc
 ---
 
-# Contributions to **singhsidhukuldeep.github.io**
+# Contributions to **dsprep.com**
 
 For any correspondence please check <a href="/contact">contact</a>
 
@@ -16,11 +16,10 @@ For any correspondence please check <a href="/contact">contact</a>
 
 Detailed step by step contributions guide coming soon!
 
-For now, plese open a <a href="https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/discussions" target="_blank">discussion here</a> for anything!
+For now, plese open a <a href="https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions" target="_blank">discussion here</a> for anything!
 
 <a href="/#__tabbed_1_3">**List of things to contribute!**</a>
 
 Thank you, <br><a href="/contact">Kuldeep</a>
 
 ---
-

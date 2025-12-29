@@ -1,13 +1,13 @@
 ---
 title: Contact
-description: Contact for https://singhsidhukuldeep.github.io
+description: Contact for https://dsprep.com
 hide: 
     -toc
 ---
 
-# Contact for https://singhsidhukuldeep.github.io
+# Contact for https://dsprep.com
 
-Welcome to https://singhsidhukuldeep.github.io/ 
+Welcome to https://dsprep.com/ 
 
 For any information, request or official correspondence please **email to:** *singhsidhukuldeep@gmail.com*
 

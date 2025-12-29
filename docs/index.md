@@ -131,7 +131,7 @@ hide:
 ---
 
 <!-- <p align="center">
-  <a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/">
+  <a href="https://dsprep.com/">
     <img src="https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2" width="120" alt="Go to website">
   </a>
 </p> -->
@@ -241,8 +241,8 @@ Not only this, the platform will also serve as one point destination for all you
         <div class="grid cards" markdown>
 
         - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
-        - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors)
-        - [:simple-unlicense: __AGPL-3.0__ license](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io#AGPL-3.0-1-ov-file)
+        - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
+        - [:simple-unlicense: __AGPL-3.0__ license](https://github.com/datascienceinterviews/datascienceinterviews.github.io#AGPL-3.0-1-ov-file)
         - [:material-comment-account-outline: __Reach__ Out](/contact)
 
         </div>
@@ -253,7 +253,7 @@ Not only this, the platform will also serve as one point destination for all you
 <div class="grid cards" markdown>
 
   - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
-  - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors)
+  - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
 
   </div>
 

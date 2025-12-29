@@ -1,13 +1,13 @@
 ---
 title: Privacy Policy
-description: This is the Privacy Policy for https://singhsidhukuldeep.github.io
+description: This is the Privacy Policy for https://dsprep.com
 ---
 
-# Privacy Policy for https://singhsidhukuldeep.github.io
+# Privacy Policy for https://dsprep.com
 
 ## Introduction
 
-Welcome to https://singhsidhukuldeep.github.io/ (the "Website"). Your privacy is important to us, and we are committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and disclose your information, and our commitment to ensuring that your personal data is handled with care and security.
+Welcome to https://dsprep.com/ (the "Website"). Your privacy is important to us, and we are committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and disclose your information, and our commitment to ensuring that your personal data is handled with care and security.
 
 This policy complies with the General Data Protection Regulation (GDPR), ePrivacy Directive (EPD), California Privacy Rights Act (CPRA), Colorado Privacy Act (CPA), Virginia Consumer Data Protection Act (VCDPA), and Brazil's Lei Geral de Proteção de Dados (LGPD).
 

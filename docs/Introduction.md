@@ -7,7 +7,7 @@ description: Learn how to use this open-source data science interview preparatio
 # Home
 
 <p align="center">
-  <a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/">
+  <a href="https://dsprep.com/">
     <img src="https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2" width="120" alt="Go to website">
   </a>
 </p>
@@ -26,9 +26,9 @@ Contribution in any form will be deeply appreciated. 🙏
 
 ### Add questions
 
-❓ Add your questions [here](https://github.com/singhsidhukuldeep/data-science-interview-prep/issues). Please ensure to provide a detailed description to allow your fellow contributors to understand your questions and answer them to your satisfaction.
+❓ Add your questions [here](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues). Please ensure to provide a detailed description to allow your fellow contributors to understand your questions and answer them to your satisfaction.
 
-[![Add New question](https://img.shields.io/badge/Use%20label-Interview%20Questions-%3CCOLOR%3E.svg)](https://github.com/singhsidhukuldeep/data-science-interview-prep/issues/new)
+[![Add New question](https://img.shields.io/badge/Use%20label-Interview%20Questions-%3CCOLOR%3E.svg)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues/new)
 
 🤝 Please note that as of now, you cannot directly add a question via a pull request. This will help us to maintain the **quality** of the content **for you**.
 
@@ -79,31 +79,31 @@ Contribution in any form will be deeply appreciated. 🙏
 
 ### Report/Solve Issues 
 
-[![Issues](https://img.shields.io/github/issues/singhsidhukuldeep/data-science-interview-prep)](https://github.com/singhsidhukuldeep/data-science-interview-prep/issues)
+[![Issues](https://img.shields.io/github/issues/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues)
 
-🔧 To report any issues find me on [LinkedIn](#maintained-by) or [raise an issue](https://github.com/singhsidhukuldeep/data-science-interview-prep/issues) on GitHub.
+🔧 To report any issues find me on [LinkedIn](#maintained-by) or [raise an issue](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues) on GitHub.
 
-🛠 You can also solve existing [issues on GitHub](https://github.com/singhsidhukuldeep/data-science-interview-prep/issues) and create a pull request.
+🛠 You can also solve existing [issues on GitHub](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues) and create a pull request.
 
 ### Say Thanks
 
 😊 If this platform helped you in any way, it would be great if you could share it with others.
 
 
-[![](https://img.shields.io/badge/Share%20to-LinkedIn-blue?logo=linkedin&style=flat&labelColor=blue&color=black)](https://www.linkedin.com/sharing/share-offsite/?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:&url=https://singhsidhukuldeep.github.io/data-science-interview-prep/)
-[![](https://img.shields.io/badge/Share%20to-Twitter-blue?logo=twitter&style=flat&labelColor=black&color=blue)](https://twitter.com/intent/tweet?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:%20%F0%9F%91%89%20https://singhsidhukuldeep.github.io/data-science-interview-prep/%20%F0%9F%91%88%20#data-science%20#machine-learning%20#interview-preparation)
-[![](https://img.shields.io/badge/Share%20to-Facebook-blue?logo=facebook&style=flat&labelColor=black&color=blue)](https://www.facebook.com/sharer.php?s=100&p[title]=Free%20Data%20Science%20Preperation%20Platform&p[summary]=Check%20out%20this%20&p[url]=https%3A%2F%2Fsinghsidhukuldeep.github.io%2Fdata-science-interview-prep%2F)
+[![](https://img.shields.io/badge/Share%20to-LinkedIn-blue?logo=linkedin&style=flat&labelColor=blue&color=black)](https://www.linkedin.com/sharing/share-offsite/?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:&url=https://dsprep.com/)
+[![](https://img.shields.io/badge/Share%20to-Twitter-blue?logo=twitter&style=flat&labelColor=black&color=blue)](https://twitter.com/intent/tweet?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:%20%F0%9F%91%89%20https://dsprep.com/%20%F0%9F%91%88%20#data-science%20#machine-learning%20#interview-preparation)
+[![](https://img.shields.io/badge/Share%20to-Facebook-blue?logo=facebook&style=flat&labelColor=black&color=blue)](https://www.facebook.com/sharer.php?s=100&p[title]=Free%20Data%20Science%20Preperation%20Platform&p[summary]=Check%20out%20this%20&p[url]=https%3A%2F%2Fdsprep.com%2F)
 ![](https://img.shields.io/badge/Share-Copy%20from%20here%20%F0%9F%91%87-blue?logo=stackshare&style=flat&labelColor=black&color=success)
 
 <!--
 <p align="right">
 
 
-<a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/"><img src="https://img.shields.io/badge/Share%20to-Linked%20In-blue?logo=linkedin&style=flat&labelColor=blue&color=black" alt="Go to website"/></a>
+<a href="https://dsprep.com/"><img src="https://img.shields.io/badge/Share%20to-Linked%20In-blue?logo=linkedin&style=flat&labelColor=blue&color=black" alt="Go to website"/></a>
 
-<a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/"><img src="https://img.shields.io/badge/Share%20to-Twitter-blue?logo=twitter&style=flat&labelColor=black&color=blue" alt="Go to website"/></a>
+<a href="https://dsprep.com/"><img src="https://img.shields.io/badge/Share%20to-Twitter-blue?logo=twitter&style=flat&labelColor=black&color=blue" alt="Go to website"/></a>
 
-<a href="https://singhsidhukuldeep.github.io/data-science-interview-prep/"><img src="https://img.shields.io/badge/Share%20to-Facebook-blue?logo=facebook&style=flat&labelColor=black&color=blue" alt="Go to website"/></a>
+<a href="https://dsprep.com/"><img src="https://img.shields.io/badge/Share%20to-Facebook-blue?logo=facebook&style=flat&labelColor=black&color=blue" alt="Go to website"/></a>
 
 
 
@@ -112,13 +112,13 @@ Contribution in any form will be deeply appreciated. 🙏
 -->
 ```
 Check out this 👇 platform 👇 for data science content:
-👉 https://singhsidhukuldeep.github.io/data-science-interview-prep/ 👈
+👉 https://dsprep.com/ 👈
 ```
 
 You can also star the repository on GitHub 
-[![Stars](https://badgen.net/github/stars/singhsidhukuldeep/data-science-interview-prep)](https://github.com/singhsidhukuldeep/data-science-interview-prep/stargazers) 
+[![Stars](https://badgen.net/github/stars/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/stargazers) 
 and watch-out for any updates
-[![Watchers](https://badgen.net/github/watchers/singhsidhukuldeep/data-science-interview-prep)](https://github.com/singhsidhukuldeep/data-science-interview-prep/watchers)
+[![Watchers](https://badgen.net/github/watchers/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/watchers)
 
 ## Features 
 
@@ -206,7 +206,7 @@ pip3 install mkdocs-git-revision-date-localized-plugin
 
 * Why is this platform free? 🤗
 
-    Currently there is no major cost involved in maintaining this platform other than time and effort that is put in by every [contributor](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors). 
+    Currently there is no major cost involved in maintaining this platform other than time and effort that is put in by every [contributor](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors). 
     If you want to help you can [contribute here](#contribute-to-the-platform). 
     
     If you still want to pay for something that is free, we would request you to donate it to a charity of your choice instead. 😇
@@ -228,27 +228,27 @@ LinkedIn: [Kuldeep Singh Sidhu (LinkedIn)](https://www.linkedin.com/in/singhsidh
 
 ### Contributors
 
-😎 The full list of all the contributors is available [here](https://github.com/singhsidhukuldeep/data-science-interview-prep/graphs/contributors)
+😎 The full list of all the contributors is available [here](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
 
 ## Current Status
 
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
-[![Website shields.io](https://img.shields.io/website?url=https%3A%2F%2Fsinghsidhukuldeep.github.io%2Fsinghsidhukuldeep.github.io%2F)](https://singhsidhukuldeep.github.io/)
-[![GitHub pages status](https://img.shields.io/github/deployments/singhsidhukuldeep/singhsidhukuldeep.github.io/github-pages)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/deployments/activity_log?environment=github-pages)
-[![GitHub up-time BOT](https://badgen.net/uptime-robot/month/ur967659-422c6e77bfb79bb6a47c642c)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/deployments/activity_log?environment=github-pages)
-[![Commits](https://img.shields.io/github/last-commit/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/commits/master)
-[![Pull Requests](https://img.shields.io/github/issues-pr/singhsidhukuldeep/singhsidhukuldeep.github.io?style=flat)](https://img.shields.io/github/issues-pr/singhsidhukuldeep/singhsidhukuldeep.github.io)
+[![Website shields.io](https://img.shields.io/website?url=https%3A%2F%2Fdsprep.com%2F)](https://dsprep.com/)
+[![GitHub pages status](https://img.shields.io/github/deployments/datascienceinterviews/datascienceinterviews.github.io/github-pages)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/deployments/activity_log?environment=github-pages)
+[![GitHub up-time BOT](https://badgen.net/uptime-robot/month/ur967659-422c6e77bfb79bb6a47c642c)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/deployments/activity_log?environment=github-pages)
+[![Commits](https://img.shields.io/github/last-commit/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/commits/master)
+[![Pull Requests](https://img.shields.io/github/issues-pr/datascienceinterviews/datascienceinterviews.github.io?style=flat)](https://img.shields.io/github/issues-pr/datascienceinterviews/datascienceinterviews.github.io)
 
-[![Issues](https://img.shields.io/github/issues/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/issues)
-[![Total Commits](https://badgen.net/github/commits/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/commits/master)
-[![Contributors](https://badgen.net/github/contributors/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/graphs/contributors)
-[![Forks](https://badgen.net/github/forks/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/network/members)
-[![Stars](https://badgen.net/github/stars/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/stargazers)
-[![Watchers](https://badgen.net/github/watchers/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/watchers)
-[![Branches](https://badgen.net/github/branches/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io/branches)
+[![Issues](https://img.shields.io/github/issues/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues)
+[![Total Commits](https://badgen.net/github/commits/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/commits/master)
+[![Contributors](https://badgen.net/github/contributors/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
+[![Forks](https://badgen.net/github/forks/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/network/members)
+[![Stars](https://badgen.net/github/stars/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/stargazers)
+[![Watchers](https://badgen.net/github/watchers/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/watchers)
+[![Branches](https://badgen.net/github/branches/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/branches)
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![made-with-Markdown](https://img.shields.io/badge/Made%20with-Markdown-1f425f.svg)](http://commonmark.org)
-[![repo- size](https://img.shields.io/github/repo-size/singhsidhukuldeep/singhsidhukuldeep.github.io)](https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io)
+[![repo- size](https://img.shields.io/github/repo-size/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io)
 [![Followers](https://img.shields.io/github/followers/singhsidhukuldeep?style=plastic&logo=github)](https://github.com/singhsidhukuldeep?tab=followers)

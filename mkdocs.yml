@@ -6,11 +6,11 @@ site_description: >-
   maintaining curated list of interview questions
   and answers for people looking and preparing
   for data science opportunities.
-site_url: https://singhsidhukuldeep.github.io/
+site_url: https://dsprep.com/
 
 # Repository
-repo_name: singhsidhukuldeep/singhsidhukuldeep.github.io
-repo_url: https://github.com/singhsidhukuldeep/singhsidhukuldeep.github.io
+repo_name: datascienceinterviews/datascienceinterviews.github.io
+repo_url: https://github.com/datascienceinterviews/datascienceinterviews.github.io
 
 hooks:
   - hooks/generate_questions_json.py
@@ -59,7 +59,7 @@ extra:
   #     <br>
   #     With your consent🤝, you're helping us to give you better experience. 
   #     <br>
-  #     <a herf="https://singhsidhukuldeep.github.io/privacy">Read about privacy policy here<a>
+  #     <a herf="https://dsprep.com/privacy">Read about privacy policy here<a>
 
 theme:
   name: material
@@ -158,8 +158,8 @@ plugins:
       cover_logo: https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2
       copyright: Copyright © 2020 - 2024 Kuldeep Singh Sidhu
       cover_title: The Data Science Book
-      cover_subtitle: https://singhsidhukuldeep.github.io
-      output_path: /workspace/singhsidhukuldeep.github.io/pdf_output/DataScience.pdf
+      cover_subtitle: https://dsprep.com
+      output_path: /workspace/datascienceinterviews.github.io/pdf_output/DataScience.pdf
       back_cover: true
 
 markdown_extensions:
