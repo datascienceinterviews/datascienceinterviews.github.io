@@ -40,7 +40,7 @@ extra:
 
   analytics:
     provider: google
-    property: G-EVGNTG49J7
+    property: G-CMC251LQT6
 
   # consent:
   #   title: Cookie Consent <br><small>Help Us ✌️, Help You 🫵</small>

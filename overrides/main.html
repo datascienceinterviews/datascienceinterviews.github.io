@@ -1,27 +1,72 @@
 {% extends "base.html" %}
 
 {% block announce %}
-  <!-- Add announcement here, including arbitrary HTML -->
+  <!-- Rotating announcement slideshow -->
   <style>
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-      20%, 40%, 60%, 80% { transform: translateX(2px); }
-    }
     @keyframes glow {
       0%, 100% { text-shadow: 0 0 5px rgba(255, 165, 0, 0.5); }
       50% { text-shadow: 0 0 20px rgba(255, 165, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.6); }
     }
-    .shake-text {
-      display: inline-block;
-      animation: shake 3s ease-in-out infinite;
+    .announce-slideshow {
+      position: relative;
+      overflow: hidden;
+      height: 1.4em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .glow-link {
+    .announce-slide {
+      position: absolute;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(100%);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .announce-slide.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .announce-slide.exit {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+    .announce-slide a {
       animation: glow 2s ease-in-out infinite;
       font-weight: bold;
     }
   </style>
-  <span class="shake-text">🚀 <a href="/flashcards" class="glow-link">Flashcards</a> feature is live!</span>
+  <div class="announce-slideshow">
+    <span class="announce-slide active">🚀 <a href="/flashcards">Flashcards</a> feature is live!</span>
+    <span class="announce-slide">🤖 <a href="https://proofmd.ai" target="_blank" rel="noopener">ProofMD.ai</a> — AI medical assistant for doctors</span>
+    <span class="announce-slide">📈 <a href="https://replyrunner.com" target="_blank" rel="noopener">ReplyRunner</a> — Intent-based marketing for X &amp; Reddit</span>
+    <span class="announce-slide">🔍 <a href="https://sourcestrongai.com/seo" target="_blank" rel="noopener">Free SEO Audit</a> — Analyze your website in seconds</span>
+    <span class="announce-slide">🛠️ <a href="https://onlinetoolsvault.com" target="_blank" rel="noopener">OnlineToolsVault</a> — Free tools for everyday workflows</span>
+    <span class="announce-slide">✍️ <a href="https://trendingdraft.com" target="_blank" rel="noopener">TrendingDraft</a> — Create trending LinkedIn content with AI</span>
+    <span class="announce-slide">💡 Built with ❤️ by <a href="https://sourcestrongai.com" target="_blank" rel="noopener">SourceStrongAI</a></span>
+  </div>
+  <script>
+    (function() {
+      var slides = document.querySelectorAll('.announce-slide');
+      if (slides.length < 2) return;
+      var current = 0;
+      setInterval(function() {
+        slides[current].classList.remove('active');
+        slides[current].classList.add('exit');
+        var prev = current;
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+        setTimeout(function() { slides[prev].classList.remove('exit'); }, 500);
+      }, 4000);
+    })();
+  </script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CMC251LQT6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CMC251LQT6');
+</script>
 <meta name="google-adsense-account" content="ca-pub-4988388949365963">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4988388949365963"
     crossorigin="anonymous"></script>

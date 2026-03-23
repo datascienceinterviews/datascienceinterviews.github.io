@@ -9,7 +9,7 @@ hide:
 
 Welcome to https://dsprep.com/ 
 
-For any information, request or official correspondence please **email to:** *singhsidhukuldeep@gmail.com*
+For any information, request or official correspondence please **email to:** *hi@sourcestrongai.com*
 
 **Mailing Address:**
 

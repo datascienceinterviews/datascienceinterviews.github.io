@@ -126,7 +126,7 @@ We will not discriminate against you for exercising any of your privacy rights u
 
 To exercise any of these rights, please contact us at:
 
-**Email:** singhsidhukuldeep@gmail.com
+**Email:** hi@sourcestrongai.com
 
 We will respond to your request within the timeframes required by applicable law.
 
@@ -179,7 +179,7 @@ We may update this Privacy Policy from time to time. We will notify you of any c
 
 If you have any questions about this Privacy Policy, or if you would like to exercise your rights under GDPR, CPRA, CPA, VCDPA, or LGPD, please contact us at:
 
-**Email:** singhsidhukuldeep@gmail.com
+**Email:** hi@sourcestrongai.com
 
 **Mailing Address:**
 
