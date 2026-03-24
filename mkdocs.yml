@@ -214,6 +214,7 @@ nav:
       - Scikit-Learn: Interview-Questions/Scikit-Learn.md
       - LangChain: Interview-Questions/LangChain.md
       - LangGraph: Interview-Questions/LangGraph.md
+      - Transformers: Interview-Questions/Transformers.md
       - Interview Question Resources: Interview-Questions/Interview-Question-Resources.md
   
   - 📝 Cheat Sheets:
