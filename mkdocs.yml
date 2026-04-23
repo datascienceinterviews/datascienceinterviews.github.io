@@ -1,6 +1,6 @@
 # Project information
 site_name: Data Science Interview preparation
-site_author: Kuldeep Singh Sidhu
+site_author: SourceStrongAI
 site_description: >-
   This is a completely open-source platform for
   maintaining curated list of interview questions
@@ -26,17 +26,13 @@ extra:
 
   social:
     - icon: octicons/mark-github-16
-      link: https://github.com/singhsidhukuldeep/
+      link: https://github.com/datascienceinterviews
     - icon: fontawesome/brands/linkedin
-      link: https://linkedin.com/in/singhsidhukuldeep
+      link: https://www.linkedin.com/company/sourcestrongai
     - icon: fontawesome/brands/x-twitter
-      link: https://twitter.com/kuldeep_s_s
-    - icon: fontawesome/brands/stack-overflow
-      link: https://stackoverflow.com/u/7182350/
-    - icon: hf-logo-pirate
-      link: https://huggingface.co/singhsidhukuldeep
+      link: https://x.com/sourcestrongai
     - icon: octicons/globe-16
-      link: http://kuldeepsinghsidhu.com
+      link: https://sourcestrongai.com
 
   analytics:
     provider: google
@@ -156,7 +152,7 @@ plugins:
   - with-pdf:
       enabled_if_env: ENABLE_PDF_EXPORT
       cover_logo: https://repository-images.githubusercontent.com/275878203/13719500-bb75-11ea-8f3a-be2ffb87a6a2
-      copyright: Copyright © 2020 - 2024 Kuldeep Singh Sidhu
+      copyright: Copyright © 2020 - 2026 SourceStrongAI
       cover_title: The Data Science Book
       cover_subtitle: https://dsprep.com
       output_path: /workspace/datascienceinterviews.github.io/pdf_output/DataScience.pdf
@@ -282,7 +278,7 @@ nav:
 copyright: >-
   Copyright &copy; 2020 - 
   <script>document.write(/\d{4}/.exec(Date())[0])</script>
-  • <strong>Kuldeep Singh Sidhu</strong>
+  • <strong><a href="https://sourcestrongai.com" target="_blank">SourceStrongAI</a></strong>
   • <u><a href="https://choosealicense.com/licenses/agpl-3.0/" target=”_blank”>License</a></u> 
   • <u><a href="/privacy">Privacy Policy</a></u> • <u><a href="/contact">Contact</a></u> 
   •

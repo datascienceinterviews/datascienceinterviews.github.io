@@ -80,7 +80,7 @@ Contribution in any form will be deeply appreciated. 🙏
 
 [![Issues](https://img.shields.io/github/issues/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues)
 
-🔧 To report any issues find me on [LinkedIn](#maintained-by) or [raise an issue](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues) on GitHub.
+🔧 To report any issues, find us on [LinkedIn](#maintained-by) or [raise an issue](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues) on GitHub.
 
 🛠 You can also solve existing [issues on GitHub](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues) and create a pull request.
 
@@ -193,16 +193,13 @@ pip3 install mkdocs-material
 
 ### Maintained by
 
-👨‍🎓 ***Kuldeep Singh Sidhu*** 
+***[SourceStrongAI](https://sourcestrongai.com)*** 
 
-Github: [github/singhsidhukuldeep](https://github.com/singhsidhukuldeep)
-`https://github.com/singhsidhukuldeep`
+GitHub: [github/datascienceinterviews](https://github.com/datascienceinterviews)
 
-Website: [Kuldeep Singh Sidhu (Website)](http://kuldeepsinghsidhu.com)
-`http://kuldeepsinghsidhu.com`
+LinkedIn: [SourceStrongAI](https://www.linkedin.com/company/sourcestrongai)
 
-LinkedIn: [Kuldeep Singh Sidhu (LinkedIn)](https://www.linkedin.com/in/singhsidhukuldeep/)
-`https://www.linkedin.com/in/singhsidhukuldeep/`
+Twitter (X): [sourcestrongai](https://x.com/sourcestrongai)
 
 ### Contributors
 
@@ -229,4 +226,4 @@ LinkedIn: [Kuldeep Singh Sidhu (LinkedIn)](https://www.linkedin.com/in/singhsidh
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![made-with-Markdown](https://img.shields.io/badge/Made%20with-Markdown-1f425f.svg)](http://commonmark.org)
 [![repo- size](https://img.shields.io/github/repo-size/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io)
-[![Followers](https://img.shields.io/github/followers/singhsidhukuldeep?style=plastic&logo=github)](https://github.com/singhsidhukuldeep?tab=followers)
+[![Followers](https://img.shields.io/github/followers/datascienceinterviews?style=plastic&logo=github)](https://github.com/datascienceinterviews?tab=followers)

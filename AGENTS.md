@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is **dsprep.com**, a MkDocs Material static site for data science interview preparation. It is owned by **SourceStrongAI** (sourcestrongai.com), maintained by Kuldeep Singh Sidhu.
+This is **dsprep.com**, a MkDocs Material static site for data science interview preparation. It is owned and maintained by **SourceStrongAI** (sourcestrongai.com).
 
 - **Site URL**: https://dsprep.com
 - **Repo**: https://github.com/datascienceinterviews/datascienceinterviews.github.io
@@ -86,4 +86,4 @@ Located in `overrides/main.html`. Rotating slideshow cycling through:
 - External product links should open in new tabs (`target="_blank" rel="noopener"`)
 - The PDF export plugin (`with-pdf`) is disabled by default; enable with `ENABLE_PDF_EXPORT=1`
 - Example/dummy emails in code samples (SQL, Python, etc.) should NOT be changed
-- Copyright references Kuldeep Singh Sidhu with AGPL-3.0 license
+- Copyright references SourceStrongAI with AGPL-3.0 license

@@ -20,6 +20,6 @@ For now, plese open a <a href="https://github.com/datascienceinterviews/datascie
 
 <a href="/#__tabbed_1_3">**List of things to contribute!**</a>
 
-Thank you, <br><a href="/contact">Kuldeep</a>
+Thank you, <br><a href="/contact">SourceStrongAI Team</a>
 
 ---

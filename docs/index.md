@@ -240,7 +240,7 @@ Not only this, the platform will also serve as one point destination for all you
 
         <div class="grid cards" markdown>
 
-        - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
+        - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/datascienceinterviews)
         - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
         - [:simple-unlicense: __AGPL-3.0__ license](https://github.com/datascienceinterviews/datascienceinterviews.github.io#AGPL-3.0-1-ov-file)
         - [:material-comment-account-outline: __Reach__ Out](/contact)
@@ -252,7 +252,7 @@ Not only this, the platform will also serve as one point destination for all you
 
 <div class="grid cards" markdown>
 
-  - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/singhsidhukuldeep)
+  - [::fontawesome-solid-user-shield:: Project __Maintainer__](https://github.com/datascienceinterviews)
   - [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
 
   </div>

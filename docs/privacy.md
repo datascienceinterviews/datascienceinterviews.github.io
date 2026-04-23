@@ -181,13 +181,7 @@ If you have any questions about this Privacy Policy, or if you would like to exe
 
 **Email:** hi@sourcestrongai.com
 
-**Mailing Address:**
-
-Kuldeep Singh Sidhu
-
-Street No 4, Malviya Nagar
-Bathinda, Punjab, 151001
-India
+**Website:** [https://sourcestrongai.com](https://sourcestrongai.com)
 
 ---
 

@@ -69,16 +69,13 @@ Not only this, the platform will also serve as one point destination for all you
 
 ### Maintained by
 
-👨‍🎓 ***Kuldeep Singh Sidhu*** 
+***[SourceStrongAI](https://sourcestrongai.com)*** 
 
-Github: [github/singhsidhukuldeep](https://github.com/singhsidhukuldeep)
-`https://github.com/singhsidhukuldeep`
+GitHub: [github/datascienceinterviews](https://github.com/datascienceinterviews)
 
-Website: [Kuldeep Singh Sidhu (Website)](http://kuldeepsinghsidhu.com)
-`http://kuldeepsinghsidhu.com`
+LinkedIn: [SourceStrongAI](https://www.linkedin.com/company/sourcestrongai)
 
-LinkedIn: [Kuldeep Singh Sidhu (LinkedIn)](https://www.linkedin.com/in/singhsidhukuldeep/)
-`https://www.linkedin.com/in/singhsidhukuldeep/`
+Twitter (X): [sourcestrongai](https://x.com/sourcestrongai)
 
 ### Contributors
 
@@ -91,7 +88,7 @@ LinkedIn: [Kuldeep Singh Sidhu (LinkedIn)](https://www.linkedin.com/in/singhsidh
 
 ## Current Status
 
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/singhsidhukuldeep)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/datascienceinterviews)
 [![Website shields.io](https://img.shields.io/website?url=https%3A%2F%2Fdsprep.com%2F)](https://dsprep.com/)
 [![GitHub pages status](https://img.shields.io/github/deployments/datascienceinterviews/datascienceinterviews.github.io/github-pages)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/deployments/activity_log?environment=github-pages)
 [![GitHub up-time BOT](https://badgen.net/uptime-robot/month/ur967659-422c6e77bfb79bb6a47c642c)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/deployments/activity_log?environment=github-pages)
@@ -110,7 +107,7 @@ LinkedIn: [Kuldeep Singh Sidhu (LinkedIn)](https://www.linkedin.com/in/singhsidh
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![made-with-Markdown](https://img.shields.io/badge/Made%20with-Markdown-1f425f.svg)](http://commonmark.org)
 [![repo- size](https://img.shields.io/github/repo-size/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io)
-[![Followers](https://img.shields.io/github/followers/singhsidhukuldeep?style=plastic&logo=github)](https://github.com/singhsidhukuldeep?tab=followers)
+[![Followers](https://img.shields.io/github/followers/datascienceinterviews?style=plastic&logo=github)](https://github.com/datascienceinterviews?tab=followers)
 
 
 <!-- apt-get install -y tzdata
