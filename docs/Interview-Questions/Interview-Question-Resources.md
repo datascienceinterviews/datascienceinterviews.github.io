@@ -136,9 +136,8 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Source | Description |
     |---|--------|-------------|
-    | 21 | [LinkedIn - ML Interview Guide](https://www.linkedin.com/pulse/machine-learning-interview-questions-answers-kuldeep-singh/) | Curated ML question collection |
-    | 22 | [Blind - Toughest ML Questions](https://www.teamblind.com/post/toughest-data-science-machine-learning-interview-questions-6btfa4g7) | Real tough ML questions from community |
-    | 23 | [Blind - ML Prep Thread](https://www.teamblind.com/post/Machine-learning-and-Data-science-interview-preparation-wGky3RBS) | ML and data science interview preparation |
+    | 21 | [Blind - Toughest ML Questions](https://www.teamblind.com/post/toughest-data-science-machine-learning-interview-questions-6btfa4g7) | Real tough ML questions from community |
+    | 22 | [Blind - ML Prep Thread](https://www.teamblind.com/post/Machine-learning-and-Data-science-interview-preparation-wGky3RBS) | ML and data science interview preparation |
 
     ### 🔗 Direct Links to Interview Questions
 
