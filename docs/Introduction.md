@@ -4,7 +4,7 @@ title: About This Platform - Data Science Interview Prep
 description: Learn how to use this open-source data science interview preparation platform. Explore 500+ curated questions, cheat sheets, ML tutorials, and community-contributed resources.
 ---
 
-# Home
+# About This Platform
 
 <p align="center">
   <a href="https://dsprep.com/">
@@ -129,68 +129,6 @@ and watch-out for any updates
 * **🙌 Accessible:**
     * **Easy to use:** 👌 The website is hosted on github-pages and is free and open to use to over 40 million users of GitHub in 100+ countries.
     * **Easy to contribute:** 🤝 The website embodies the concept of collaboration to the latter. Allowing anyone to add/improve the content. To make contributing easy, everything is written in MarkDown and then compiled to beautiful html.
-
-## Setup
-
-> No setup is required for usage of the platform
-
-**Important:** *It is strongly advised to use virtual environment and not change anything in `gh-pages`*
-
-### `Linux` Systems ![Linux](https://img.shields.io/badge/Linux-Systems-orange?logo=linux&style=plastic)
-
-```shell
-python3 -m venv ./venv
-
-source venv/bin/activate
-
-pip3 install -r requirements.txt
-```
-
-```shell
-deactivate
-```
-
-### `Windows` Systems ![Windows](https://img.shields.io/badge/Windows-Systems-blue?logo=Windows&style=plastic)
-
-```shell
-python3 -m venv ./venv
-
-venv\Scripts\activate
-
-pip3 install -r requirements.txt
-```
-
-```shell
-venv\Scripts\deactivate
-```
-
-### To install the latest
-
-```shell
-pip3 install mkdocs
-pip3 install mkdocs-material
-pip3 install mkdocs-minify-plugin
-pip3 install mkdocs-git-revision-date-localized-plugin
-```  
-
-### Useful Commands
-
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-* `mkdocs gh-deploy` - Use `mkdocs gh-deploy --help` to get a full list of options available for the `gh-deploy` command.
-    Be aware that you will not be able to review the built site before it is pushed to GitHub. Therefore, you may want to verify any changes you make to the docs beforehand by using the `build` or `serve` commands and reviewing the built files locally.
-* ~~`mkdocs new [dir-name]` - Create a new project.~~ No need to create a new project
-    
-### Useful Documents
-
-* 📑 MkDocs: 
-    * GitHub: [https://github.com/mkdocs/mkdocs](https://github.com/mkdocs/mkdocs)
-    * Documentation: [https://www.mkdocs.org/](https://www.mkdocs.org/)
-
-* 🎨 Theme: 
-    * GitHub: [https://github.com/squidfunk/mkdocs-material](https://github.com/squidfunk/mkdocs-material)
-    * Documentation: [https://squidfunk.github.io/mkdocs-material/getting-started/](https://squidfunk.github.io/mkdocs-material/getting-started/)
 
 ## FAQ
 
