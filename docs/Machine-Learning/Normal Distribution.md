@@ -4,14 +4,13 @@ description: Comprehensive guide to Normal Distribution with mathematical founda
 comments: true
 ---
 
-🔧#🔧 🔧📊🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧 🔧D🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+# 📊 Normal Distribution
 
 The Normal Distribution (also called Gaussian Distribution) is the most important continuous probability distribution in statistics and machine learning, characterized by its symmetric bell-shaped curve and defined by two parameters: mean and standard deviation.
 
 **Resources:** [SciPy Stats Documentation](https://docs.scipy.org/doc/scipy/reference/stats.html) | [Khan Academy Statistics](https://www.khanacademy.org/math/statistics-probability) | [Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/)
 
-🔧#🔧#🔧 🔧
- Summary
+## ✍️ Summary
 
 The Normal Distribution is a continuous probability distribution that is symmetric around its mean, with the shape determined by its standard deviation. It's fundamental to statistics and machine learning due to the Central Limit Theorem and its mathematical properties.
 
@@ -19,12 +18,12 @@ The Normal Distribution is a continuous probability distribution that is symmetr
 - **Bell-shaped curve**: Symmetric around the mean
 - **Unimodal**: Single peak at the mean
 - **Asymptotic**: Tails approach zero but never reach it
-- **Defined by two parameters**: Mean (¼) and standard deviation (Ã)
+- **Defined by two parameters**: Mean (μ) and standard deviation (σ)
 - **68-95-99.7 rule**: Empirical rule for data spread
 
 **Standard Normal Distribution:**
-- Mean (¼) = 0
-- Standard deviation (Ã) = 1
+- Mean (μ) = 0
+- Standard deviation (σ) = 1
 - Used for standardization and z-scores
 
 **Applications in Machine Learning:**
@@ -44,11 +43,11 @@ The Normal Distribution is a continuous probability distribution that is symmetr
 - Blood pressure measurements
 - Test scores and grades
 
-🔧#🔧#🔧 🔧🧠🔧 🔧I🔧n🔧t🔧u🔧i🔧t🔧i🔧o🔧n🔧
+## 🧠 Intuition
 
-🔧#🔧#🔧#🔧 🔧M🔧a🔧t🔧h🔧e🔧m🔧a🔧t🔧i🔧c🔧a🔧l🔧 🔧F🔧o🔧u🔧n🔧d🔧a🔧t🔧i🔧o🔧n🔧
+### Mathematical Foundation
 
-🔧#🔧#🔧#🔧#🔧 🔧P🔧r🔧o🔧b🔧a🔧b🔧i🔧l🔧i🔧t🔧y🔧 🔧D🔧e🔧n🔧s🔧i🔧t🔧y🔧 🔧F🔧u🔧n🔧c🔧t🔧i🔧o🔧n🔧 🔧(🔧P🔧D🔧F🔧)🔧
+#### Probability Density Function (PDF)
 
 The Normal Distribution is defined by its PDF:
 
@@ -61,19 +60,19 @@ Where:
 - $e \approx 2.718$ (Euler's number)
 - $\pi \approx 3.14159$
 
-🔧#🔧#🔧#🔧#🔧 🔧S🔧t🔧a🔧n🔧d🔧a🔧r🔧d🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧 🔧D🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+#### Standard Normal Distribution
 
 When $\mu = 0$ and $\sigma = 1$:
 
 $$\phi(z) = \frac{1}{\sqrt{2\pi}} e^{-\frac{z^2}{2}}$$
 
-🔧#🔧#🔧#🔧#🔧 🔧C🔧u🔧m🔧u🔧l🔧a🔧t🔧i🔧v🔧e🔧 🔧D🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧F🔧u🔧n🔧c🔧t🔧i🔧o🔧n🔧 🔧(🔧C🔧D🔧F🔧)🔧
+#### Cumulative Distribution Function (CDF)
 
 $$F(x) = P(X \leq x) = \int_{-\infty}^{x} \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(t-\mu)^2}{2\sigma^2}} dt$$
 
 For standard normal: $\Phi(z) = \int_{-\infty}^{z} \phi(t) dt$
 
-🔧#🔧#🔧#🔧#🔧 🔧Z🔧-🔧S🔧c🔧o🔧r🔧e🔧 🔧T🔧r🔧a🔧n🔧s🔧f🔧o🔧r🔧m🔧a🔧t🔧i🔧o🔧n🔧
+#### Z-Score Transformation
 
 Convert any normal distribution to standard normal:
 
@@ -81,9 +80,9 @@ $$Z = \frac{X - \mu}{\sigma}$$
 
 Where $Z \sim N(0, 1)$
 
-🔧#🔧#🔧#🔧 🔧K🔧e🔧y🔧 🔧P🔧r🔧o🔧p🔧e🔧r🔧t🔧i🔧e🔧s🔧
+### Key Properties
 
-🔧#🔧#🔧#🔧#🔧 🔧M🔧o🔧m🔧e🔧n🔧t🔧 🔧P🔧r🔧o🔧p🔧e🔧r🔧t🔧i🔧e🔧s🔧
+#### Moment Properties
 
 **Mean (First Moment):**
 $$E[X] = \mu$$
@@ -97,26 +96,26 @@ $$\text{Skewness} = E\left[\left(\frac{X-\mu}{\sigma}\right)^3\right] = 0$$
 **Kurtosis (Fourth Standardized Moment):**
 $$\text{Kurtosis} = E\left[\left(\frac{X-\mu}{\sigma}\right)^4\right] = 3$$
 
-🔧#🔧#🔧#🔧#🔧 🔧T🔧h🔧e🔧 🔧6🔧8🔧-🔧9🔧5🔧-🔧9🔧9🔧.🔧7🔧 🔧R🔧u🔧l🔧e🔧 🔧(🔧E🔧m🔧p🔧i🔧r🔧i🔧c🔧a🔧l🔧 🔧R🔧u🔧l🔧e🔧)🔧
+#### The 68-95-99.7 Rule (Empirical Rule)
 
 For any normal distribution:
 - **68%** of data falls within 1 standard deviation: $P(\mu - \sigma \leq X \leq \mu + \sigma) = 0.68$
 - **95%** of data falls within 2 standard deviations: $P(\mu - 2\sigma \leq X \leq \mu + 2\sigma) = 0.95$
 - **99.7%** of data falls within 3 standard deviations: $P(\mu - 3\sigma \leq X \leq \mu + 3\sigma) = 0.997$
 
-🔧#🔧#🔧#🔧#🔧 🔧L🔧i🔧n🔧e🔧a🔧r🔧 🔧C🔧o🔧m🔧b🔧i🔧n🔧a🔧t🔧i🔧o🔧n🔧s🔧
+#### Linear Combinations
 
 If $X \sim N(\mu_1, \sigma_1^2)$ and $Y \sim N(\mu_2, \sigma_2^2)$ are independent:
 
 $$aX + bY \sim N(a\mu_1 + b\mu_2, a^2\sigma_1^2 + b^2\sigma_2^2)$$
 
-🔧#🔧#🔧#🔧#🔧 🔧C🔧e🔧n🔧t🔧r🔧a🔧l🔧 🔧L🔧i🔧m🔧i🔧t🔧 🔧T🔧h🔧e🔧o🔧r🔧e🔧m🔧
+#### Central Limit Theorem
 
 For any population with mean $\mu$ and finite variance $\sigma^2$, the sampling distribution of the sample mean approaches normal as sample size increases:
 
 $$\bar{X}_n \sim N\left(\mu, \frac{\sigma^2}{n}\right) \text{ as } n \to \infty$$
 
-🔧#🔧#🔧#🔧 🔧M🔧a🔧x🔧i🔧m🔧u🔧m🔧 🔧L🔧i🔧k🔧e🔧l🔧i🔧h🔧o🔧o🔧d🔧 🔧E🔧s🔧t🔧i🔧m🔧a🔧t🔧i🔧o🔧n🔧
+### Maximum Likelihood Estimation
 
 Given observations $x_1, x_2, ..., x_n$ from $N(\mu, \sigma^2)$:
 
@@ -128,9 +127,9 @@ $$\hat{\mu} = \frac{1}{n}\sum_{i=1}^{n} x_i = \bar{x}$$
 
 $$\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^{n} (x_i - \bar{x})^2$$
 
-🔧#🔧#🔧 🔧=🔧"🔧 🔧I🔧m🔧p🔧l🔧e🔧m🔧e🔧n🔧t🔧a🔧t🔧i🔧o🔧n🔧 🔧u🔧s🔧i🔧n🔧g🔧 🔧L🔧i🔧b🔧r🔧a🔧r🔧i🔧e🔧s🔧
+## 🔢 Implementation using Libraries
 
-🔧#🔧#🔧#🔧 🔧U🔧s🔧i🔧n🔧g🔧 🔧N🔧u🔧m🔧P🔧y🔧 🔧a🔧n🔧d🔧 🔧S🔧c🔧i🔧P🔧y🔧
+### Using NumPy and SciPy
 
 ```python
 import numpy as np
@@ -142,11 +141,11 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings('ignore')
 
-🔧#🔧 🔧S🔧e🔧t🔧 🔧s🔧t🔧y🔧l🔧e🔧 🔧f🔧o🔧r🔧 🔧b🔧e🔧t🔧t🔧e🔧r🔧 🔧p🔧l🔧o🔧t🔧s🔧
+# Set style for better plots
 plt.style.use('seaborn-v0_8')
 np.random.seed(42)
 
-🔧#🔧 🔧G🔧e🔧n🔧e🔧r🔧a🔧t🔧e🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧s🔧a🔧m🔧p🔧l🔧e🔧s🔧
+# Generate normal distribution samples
 def generate_normal_samples(mu=0, sigma=1, size=1000):
     """
     Generate samples from normal distribution
@@ -161,61 +160,61 @@ def generate_normal_samples(mu=0, sigma=1, size=1000):
     """
     return np.random.normal(mu, sigma, size)
 
-🔧#🔧 🔧B🔧a🔧s🔧i🔧c🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧o🔧p🔧e🔧r🔧a🔧t🔧i🔧o🔧n🔧s🔧
+# Basic normal distribution operations
 mu, sigma = 5, 2
 samples = generate_normal_samples(mu, sigma, 10000)
 
-print(f"True parameters: ¼={mu}, Ã={sigma}")
-print(f"Sample statistics: ¼={np.mean(samples):.3f}, Ã={np.std(samples, ddof=1):.3f}")
+print(f"True parameters: μ={mu}, σ={sigma}")
+print(f"Sample statistics: μ={np.mean(samples):.3f}, σ={np.std(samples, ddof=1):.3f}")
 print(f"Sample size: {len(samples)}")
 
-🔧#🔧 🔧U🔧s🔧i🔧n🔧g🔧 🔧s🔧c🔧i🔧p🔧y🔧.🔧s🔧t🔧a🔧t🔧s🔧 🔧f🔧o🔧r🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+# Using scipy.stats for normal distribution
 normal_dist = stats.norm(loc=mu, scale=sigma)
 
-🔧#🔧 🔧C🔧a🔧l🔧c🔧u🔧l🔧a🔧t🔧e🔧 🔧p🔧r🔧o🔧b🔧a🔧b🔧i🔧l🔧i🔧t🔧i🔧e🔧s🔧 🔧a🔧n🔧d🔧 🔧q🔧u🔧a🔧n🔧t🔧i🔧l🔧e🔧s🔧
+# Calculate probabilities and quantiles
 x_values = np.linspace(mu - 4*sigma, mu + 4*sigma, 1000)
 pdf_values = normal_dist.pdf(x_values)
 cdf_values = normal_dist.cdf(x_values)
 
 print(f"\nProbability calculations:")
-print(f"P(X d 7) = {normal_dist.cdf(7):.4f}")
-print(f"P(X e 3) = {1 - normal_dist.cdf(3):.4f}")
-print(f"P(3 d X d 7) = {normal_dist.cdf(7) - normal_dist.cdf(3):.4f}")
+print(f"P(X ≤ 7) = {normal_dist.cdf(7):.4f}")
+print(f"P(X ≥ 3) = {1 - normal_dist.cdf(3):.4f}")
+print(f"P(3 ≤ X ≤ 7) = {normal_dist.cdf(7) - normal_dist.cdf(3):.4f}")
 
-🔧#🔧 🔧Q🔧u🔧a🔧n🔧t🔧i🔧l🔧e🔧s🔧 🔧(🔧i🔧n🔧v🔧e🔧r🔧s🔧e🔧 🔧C🔧D🔧F🔧)🔧
+# Quantiles (inverse CDF)
 print(f"\nQuantiles:")
 print(f"25th percentile: {normal_dist.ppf(0.25):.3f}")
 print(f"50th percentile (median): {normal_dist.ppf(0.5):.3f}")
 print(f"75th percentile: {normal_dist.ppf(0.75):.3f}")
 print(f"95th percentile: {normal_dist.ppf(0.95):.3f}")
 
-🔧#🔧 🔧E🔧m🔧p🔧i🔧r🔧i🔧c🔧a🔧l🔧 🔧r🔧u🔧l🔧e🔧 🔧v🔧e🔧r🔧i🔧f🔧i🔧c🔧a🔧t🔧i🔧o🔧n🔧
+# Empirical rule verification
 within_1_sigma = np.sum(np.abs(samples - mu) <= sigma) / len(samples)
 within_2_sigma = np.sum(np.abs(samples - mu) <= 2*sigma) / len(samples)
 within_3_sigma = np.sum(np.abs(samples - mu) <= 3*sigma) / len(samples)
 
 print(f"\nEmpirical Rule Verification:")
-print(f"Within 1Ã: {within_1_sigma:.3f} (expected: 0.683)")
-print(f"Within 2Ã: {within_2_sigma:.3f} (expected: 0.954)")
-print(f"Within 3Ã: {within_3_sigma:.3f} (expected: 0.997)")
+print(f"Within 1σ: {within_1_sigma:.3f} (expected: 0.683)")
+print(f"Within 2σ: {within_2_sigma:.3f} (expected: 0.954)")
+print(f"Within 3σ: {within_3_sigma:.3f} (expected: 0.997)")
 
-🔧#🔧 🔧V🔧i🔧s🔧u🔧a🔧l🔧i🔧z🔧a🔧t🔧i🔧o🔧n🔧
+# Visualization
 plt.figure(figsize=(15, 12))
 
-🔧#🔧 🔧P🔧D🔧F🔧 🔧a🔧n🔧d🔧 🔧h🔧i🔧s🔧t🔧o🔧g🔧r🔧a🔧m🔧
+# PDF and histogram
 plt.subplot(3, 2, 1)
 plt.hist(samples, bins=50, density=True, alpha=0.7, color='skyblue', edgecolor='black')
 plt.plot(x_values, pdf_values, 'r-', linewidth=2, label=f'PDF: N({mu}, {sigma}²)')
 plt.axvline(mu, color='red', linestyle='--', alpha=0.8, label=f'Mean = {mu}')
-plt.axvline(mu + sigma, color='orange', linestyle='--', alpha=0.8, label=f'¼ + Ã')
-plt.axvline(mu - sigma, color='orange', linestyle='--', alpha=0.8, label=f'¼ - Ã')
+plt.axvline(mu + sigma, color='orange', linestyle='--', alpha=0.8, label=f'μ + σ')
+plt.axvline(mu - sigma, color='orange', linestyle='--', alpha=0.8, label=f'μ - σ')
 plt.xlabel('Value')
 plt.ylabel('Density')
 plt.title('Normal Distribution PDF with Histogram')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧C🔧D🔧F🔧
+# CDF
 plt.subplot(3, 2, 2)
 plt.plot(x_values, cdf_values, 'b-', linewidth=2, label='CDF')
 plt.axhline(0.5, color='red', linestyle='--', alpha=0.8, label='P = 0.5')
@@ -226,25 +225,25 @@ plt.title('Normal Distribution CDF')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧Q🔧-🔧Q🔧 🔧p🔧l🔧o🔧t🔧
+# Q-Q plot
 plt.subplot(3, 2, 3)
 stats.probplot(samples, dist="norm", plot=plt)
 plt.title('Q-Q Plot: Testing Normality')
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧E🔧m🔧p🔧i🔧r🔧i🔧c🔧a🔧l🔧 🔧r🔧u🔧l🔧e🔧 🔧v🔧i🔧s🔧u🔧a🔧l🔧i🔧z🔧a🔧t🔧i🔧o🔧n🔧
+# Empirical rule visualization
 plt.subplot(3, 2, 4)
 x_emp = np.linspace(mu - 4*sigma, mu + 4*sigma, 1000)
 y_emp = stats.norm.pdf(x_emp, mu, sigma)
 plt.plot(x_emp, y_emp, 'k-', linewidth=2, label='PDF')
 
-🔧#🔧 🔧S🔧h🔧a🔧d🔧e🔧 🔧r🔧e🔧g🔧i🔧o🔧n🔧s🔧
+# Shade regions
 plt.fill_between(x_emp, 0, y_emp, where=((x_emp >= mu-sigma) & (x_emp <= mu+sigma)), 
-                alpha=0.3, color='blue', label='68% (1Ã)')
+                alpha=0.3, color='blue', label='68% (1σ)')
 plt.fill_between(x_emp, 0, y_emp, where=((x_emp >= mu-2*sigma) & (x_emp <= mu+2*sigma)), 
-                alpha=0.2, color='green', label='95% (2Ã)')
+                alpha=0.2, color='green', label='95% (2σ)')
 plt.fill_between(x_emp, 0, y_emp, where=((x_emp >= mu-3*sigma) & (x_emp <= mu+3*sigma)), 
-                alpha=0.1, color='red', label='99.7% (3Ã)')
+                alpha=0.1, color='red', label='99.7% (3σ)')
 
 plt.xlabel('Value')
 plt.ylabel('Density')
@@ -252,7 +251,7 @@ plt.title('Empirical Rule (68-95-99.7)')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧S🔧t🔧a🔧n🔧d🔧a🔧r🔧d🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧c🔧o🔧m🔧p🔧a🔧r🔧i🔧s🔧o🔧n🔧
+# Standard normal comparison
 plt.subplot(3, 2, 5)
 z_scores = (samples - mu) / sigma
 plt.hist(z_scores, bins=50, density=True, alpha=0.7, color='lightgreen', edgecolor='black')
@@ -265,7 +264,7 @@ plt.title('Standardized Data vs Standard Normal')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧M🔧u🔧l🔧t🔧i🔧p🔧l🔧e🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧s🔧 🔧c🔧o🔧m🔧p🔧a🔧r🔧i🔧s🔧o🔧n🔧
+# Multiple normal distributions comparison
 plt.subplot(3, 2, 6)
 params = [(0, 1), (0, 2), (2, 1), (-1, 0.5)]
 colors = ['blue', 'red', 'green', 'orange']
@@ -286,7 +285,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-🔧#🔧#🔧#🔧 🔧S🔧t🔧a🔧t🔧i🔧s🔧t🔧i🔧c🔧a🔧l🔧 🔧T🔧e🔧s🔧t🔧s🔧 🔧f🔧o🔧r🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧i🔧t🔧y🔧
+### Statistical Tests for Normality
 
 ```python
 from scipy.stats import shapiro, normaltest, anderson, kstest
@@ -347,7 +346,7 @@ def test_normality(data, alpha=0.05):
     
     return results
 
-🔧#🔧 🔧T🔧e🔧s🔧t🔧 🔧w🔧i🔧t🔧h🔧 🔧d🔧i🔧f🔧f🔧e🔧r🔧e🔧n🔧t🔧 🔧t🔧y🔧p🔧e🔧s🔧 🔧o🔧f🔧 🔧d🔧a🔧t🔧a🔧
+# Test with different types of data
 datasets = {
     'Normal Data': np.random.normal(0, 1, 1000),
     'Uniform Data': np.random.uniform(-2, 2, 1000),
@@ -371,7 +370,7 @@ for name, data in datasets.items():
         else:
             print(f"{test_name:20}: stat={result['statistic']:.4f}, {result['interpretation']}")
 
-🔧#🔧 🔧V🔧i🔧s🔧u🔧a🔧l🔧i🔧z🔧a🔧t🔧i🔧o🔧n🔧 🔧o🔧f🔧 🔧d🔧i🔧f🔧f🔧e🔧r🔧e🔧n🔧t🔧 🔧d🔧a🔧t🔧a🔧 🔧t🔧y🔧p🔧e🔧s🔧
+# Visualization of different data types
 plt.figure(figsize=(16, 10))
 
 for i, (name, data) in enumerate(datasets.items()):
@@ -400,7 +399,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-🔧#🔧#🔧#🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧 🔧D🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧i🔧n🔧 🔧M🔧a🔧c🔧h🔧i🔧n🔧e🔧 🔧L🔧e🔧a🔧r🔧n🔧i🔧n🔧g🔧 🔧C🔧o🔧n🔧t🔧e🔧x🔧t🔧
+### Normal Distribution in Machine Learning Context
 
 ```python
 from sklearn.datasets import make_classification
@@ -410,7 +409,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix
 
-🔧#🔧 🔧D🔧e🔧m🔧o🔧n🔧s🔧t🔧r🔧a🔧t🔧e🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧a🔧s🔧s🔧u🔧m🔧p🔧t🔧i🔧o🔧n🔧s🔧 🔧i🔧n🔧 🔧M🔧L🔧
+# Demonstrate normal distribution assumptions in ML
 def demonstrate_ml_normality():
     """
     Show how normal distribution is used in machine learning
@@ -503,10 +502,10 @@ def demonstrate_ml_normality():
     
     return results
 
-🔧#🔧 🔧R🔧u🔧n🔧 🔧d🔧e🔧m🔧o🔧n🔧s🔧t🔧r🔧a🔧t🔧i🔧o🔧n🔧
+# Run demonstration
 ml_results = demonstrate_ml_normality()
 
-🔧#🔧 🔧C🔧o🔧m🔧p🔧a🔧r🔧e🔧 🔧r🔧e🔧s🔧u🔧l🔧t🔧s🔧
+# Compare results
 plt.figure(figsize=(10, 6))
 names = list(ml_results.keys())
 accuracies = list(ml_results.values())
@@ -520,7 +519,7 @@ plt.xticks(range(len(names)), [name.replace(' (Original)', '\n(Original)').repla
                                for name in names], rotation=0)
 plt.ylim(0, 1)
 
-🔧#🔧 🔧A🔧d🔧d🔧 🔧v🔧a🔧l🔧u🔧e🔧 🔧l🔧a🔧b🔧e🔧l🔧s🔧 🔧o🔧n🔧 🔧b🔧a🔧r🔧s🔧
+# Add value labels on bars
 for bar, acc in zip(bars, accuracies):
     plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01, 
              f'{acc:.3f}', ha='center', va='bottom')
@@ -529,9 +528,9 @@ plt.tight_layout()
 plt.show()
 ```
 
-🔧#🔧#🔧 🔧🔧🔧 🔧F🔧r🔧o🔧m🔧 🔧S🔧c🔧r🔧a🔧t🔧c🔧h🔧 🔧I🔧m🔧p🔧l🔧e🔧m🔧e🔧n🔧t🔧a🔧t🔧i🔧o🔧n🔧
+## ⚙️ From Scratch Implementation
 
-🔧#🔧#🔧#🔧 🔧C🔧o🔧m🔧p🔧l🔧e🔧t🔧e🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧 🔧D🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧I🔧m🔧p🔧l🔧e🔧m🔧e🔧n🔧t🔧a🔧t🔧i🔧o🔧n🔧
+### Complete Normal Distribution Implementation
 
 ```python
 import numpy as np
@@ -750,12 +749,12 @@ class NormalDistribution:
         return ll
     
     def __str__(self) -> str:
-        return f"Normal(¼={self.mu:.3f}, Ã={self.sigma:.3f})"
+        return f"Normal(μ={self.mu:.3f}, σ={self.sigma:.3f})"
     
     def __repr__(self) -> str:
         return f"NormalDistribution(mu={self.mu}, sigma={self.sigma})"
 
-🔧#🔧 🔧D🔧e🔧m🔧o🔧n🔧s🔧t🔧r🔧a🔧t🔧i🔧o🔧n🔧 🔧o🔧f🔧 🔧c🔧u🔧s🔧t🔧o🔧m🔧 🔧i🔧m🔧p🔧l🔧e🔧m🔧e🔧n🔧t🔧a🔧t🔧i🔧o🔧n🔧
+# Demonstration of custom implementation
 def demo_custom_normal():
     """Demonstrate custom normal distribution implementation"""
     
@@ -891,11 +890,11 @@ def demo_custom_normal():
     
     return norm, samples
 
-🔧#🔧 🔧R🔧u🔧n🔧 🔧d🔧e🔧m🔧o🔧n🔧s🔧t🔧r🔧a🔧t🔧i🔧o🔧n🔧
+# Run demonstration
 custom_norm, custom_samples = demo_custom_normal()
 ```
 
-🔧#🔧#🔧#🔧 🔧A🔧d🔧v🔧a🔧n🔧c🔧e🔧d🔧 🔧S🔧t🔧a🔧t🔧i🔧s🔧t🔧i🔧c🔧a🔧l🔧 🔧M🔧e🔧t🔧h🔧o🔧d🔧s🔧
+### Advanced Statistical Methods
 
 ```python
 class AdvancedNormalAnalysis:
@@ -1095,7 +1094,7 @@ class AdvancedNormalAnalysis:
         
         return results
 
-🔧#🔧 🔧D🔧e🔧m🔧o🔧n🔧s🔧t🔧r🔧a🔧t🔧i🔧o🔧n🔧 🔧o🔧f🔧 🔧a🔧d🔧v🔧a🔧n🔧c🔧e🔧d🔧 🔧m🔧e🔧t🔧h🔧o🔧d🔧s🔧
+# Demonstration of advanced methods
 def demo_advanced_analysis():
     """Demonstrate advanced normal distribution analysis"""
     
@@ -1125,7 +1124,7 @@ def demo_advanced_analysis():
         
         # Hypothesis test (test if mean = 10)
         test_result = analyzer.hypothesis_test_mean(data, null_mean=10)
-        print(f"T-test (H0: ¼=10): t={test_result['t_statistic']:.3f}, "
+        print(f"T-test (H0: μ=10): t={test_result['t_statistic']:.3f}, "
               f"p={test_result['p_value']:.4f}, {test_result['conclusion']}")
         
         # Power analysis
@@ -1186,18 +1185,18 @@ def demo_advanced_analysis():
     plt.tight_layout()
     plt.show()
 
-🔧#🔧 🔧R🔧u🔧n🔧 🔧a🔧d🔧v🔧a🔧n🔧c🔧e🔧d🔧 🔧a🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧 🔧d🔧e🔧m🔧o🔧n🔧s🔧t🔧r🔧a🔧t🔧i🔧o🔧n🔧
+# Run advanced analysis demonstration
 demo_advanced_analysis()
 ```
 
-🔧#🔧#🔧 🔧 🔧🔧 🔧A🔧s🔧s🔧u🔧m🔧p🔧t🔧i🔧o🔧n🔧s🔧 🔧a🔧n🔧d🔧 🔧L🔧i🔧m🔧i🔧t🔧a🔧t🔧i🔧o🔧n🔧s🔧
+## ⚠️ Assumptions and Limitations
 
-🔧#🔧#🔧#🔧 🔧A🔧s🔧s🔧u🔧m🔧p🔧t🔧i🔧o🔧n🔧s🔧
+### Assumptions
 
 **Mathematical Assumptions:**
 - **Continuous data**: Variables are measured on a continuous scale
 - **Independence**: Observations are independent of each other  
-- **Infinite support**: Theoretically, values can range from - to +
+- **Infinite support**: Theoretically, values can range from -∞ to +∞
 - **Symmetry**: Distribution is perfectly symmetric around the mean
 - **Single mode**: Only one peak in the distribution
 
@@ -1208,13 +1207,13 @@ demo_advanced_analysis()
 - **Homoscedasticity**: Constant variance across all levels of independent variables
 - **No outliers**: Extreme values don't significantly affect the distribution
 
-🔧#🔧#🔧#🔧 🔧L🔧i🔧m🔧i🔧t🔧a🔧t🔧i🔧o🔧n🔧s🔧
+### Limitations
 
 **Theoretical Limitations:**
 - **Infinite tails**: Assigns non-zero probability to extreme values (can be unrealistic)
 - **Symmetry assumption**: Real-world data often shows skewness
 - **Single modality**: Cannot model multimodal distributions
-- **Parameter sensitivity**: Small changes in ¼ or Ã can significantly affect probabilities
+- **Parameter sensitivity**: Small changes in μ or σ can significantly affect probabilities
 - **Curse of dimensionality**: In high dimensions, most data lies far from the center
 
 **Practical Limitations:**
@@ -1224,7 +1223,7 @@ demo_advanced_analysis()
 - **Model assumptions**: Many statistical tests assume normality but real data may not follow this
 - **Transformation needs**: Data often requires preprocessing to achieve normality
 
-🔧#🔧#🔧#🔧 🔧W🔧h🔧e🔧n🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧i🔧t🔧y🔧 🔧A🔧s🔧s🔧u🔧m🔧p🔧t🔧i🔧o🔧n🔧s🔧 🔧F🔧a🔧i🔧l🔧
+### When Normality Assumptions Fail
 
 **Common Violations:**
 
@@ -1241,7 +1240,7 @@ demo_advanced_analysis()
 - **Statistical**: Shapiro-Wilk, Anderson-Darling, Kolmogorov-Smirnov tests
 - **Descriptive**: Skewness, kurtosis, range checks
 
-🔧#🔧#🔧#🔧 🔧R🔧o🔧b🔧u🔧s🔧t🔧 🔧A🔧l🔧t🔧e🔧r🔧n🔧a🔧t🔧i🔧v🔧e🔧s🔧
+### Robust Alternatives
 
 **When to Use Alternatives:**
 
@@ -1252,7 +1251,7 @@ demo_advanced_analysis()
 5. **Mixture Models**: For multimodal data
 6. **Non-parametric Methods**: When no distributional assumptions can be made
 
-🔧#🔧#🔧 🔧=🔧¡🔧 🔧I🔧n🔧t🔧e🔧r🔧v🔧i🔧e🔧w🔧 🔧Q🔧u🔧e🔧s🔧t🔧i🔧o🔧n🔧s🔧
+## 💡 Interview Questions
 
 ??? question "**Q1: Explain the difference between normal distribution and standard normal distribution.**"
 
@@ -1291,7 +1290,7 @@ demo_advanced_analysis()
     **Key Points:**
     - Original population can have ANY distribution
     - Sample size typically needs to be e30 for good approximation
-    - Larger samples  better normal approximation
+    - Larger samples → better normal approximation
     - Standard error decreases as $\frac{\sigma}{\sqrt{n}}$
     
     **Importance:**
@@ -1315,7 +1314,7 @@ demo_advanced_analysis()
     **Statistical Tests:**
     
     1. **Shapiro-Wilk Test** (best for n < 50):
-       - H: Data is normally distributed
+       - H₀: Data is normally distributed
        - Most powerful test for normality
        - `scipy.stats.shapiro(data)`
     
@@ -1343,33 +1342,33 @@ demo_advanced_analysis()
     
     **Parameters:**
     
-    1. **Mean (¼)** - Location parameter:
+    1. **Mean (μ)** - Location parameter:
        - Determines center of distribution
-       - Peak of bell curve occurs at ¼
-       - Shifting ¼ moves entire curve left/right
+       - Peak of bell curve occurs at μ
+       - Shifting μ moves entire curve left/right
        - Range: $-\infty < \mu < \infty$
     
-    2. **Standard Deviation (Ã)** - Scale parameter:
+    2. **Standard Deviation (σ)** - Scale parameter:
        - Determines spread/width of distribution
        - Controls how dispersed values are around mean
-       - Larger Ã  wider, flatter curve
-       - Smaller Ã  narrower, taller curve
-       - Range: $Ã > 0$
+       - Larger σ → wider, flatter curve
+       - Smaller σ → narrower, taller curve
+       - Range: $σ > 0$
     
     **Shape Effects:**
     ```
-    ¼ = 0, Ã = 1: Standard normal (tall, narrow)
-    ¼ = 0, Ã = 2: Same center, wider spread
-    ¼ = 5, Ã = 1: Shifted right, same spread
-    ¼ = 5, Ã = 2: Shifted right, wider spread
+    μ = 0, σ = 1: Standard normal (tall, narrow)
+    μ = 0, σ = 2: Same center, wider spread
+    μ = 5, σ = 1: Shifted right, same spread
+    μ = 5, σ = 2: Shifted right, wider spread
     ```
     
     **Mathematical Properties:**
-    - Mode = Median = Mean = ¼
-    - Inflection points at ¼ ± Ã
-    - 68% of data within ¼ ± Ã
-    - 95% of data within ¼ ± 2Ã
-    - 99.7% of data within ¼ ± 3Ã
+    - Mode = Median = Mean = μ
+    - Inflection points at μ ± σ
+    - 68% of data within μ ± σ
+    - 95% of data within μ ± 2σ
+    - 99.7% of data within μ ± 3σ
 
 ??? question "**Q5: Explain the 68-95-99.7 rule (Empirical Rule) and its applications.**"
 
@@ -1384,11 +1383,11 @@ demo_advanced_analysis()
     **Applications:**
     
     1. **Quality Control**:
-       - Products outside 3Ã limits considered defective
-       - Six Sigma methodology aims for 6Ã quality
+       - Products outside 3σ limits considered defective
+       - Six Sigma methodology aims for 6σ quality
     
     2. **Outlier Detection**:
-       - Values beyond 2Ã or 3Ã flagged as outliers
+       - Values beyond 2σ or 3σ flagged as outliers
        - Z-scores > 3 are rare (0.3% probability)
     
     3. **Risk Assessment**:
@@ -1508,7 +1507,7 @@ demo_advanced_analysis()
     3. **Box-Cox Transformation**: For positive data
        - $y = \frac{x^{\lambda} - 1}{\lambda}$ (if $\lambda \neq 0$)
        - $y = \log(x)$ (if $\lambda = 0$)
-       - Automatically finds optimal »
+       - Automatically finds optimal λ
     
     4. **Yeo-Johnson**: Handles negative values
        - Extension of Box-Cox for all real numbers
@@ -1628,9 +1627,9 @@ demo_advanced_analysis()
     - Eigenvalues: Principal component variances
     - Eigenvectors: Principal directions
 
-🔧#🔧#🔧 🔧🧠🔧 🔧E🔧x🔧a🔧m🔧p🔧l🔧e🔧s🔧
+## 🧠 Examples
 
-🔧#🔧#🔧#🔧 🔧R🔧e🔧a🔧l🔧-🔧w🔧o🔧r🔧l🔧d🔧 🔧E🔧x🔧a🔧m🔧p🔧l🔧e🔧:🔧 🔧Q🔧u🔧a🔧l🔧i🔧t🔧y🔧 🔧C🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧i🔧n🔧 🔧M🔧a🔧n🔧u🔧f🔧a🔧c🔧t🔧u🔧r🔧i🔧n🔧g🔧
+### Real-world Example: Quality Control in Manufacturing
 
 ```python
 import numpy as np
@@ -1640,7 +1639,7 @@ from scipy import stats
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 
-🔧#🔧 🔧M🔧a🔧n🔧u🔧f🔧a🔧c🔧t🔧u🔧r🔧i🔧n🔧g🔧 🔧Q🔧u🔧a🔧l🔧i🔧t🔧y🔧 🔧C🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧E🔧x🔧a🔧m🔧p🔧l🔧e🔧
+# Manufacturing Quality Control Example
 np.random.seed(42)
 
 def simulate_manufacturing_data():
@@ -1676,7 +1675,7 @@ def simulate_manufacturing_data():
     
     return pd.DataFrame(production_data)
 
-🔧#🔧 🔧G🔧e🔧n🔧e🔧r🔧a🔧t🔧e🔧 🔧m🔧a🔧n🔧u🔧f🔧a🔧c🔧t🔧u🔧r🔧i🔧n🔧g🔧 🔧d🔧a🔧t🔧a🔧
+# Generate manufacturing data
 manufacturing_df = simulate_manufacturing_data()
 
 print("Manufacturing Quality Control Analysis")
@@ -1687,15 +1686,15 @@ print(f"Overall mean: {manufacturing_df['length'].mean():.3f} mm")
 print(f"Overall std: {manufacturing_df['length'].std():.3f} mm")
 print(f"Defect rate: {(~manufacturing_df['within_spec']).mean():.1%}")
 
-🔧#🔧 🔧D🔧a🔧i🔧l🔧y🔧 🔧s🔧t🔧a🔧t🔧i🔧s🔧t🔧i🔧c🔧s🔧
+# Daily statistics
 daily_stats = manufacturing_df.groupby('day')['length'].agg(['mean', 'std', 'count'])
 daily_defect_rate = manufacturing_df.groupby('day')['within_spec'].apply(lambda x: (~x).mean())
 
-🔧#🔧 🔧C🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧c🔧h🔧a🔧r🔧t🔧 🔧a🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧 🔧u🔧s🔧i🔧n🔧g🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+# Control chart analysis using normal distribution
 overall_mean = manufacturing_df['length'].mean()
 overall_std = manufacturing_df['length'].std()
 
-🔧#🔧 🔧C🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧l🔧i🔧m🔧i🔧t🔧s🔧 🔧(🔧3🔧-🔧s🔧i🔧g🔧m🔧a🔧 🔧r🔧u🔧l🔧e🔧)🔧
+# Control limits (3-sigma rule)
 ucl = overall_mean + 3 * overall_std  # Upper Control Limit
 lcl = overall_mean - 3 * overall_std  # Lower Control Limit
 usl = 102  # Upper Specification Limit
@@ -1707,7 +1706,7 @@ print(f"Lower Control Limit (LCL): {lcl:.3f} mm")
 print(f"Upper Specification Limit (USL): {usl:.1f} mm")
 print(f"Lower Specification Limit (LSL): {lsl:.1f} mm")
 
-🔧#🔧 🔧P🔧r🔧o🔧c🔧e🔧s🔧s🔧 🔧c🔧a🔧p🔧a🔧b🔧i🔧l🔧i🔧t🔧y🔧 🔧a🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧
+# Process capability analysis
 cp = (usl - lsl) / (6 * overall_std)  # Process capability
 cpk = min((usl - overall_mean)/(3 * overall_std), 
           (overall_mean - lsl)/(3 * overall_std))  # Process capability index
@@ -1723,7 +1722,7 @@ elif cpk >= 1.0:
 else:
     print("  Poor process (> 2,700 PPM defects)")
 
-🔧#🔧 🔧C🔧a🔧l🔧c🔧u🔧l🔧a🔧t🔧e🔧 🔧t🔧h🔧e🔧o🔧r🔧e🔧t🔧i🔧c🔧a🔧l🔧 🔧d🔧e🔧f🔧e🔧c🔧t🔧 🔧r🔧a🔧t🔧e🔧s🔧 🔧u🔧s🔧i🔧n🔧g🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+# Calculate theoretical defect rates using normal distribution
 z_usl = (usl - overall_mean) / overall_std
 z_lsl = (lsl - overall_mean) / overall_std
 
@@ -1736,20 +1735,20 @@ print(f"Observed defect rate: {(~manufacturing_df['within_spec']).mean():.1%}")
 print(f"Theoretical defect rate (based on normal): {theoretical_defect_rate:.1%}")
 print(f"Theoretical PPM: {theoretical_defect_rate * 1e6:.0f}")
 
-🔧#🔧 🔧V🔧i🔧s🔧u🔧a🔧l🔧i🔧z🔧a🔧t🔧i🔧o🔧n🔧
+# Visualization
 plt.figure(figsize=(20, 15))
 
-🔧#🔧 🔧1🔧.🔧 🔧O🔧v🔧e🔧r🔧a🔧l🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧 🔧w🔧i🔧t🔧h🔧 🔧s🔧p🔧e🔧c🔧i🔧f🔧i🔧c🔧a🔧t🔧i🔧o🔧n🔧s🔧
+# 1. Overall distribution with specifications
 plt.subplot(3, 4, 1)
 plt.hist(manufacturing_df['length'], bins=50, density=True, alpha=0.7, 
          color='lightblue', edgecolor='black', label='Observed Data')
 
-🔧#🔧 🔧F🔧i🔧t🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧 🔧d🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+# Fit normal distribution
 mu_fit, sigma_fit = stats.norm.fit(manufacturing_df['length'])
 x = np.linspace(manufacturing_df['length'].min() - 1, manufacturing_df['length'].max() + 1, 1000)
 plt.plot(x, stats.norm.pdf(x, mu_fit, sigma_fit), 'r-', linewidth=2, label='Fitted Normal')
 
-🔧#🔧 🔧A🔧d🔧d🔧 🔧s🔧p🔧e🔧c🔧i🔧f🔧i🔧c🔧a🔧t🔧i🔧o🔧n🔧 🔧l🔧i🔧m🔧i🔧t🔧s🔧
+# Add specification limits
 plt.axvline(lsl, color='red', linestyle='--', linewidth=2, label='Spec Limits')
 plt.axvline(usl, color='red', linestyle='--', linewidth=2)
 plt.axvline(overall_mean, color='green', linestyle='-', linewidth=2, label='Process Mean')
@@ -1760,11 +1759,11 @@ plt.title('Overall Distribution vs Specifications')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧2🔧.🔧 🔧C🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧c🔧h🔧a🔧r🔧t🔧 🔧f🔧o🔧r🔧 🔧d🔧a🔧i🔧l🔧y🔧 🔧m🔧e🔧a🔧n🔧s🔧
+# 2. Control chart for daily means
 plt.subplot(3, 4, 2)
 plt.plot(daily_stats.index, daily_stats['mean'], 'bo-', markersize=4)
 plt.axhline(overall_mean, color='green', linestyle='-', label='Grand Mean')
-plt.axhline(overall_mean + 3*overall_std/np.sqrt(50), color='red', linestyle='--', label='±3Ã limits')
+plt.axhline(overall_mean + 3*overall_std/np.sqrt(50), color='red', linestyle='--', label='±3σ limits')
 plt.axhline(overall_mean - 3*overall_std/np.sqrt(50), color='red', linestyle='--')
 plt.xlabel('Day')
 plt.ylabel('Daily Mean Length (mm)')
@@ -1772,7 +1771,7 @@ plt.title('X-bar Control Chart')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧3🔧.🔧 🔧C🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧c🔧h🔧a🔧r🔧t🔧 🔧f🔧o🔧r🔧 🔧d🔧a🔧i🔧l🔧y🔧 🔧r🔧a🔧n🔧g🔧e🔧s🔧
+# 3. Control chart for daily ranges
 plt.subplot(3, 4, 3)
 plt.plot(daily_stats.index, daily_stats['std'], 'go-', markersize=4)
 plt.axhline(overall_std, color='blue', linestyle='-', label='Grand Std')
@@ -1782,7 +1781,7 @@ plt.title('S Control Chart')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧4🔧.🔧 🔧D🔧a🔧i🔧l🔧y🔧 🔧d🔧e🔧f🔧e🔧c🔧t🔧 🔧r🔧a🔧t🔧e🔧s🔧
+# 4. Daily defect rates
 plt.subplot(3, 4, 4)
 plt.bar(daily_defect_rate.index, daily_defect_rate.values * 100, alpha=0.7, color='orange')
 plt.axhline(theoretical_defect_rate * 100, color='red', linestyle='--', 
@@ -1793,13 +1792,13 @@ plt.title('Daily Defect Rates')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧5🔧.🔧 🔧Q🔧-🔧Q🔧 🔧p🔧l🔧o🔧t🔧 🔧t🔧o🔧 🔧v🔧e🔧r🔧i🔧f🔧y🔧 🔧n🔧o🔧r🔧m🔧a🔧l🔧i🔧t🔧y🔧
+# 5. Q-Q plot to verify normality
 plt.subplot(3, 4, 5)
 stats.probplot(manufacturing_df['length'], dist="norm", plot=plt)
 plt.title('Q-Q Plot: Normality Check')
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧6🔧.🔧 🔧I🔧n🔧d🔧i🔧v🔧i🔧d🔧u🔧a🔧l🔧 🔧m🔧e🔧a🔧s🔧u🔧r🔧e🔧m🔧e🔧n🔧t🔧s🔧 🔧c🔧o🔧n🔧t🔧r🔧o🔧l🔧 🔧c🔧h🔧a🔧r🔧t🔧
+# 6. Individual measurements control chart
 plt.subplot(3, 4, 6)
 sample_subset = manufacturing_df.head(100)  # First 100 samples
 plt.plot(range(len(sample_subset)), sample_subset['length'], 'b-', alpha=0.6)
@@ -1814,7 +1813,7 @@ plt.title('Individual Measurements (First 100)')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧7🔧.🔧 🔧P🔧r🔧o🔧c🔧e🔧s🔧s🔧 🔧c🔧a🔧p🔧a🔧b🔧i🔧l🔧i🔧t🔧y🔧 🔧v🔧i🔧s🔧u🔧a🔧l🔧i🔧z🔧a🔧t🔧i🔧o🔧n🔧
+# 7. Process capability visualization
 plt.subplot(3, 4, 7)
 x_cap = np.linspace(94, 106, 1000)
 y_cap = stats.norm.pdf(x_cap, overall_mean, overall_std)
@@ -1833,7 +1832,7 @@ plt.title(f'Process Capability (Cpk = {cpk:.3f})')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧8🔧.🔧 🔧H🔧i🔧s🔧t🔧o🔧g🔧r🔧a🔧m🔧 🔧b🔧y🔧 🔧d🔧e🔧f🔧e🔧c🔧t🔧 🔧t🔧y🔧p🔧e🔧
+# 8. Histogram by defect type
 plt.subplot(3, 4, 8)
 defect_counts = manufacturing_df['defect_type'].value_counts()
 colors = {'none': 'green', 'short': 'red', 'long': 'orange'}
@@ -1847,7 +1846,7 @@ for bar, count in zip(bars, defect_counts.values):
              str(count), ha='center', va='bottom')
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧9🔧.🔧 🔧M🔧o🔧v🔧i🔧n🔧g🔧 🔧a🔧v🔧e🔧r🔧a🔧g🔧e🔧 🔧t🔧r🔧e🔧n🔧d🔧
+# 9. Moving average trend
 plt.subplot(3, 4, 9)
 manufacturing_df['moving_avg'] = manufacturing_df['length'].rolling(window=20, center=True).mean()
 plt.plot(range(len(manufacturing_df)), manufacturing_df['length'], 'b-', alpha=0.3, label='Individual')
@@ -1859,22 +1858,22 @@ plt.title('Process Trend Analysis')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧1🔧0🔧.🔧 🔧P🔧r🔧o🔧b🔧a🔧b🔧i🔧l🔧i🔧t🔧y🔧 🔧c🔧a🔧l🔧c🔧u🔧l🔧a🔧t🔧i🔧o🔧n🔧s🔧
+# 10. Probability calculations
 plt.subplot(3, 4, 10)
-🔧#🔧 🔧C🔧r🔧e🔧a🔧t🔧e🔧 🔧p🔧r🔧o🔧b🔧a🔧b🔧i🔧l🔧i🔧t🔧y🔧 🔧d🔧e🔧n🔧s🔧i🔧t🔧y🔧 🔧a🔧r🔧e🔧a🔧s🔧
+# Create probability density areas
 x_prob = np.linspace(96, 104, 1000)
 y_prob = stats.norm.pdf(x_prob, overall_mean, overall_std)
 
 plt.plot(x_prob, y_prob, 'b-', linewidth=2)
 
-🔧#🔧 🔧S🔧h🔧a🔧d🔧e🔧 🔧d🔧i🔧f🔧f🔧e🔧r🔧e🔧n🔧t🔧 🔧p🔧r🔧o🔧b🔧a🔧b🔧i🔧l🔧i🔧t🔧y🔧 🔧r🔧e🔧g🔧i🔧o🔧n🔧s🔧
+# Shade different probability regions
 plt.fill_between(x_prob, 0, y_prob, where=(x_prob <= overall_mean - overall_std), 
-                alpha=0.3, color='lightcoral', label='< ¼-Ã (16%)')
+                alpha=0.3, color='lightcoral', label='< μ-σ (16%)')
 plt.fill_between(x_prob, 0, y_prob, where=((x_prob > overall_mean - overall_std) & 
                 (x_cap <= overall_mean + overall_std)), 
-                alpha=0.3, color='lightgreen', label='¼±Ã (68%)')
+                alpha=0.3, color='lightgreen', label='μ±σ (68%)')
 plt.fill_between(x_prob, 0, y_prob, where=(x_prob > overall_mean + overall_std), 
-                alpha=0.3, color='lightcoral', label='> ¼+Ã (16%)')
+                alpha=0.3, color='lightcoral', label='> μ+σ (16%)')
 
 plt.xlabel('Length (mm)')
 plt.ylabel('Density')
@@ -1882,9 +1881,9 @@ plt.title('Probability Regions (Empirical Rule)')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-🔧#🔧 🔧1🔧1🔧-🔧1🔧2🔧:🔧 🔧A🔧d🔧d🔧i🔧t🔧i🔧o🔧n🔧a🔧l🔧 🔧a🔧n🔧a🔧l🔧y🔧s🔧e🔧s🔧
+# 11-12: Additional analyses
 plt.subplot(3, 4, 11)
-🔧#🔧 🔧B🔧o🔧x🔧 🔧p🔧l🔧o🔧t🔧 🔧b🔧y🔧 🔧d🔧a🔧y🔧 🔧(🔧s🔧a🔧m🔧p🔧l🔧e🔧 🔧o🔧f🔧 🔧d🔧a🔧y🔧s🔧)🔧
+# Box plot by day (sample of days)
 sample_days = [1, 10, 20, 30]
 box_data = [manufacturing_df[manufacturing_df['day'] == day]['length'].values 
            for day in sample_days]
@@ -1894,7 +1893,7 @@ plt.title('Distribution by Selected Days')
 plt.grid(True, alpha=0.3)
 
 plt.subplot(3, 4, 12)
-🔧#🔧 🔧C🔧u🔧m🔧u🔧l🔧a🔧t🔧i🔧v🔧e🔧 🔧d🔧e🔧f🔧e🔧c🔧t🔧 🔧r🔧a🔧t🔧e🔧
+# Cumulative defect rate
 manufacturing_df['cumulative_defects'] = (~manufacturing_df['within_spec']).cumsum()
 manufacturing_df['cumulative_rate'] = manufacturing_df['cumulative_defects'] / np.arange(1, len(manufacturing_df) + 1)
 plt.plot(range(len(manufacturing_df)), manufacturing_df['cumulative_rate'] * 100, 'b-')
@@ -1908,34 +1907,34 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-🔧#🔧 🔧S🔧t🔧a🔧t🔧i🔧s🔧t🔧i🔧c🔧a🔧l🔧 🔧s🔧u🔧m🔧m🔧a🔧r🔧y🔧
+# Statistical summary
 print(f"\nStatistical Analysis Summary:")
 print(f"Shapiro-Wilk normality test: p = {stats.shapiro(manufacturing_df['length'])[1]:.6f}")
 if stats.shapiro(manufacturing_df['length'])[1] > 0.05:
-    print("   Data appears to follow normal distribution (p > 0.05)")
+    print("✅ Data appears to follow normal distribution (p > 0.05)")
 else:
-    print("   Data may not be perfectly normal (p d 0.05)")
+    print("⚠️ Data may not be perfectly normal (p ≤ 0.05)")
 
-🔧#🔧 🔧R🔧e🔧c🔧o🔧m🔧m🔧e🔧n🔧d🔧a🔧t🔧i🔧o🔧n🔧
+# Recommendation
 print(f"\nRecommendations:")
 if cpk >= 1.33:
-    print(" Process is operating excellently")
+    print("✅ Process is operating excellently")
 elif cpk >= 1.0:
-    print("  Process is adequate but could be improved")
+    print("⚠️ Process is adequate but could be improved")
     print("  - Consider reducing process variation")
     print("  - Check for process centering")
 else:
-    print("L Process needs immediate attention")
+    print("❌ Process needs immediate attention")
     print("  - High defect rate detected")
     print("  - Consider process adjustment or tighter control")
 
 return manufacturing_df
 
-🔧#🔧 🔧R🔧u🔧n🔧 🔧t🔧h🔧e🔧 🔧m🔧a🔧n🔧u🔧f🔧a🔧c🔧t🔧u🔧r🔧i🔧n🔧g🔧 🔧a🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧
+# Run the manufacturing analysis
 manufacturing_data = simulate_manufacturing_data()
 ```
 
-🔧#🔧#🔧#🔧 🔧F🔧i🔧n🔧a🔧n🔧c🔧i🔧a🔧l🔧 🔧R🔧i🔧s🔧k🔧 🔧A🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧 🔧E🔧x🔧a🔧m🔧p🔧l🔧e🔧
+### Financial Risk Analysis Example
 
 ```python
 import numpy as np
@@ -1945,7 +1944,7 @@ from scipy import stats
 import seaborn as sns
 from datetime import datetime, timedelta
 
-🔧#🔧 🔧F🔧i🔧n🔧a🔧n🔧c🔧i🔧a🔧l🔧 🔧R🔧i🔧s🔧k🔧 🔧A🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧 🔧u🔧s🔧i🔧n🔧g🔧 🔧N🔧o🔧r🔧m🔧a🔧l🔧 🔧D🔧i🔧s🔧t🔧r🔧i🔧b🔧u🔧t🔧i🔧o🔧n🔧
+# Financial Risk Analysis using Normal Distribution
 def financial_risk_analysis():
     """
     Analyze financial portfolio using normal distribution assumptions
@@ -2251,11 +2250,11 @@ def financial_risk_analysis():
     
     return returns_df, portfolio_values
 
-🔧#🔧 🔧R🔧u🔧n🔧 🔧t🔧h🔧e🔧 🔧f🔧i🔧n🔧a🔧n🔧c🔧i🔧a🔧l🔧 🔧a🔧n🔧a🔧l🔧y🔧s🔧i🔧s🔧
+# Run the financial analysis
 returns_data, portfolio_data = financial_risk_analysis()
 ```
 
-🔧#🔧#🔧 🔧=🔧Ú🔧 🔧R🔧e🔧f🔧e🔧r🔧e🔧n🔧c🔧e🔧s🔧
+## 📚 References
 
 **Foundational Texts:**
 - [Statistical Inference](https://web.stanford.edu/~hastie/CASI/) - Casella & Berger

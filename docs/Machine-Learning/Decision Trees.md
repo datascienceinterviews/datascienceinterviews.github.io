@@ -97,7 +97,7 @@ The tree stops growing when:
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_classification, load_iris, load_boston
+from sklearn.datasets import make_classification, load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.tree import export_text, plot_tree

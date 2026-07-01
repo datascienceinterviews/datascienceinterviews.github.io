@@ -10,8 +10,7 @@ Loss functions quantify the difference between predicted and actual values, serv
 
 **Resources:** [Scikit-learn Metrics](https://scikit-learn.org/stable/modules/model_evaluation.html) | [Deep Learning Book - Chapter 5](https://www.deeplearningbook.org/contents/ml.html)
 
-## 
- Summary
+## ✍️ Summary
 
 Loss functions are mathematical functions that measure the discrepancy between predicted values and true values in machine learning models. MAE and RMSE are two fundamental regression loss functions:
 
@@ -215,7 +214,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-## 🔧 From Scratch Implementation
+## ⚙️ From Scratch Implementation
 
 ### Pure Python Implementation
 
@@ -611,8 +610,8 @@ class RobustLossFunctions:
     **Key differences:**
     - **RMSE:** Measures prediction error (predicted vs actual)
     - **Standard deviation:** Measures variability around the mean
-    - **RMSE formula:** `(£(y_actual - y_pred)²/n)`
-    - **Std dev formula:** `(£(x - ¼)²/n)`
+    - **RMSE formula:** `√(Σ(y_actual - y_pred)²/n)`
+    - **Std dev formula:** `√(Σ(x - μ)²/n)`
     
     **Interpretation:** RMSE can be thought of as the "standard deviation of prediction errors."
 

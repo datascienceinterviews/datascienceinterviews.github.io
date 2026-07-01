@@ -89,7 +89,7 @@ To prevent overfitting:
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_regression, make_classification, load_boston
+from sklearn.datasets import make_regression, make_classification
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
 from sklearn.metrics import mean_squared_error, accuracy_score, classification_report
@@ -195,11 +195,11 @@ plt.show()
 
 ```python
 import xgboost as xgb
-from sklearn.datasets import load_boston
+from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 
 # Load dataset
-X, y = load_boston(return_X_y=True)
+X, y = fetch_california_housing(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Create XGBoost regressor
@@ -571,17 +571,17 @@ if __name__ == "__main__":
 ```python
 import numpy as np
 import pandas as pd
-from sklearn.datasets import load_boston
+from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split, learning_curve
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load Boston housing dataset
-boston = load_boston()
-X, y = boston.data, boston.target
-feature_names = boston.feature_names
+# Load California housing dataset
+housing = fetch_california_housing()
+X, y = housing.data, housing.target
+feature_names = housing.feature_names
 
 # Create DataFrame for better visualization
 df = pd.DataFrame(X, columns=feature_names)
@@ -688,9 +688,9 @@ print(feature_importance.head())
 
 # Business insights
 print("\nBusiness Insights:")
-print("1. LSTAT (% lower status population) is the most important predictor")
-print("2. RM (average rooms per dwelling) significantly affects price")
-print("3. DIS (distance to employment centers) impacts housing values")
+print("1. MedInc (median income in the block group) is the most important predictor")
+print("2. AveRooms (average rooms per household) significantly affects price")
+print("3. Latitude/Longitude (location) impacts housing values")
 print("4. The model explains {:.1f}% of price variation".format(r2 * 100))
 ```
 

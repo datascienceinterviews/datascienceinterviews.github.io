@@ -10,7 +10,7 @@ Random Forest is a powerful ensemble machine learning algorithm that builds mult
 
 **Resources:** [Scikit-learn Random Forest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html) | [Random Forests Paper - Leo Breiman](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf) | [Elements of Statistical Learning - Chapter 15](https://web.stanford.edu/~hastie/ElemStatLearn/)
 
-##  Summary
+## ✍️ Summary
 
 Random Forest is an ensemble learning method that combines multiple decision trees using two key techniques: **bagging** (bootstrap aggregating) and **random feature selection**. Each tree in the forest is trained on a bootstrap sample of the data and considers only a random subset of features at each split, reducing correlation between trees and improving generalization.
 
@@ -38,7 +38,7 @@ Random Forest is an ensemble learning method that combines multiple decision tre
 - **Extremely Randomized Trees (Extra Trees)**: Uses random thresholds for splits
 - **Isolation Forest**: Specialized variant for anomaly detection
 
-## >� Intuition
+## 🧠 Intuition
 
 ### How Random Forest Works
 
@@ -105,7 +105,7 @@ $$\text{Var}(\text{ensemble}) = \rho\sigma^2 + \frac{1-\rho}{B}\sigma^2$$
 
 Random feature selection reduces $\rho$, improving variance reduction.
 
-## =" Implementation using Libraries
+## 🔢 Implementation using Libraries
 
 ### Scikit-learn Implementation
 
@@ -113,7 +113,7 @@ Random feature selection reduces $\rho$, improving variance reduction.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris, load_boston, make_classification
+from sklearn.datasets import load_iris, fetch_california_housing, make_classification
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -227,7 +227,7 @@ oob_score_reg = rf_regressor.oob_score_
 
 print(f"\nRandom Forest Regression Results:")
 print(f"RMSE: {rmse:.3f}")
-print(f"R� Score: {r2:.3f}")
+print(f"R² Score: {r2:.3f}")
 print(f"Out-of-bag Score: {oob_score_reg:.3f}")
 
 # Plot predictions vs actual
@@ -237,7 +237,7 @@ plt.plot([y_test_reg.min(), y_test_reg.max()],
          [y_test_reg.min(), y_test_reg.max()], 'r--', lw=2)
 plt.xlabel('Actual Values')
 plt.ylabel('Predicted Values')
-plt.title(f'Random Forest Regression: Actual vs Predicted (R� = {r2:.3f})')
+plt.title(f'Random Forest Regression: Actual vs Predicted (R² = {r2:.3f})')
 plt.grid(True)
 plt.show()
 ```
@@ -313,7 +313,7 @@ def plot_learning_curves(estimator, X, y, cv=5):
 plot_learning_curves(RandomForestClassifier(random_state=42), X_iris, y_iris)
 ```
 
-## � From Scratch Implementation
+## ⚙️ From Scratch Implementation
 
 ```python
 import numpy as np
@@ -616,7 +616,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-## � Assumptions and Limitations
+## ⚠️ Assumptions and Limitations
 
 ### Key Assumptions
 
@@ -658,18 +658,18 @@ plt.show()
 | Neural Networks | Very Low | High | Very Slow | Medium | Very High |
 
 **When to use Random Forest:**
--  Mixed data types (numerical and categorical)
--  Non-linear relationships
--  Need feature importance insights
--  Robust performance without much tuning
--  Medium-sized datasets
+- ✅ Mixed data types (numerical and categorical)
+- ✅ Non-linear relationships
+- ✅ Need feature importance insights
+- ✅ Robust performance without much tuning
+- ✅ Medium-sized datasets
 
 **When to avoid Random Forest:**
-- L Very large datasets (consider XGBoost, LightGBM)
-- L Real-time prediction requirements
-- L Linear relationships dominate
-- L High interpretability requirements
-- L Memory constraints
+- ❌ Very large datasets (consider XGBoost, LightGBM)
+- ❌ Real-time prediction requirements
+- ❌ Linear relationships dominate
+- ❌ High interpretability requirements
+- ❌ Memory constraints
 
 ## ❓ Interview Questions
 
@@ -682,7 +682,7 @@ plt.show()
     3. **Ensemble Averaging**: Averaging multiple models reduces overall variance
     4. **Bias-Variance Tradeoff**: Trades slight bias increase for large variance reduction
     
-    **Mathematical intuition**: If individual trees have variance ò, ensemble variance is ò/B for independent trees, or �ò + (1-�)ò/B for correlated trees. Random features reduce correlation �.
+    **Mathematical intuition**: If individual trees have variance σ², ensemble variance is σ²/B for independent trees, or ρσ² + (1-ρ)σ²/B for correlated trees. Random features reduce correlation ρ.
     
     **Practical impact**: Single tree might achieve 85% accuracy with high variance, while Random Forest with 100 trees achieves 92% accuracy with much lower variance.
 
@@ -798,7 +798,7 @@ plt.show()
     **Answer:** Key hyperparameters and their effects:
     
     **Tree-level parameters**:
-    - **n_estimators**: More trees � better performance, diminishing returns after ~100-500
+    - **n_estimators**: More trees → better performance, diminishing returns after ~100-500
     - **max_depth**: Controls overfitting vs underfitting
     - **min_samples_split/leaf**: Higher values prevent overfitting
     - **max_features**: 'sqrt' (classification), 'log2', or fraction of features
@@ -836,15 +836,15 @@ plt.show()
     **Answer:** Computational complexity analysis:
     
     **Training complexity**:
-    - **Single tree**: O(n � m � log n) where n=samples, m=features
-    - **Random Forest**: O(B � n � m � log n) where B=number of trees
-    - **With random features**: O(B � n � m � log n) for classification
+    - **Single tree**: O(n · m · log n) where n=samples, m=features
+    - **Random Forest**: O(B · n · m · log n) where B=number of trees
+    - **With random features**: O(B · n · √m · log n) for classification
     - **Parallelizable**: Trees can be trained independently
     
     **Prediction complexity**:
     - **Single tree**: O(log n) for balanced tree
-    - **Random Forest**: O(B � log n)
-    - **Space complexity**: O(B � tree_size)
+    - **Random Forest**: O(B · log n)
+    - **Space complexity**: O(B · tree_size)
     
     **Memory usage**:
     ```python
@@ -928,23 +928,23 @@ plt.show()
     **When to use each**:
     
     **Random Forest**:
-    -  Quick baseline model
-    -  Mixed data types
-    -  Interpretability needed
-    -  Robust performance without tuning
+    - ✅ Quick baseline model
+    - ✅ Mixed data types
+    - ✅ Interpretability needed
+    - ✅ Robust performance without tuning
     
     **AdaBoost**:
-    -  Weak learners available
-    -  Binary classification
-    -  Less prone to outliers than other boosting
-    - L Sensitive to noise and outliers
+    - ✅ Weak learners available
+    - ✅ Binary classification
+    - ✅ Less prone to outliers than other boosting
+    - ❌ Sensitive to noise and outliers
     
     **XGBoost/LightGBM**:
-    -  Maximum predictive performance
-    -  Kaggle competitions
-    -  Large datasets
-    -  Advanced regularization needed
-    - L Requires careful hyperparameter tuning
+    - ✅ Maximum predictive performance
+    - ✅ Kaggle competitions
+    - ✅ Large datasets
+    - ✅ Advanced regularization needed
+    - ❌ Requires careful hyperparameter tuning
     
     **Performance hierarchy** (generally): XGBoost > Random Forest > AdaBoost > Single Tree
     
@@ -1011,7 +1011,7 @@ plt.show()
     
     **Best approach**: Combine multiple strategies and validate with appropriate metrics.
 
-## >� Examples
+## 🧠 Examples
 
 ### Real-world Example: Credit Risk Assessment
 
@@ -1302,7 +1302,7 @@ mae = mean_absolute_error(y_test_h, y_pred_h)
 r2 = r2_score(y_test_h, y_pred_h)
 
 print(f"\nHouse Price Prediction Results:")
-print(f"R� Score: {r2:.3f}")
+print(f"R² Score: {r2:.3f}")
 print(f"RMSE: ${rmse:,.0f}")
 print(f"MAE: ${mae:,.0f}")
 print(f"MAPE: {np.mean(np.abs((y_test_h - y_pred_h) / y_test_h)) * 100:.1f}%")
@@ -1331,7 +1331,7 @@ axes[0, 1].plot([y_test_h.min(), y_test_h.max()],
                 [y_test_h.min(), y_test_h.max()], 'r--', lw=2)
 axes[0, 1].set_xlabel('Actual Price ($)')
 axes[0, 1].set_ylabel('Predicted Price ($)')
-axes[0, 1].set_title(f'Actual vs Predicted (R� = {r2:.3f})')
+axes[0, 1].set_title(f'Actual vs Predicted (R² = {r2:.3f})')
 
 # Residuals
 residuals = y_test_h - y_pred_h
@@ -1425,7 +1425,7 @@ print(examples.round(0))
 - **Books:**
   - [The Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/) by Hastie, Tibshirani, and Friedman - Chapter 15
   - [Introduction to Statistical Learning](https://www.statlearning.com/) by James, Witten, Hastie, and Tibshirani - Chapter 8
-  - [Hands-On Machine Learning](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/) by Aur�lien G�ron - Chapter 7
+  - [Hands-On Machine Learning](https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/) by Aurélien Géron - Chapter 7
 
 - **Documentation:**
   - [Scikit-learn Random Forest](https://scikit-learn.org/stable/modules/ensemble.html#random-forests)

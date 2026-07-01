@@ -10,8 +10,8 @@ Logistic Regression is a statistical method used for binary and multiclass class
 
 **Resources:** [Scikit-learn Logistic Regression](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression) | [Stanford CS229 Notes](http://cs229.stanford.edu/notes2020spring/cs229-notes1.pdf)
 
-## 
- Summary
+## ✍️ Summary
+
 
 Logistic Regression is a linear classifier that uses the logistic function (sigmoid) to map any real-valued number into a value between 0 and 1, making it suitable for probability estimation and classification tasks.
 
@@ -99,7 +99,7 @@ $$\beta_j := \beta_j - \alpha \frac{\partial J(\beta)}{\partial \beta_j}$$
 5. **Update parameters** using gradient descent
 6. **Repeat** until convergence
 
-## =" Implementation using Libraries
+## 🔢 Implementation using Libraries
 
 ### Using Scikit-learn
 
@@ -338,7 +338,7 @@ best_pred = best_model.predict(X_test_scaled)
 print("Best model test accuracy:", accuracy_score(y_test, best_pred))
 ```
 
-## 🔧 From Scratch Implementation
+## ⚙️ From Scratch Implementation
 
 ```python
 import numpy as np
@@ -649,23 +649,23 @@ print(f"No reg weights: {custom_lr.weights}")
 
 | Algorithm | Interpretability | Speed | Non-linear | Probability Output | Overfitting Risk |
 |-----------|-----------------|-------|------------|-------------------|------------------|
-| Logistic Regression | PPPPP | PPPPP | L |  | PP |
-| Decision Trees | PPPP | PPPP |  |  | PPPP |
-| Random Forest | PP | PPP |  |  | PP |
-| SVM | PP | PP |  | L | PPP |
-| Neural Networks | P | PP |  |  | PPPPP |
+| Logistic Regression | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ❌ | ✅ | ⭐⭐ |
+| Decision Trees | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ✅ | ✅ | ⭐⭐⭐⭐ |
+| Random Forest | ⭐⭐ | ⭐⭐⭐ | ✅ | ✅ | ⭐⭐ |
+| SVM | ⭐⭐ | ⭐⭐ | ✅ | ❌ | ⭐⭐⭐ |
+| Neural Networks | ⭐ | ⭐⭐ | ✅ | ✅ | ⭐⭐⭐⭐⭐ |
 
 **When to use Logistic Regression:**
--  When you need interpretable results
--  For baseline models
--  When you have linear relationships
--  When you need probability estimates
--  With limited training data
+- ✅ When you need interpretable results
+- ✅ For baseline models
+- ✅ When you have linear relationships
+- ✅ When you need probability estimates
+- ✅ With limited training data
 
 **When to avoid:**
-- L When relationships are highly non-linear
-- L When you have very high-dimensional data
-- L When interpretability is not important and accuracy is paramount
+- ❌ When relationships are highly non-linear
+- ❌ When you have very high-dimensional data
+- ❌ When interpretability is not important and accuracy is paramount
 
 ## ❓ Interview Questions
 
@@ -676,8 +676,8 @@ print(f"No reg weights: {custom_lr.weights}")
     | Aspect | Linear Regression | Logistic Regression |
     |--------|------------------|-------------------|
     | **Purpose** | Predicts continuous values | Predicts probabilities/classes |
-    | **Output range** | (-, +) | [0, 1] |
-    | **Function** | Linear: y = Â²X + Âµ | Logistic: p = 1/(1 + e^(-Â²X)) |
+    | **Output range** | (-∞, +∞) | [0, 1] |
+    | **Function** | Linear: y = βX + ε | Logistic: p = 1/(1 + e^(-βX)) |
     | **Error distribution** | Normal | Binomial |
     | **Cost function** | Mean Squared Error | Log-likelihood |
     | **Parameters estimation** | Least squares | Maximum likelihood |
@@ -685,9 +685,9 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Mathematical relationship:**
     ```
-    Linear Regression: y = Â²Â + Â²ÂxÂ + Â²ÂxÂ + ... + Â²ÂxÂ + Âµ
+    Linear Regression: y = β₀ + β₁x₁ + β₂x₂ + ... + βₚxₚ + ε
     
-    Logistic Regression: log(p/(1-p)) = Â²Â + Â²ÂxÂ + Â²ÂxÂ + ... + Â²ÂxÂ
+    Logistic Regression: log(p/(1-p)) = β₀ + β₁x₁ + β₂x₂ + ... + βₚxₚ
     ```
 
     **When to use each:**
@@ -722,7 +722,7 @@ print(f"No reg weights: {custom_lr.weights}")
     plt.plot(z, y, 'b-', linewidth=2)
     plt.axhline(y=0.5, color='r', linestyle='--', alpha=0.7, label='Decision boundary')
     plt.xlabel('z (linear combination)')
-    plt.ylabel('Ã(z) (probability)')
+    plt.ylabel('σ(z) (probability)')
     plt.title('Sigmoid Function')
     plt.grid(True, alpha=0.3)
     plt.legend()
@@ -731,7 +731,7 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Mathematical advantages:**
     - Maps any real number to (0,1)
-    - Derivative: Ã'(z) = Ã(z)(1 - Ã(z))
+    - Derivative: σ'(z) = σ(z)(1 - σ(z))
     - Smooth gradient for optimization
     - Interpretable as probability
 
@@ -739,13 +739,13 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Coefficient Interpretation:**
 
-    **Raw Coefficients (Â²):**
+    **Raw Coefficients (β):**
     - Represent change in **log-odds** per unit change in feature
-    - If Â²Â = 0.5, then one unit increase in xÂ increases log-odds by 0.5
+    - If β₁ = 0.5, then one unit increase in x₁ increases log-odds by 0.5
 
-    **Odds Ratios (e^Â²):**
+    **Odds Ratios (e^β):**
     - More interpretable than raw coefficients
-    - If OR = e^Â² = 2, the odds double with one unit increase in feature
+    - If OR = e^β = 2, the odds double with one unit increase in feature
 
     **Example interpretation:**
     ```python
@@ -757,9 +757,9 @@ print(f"No reg weights: {custom_lr.weights}")
     odds_ratios = np.exp(coefficients)
     
     interpretations = [
-        f"word_count: Â²={coefficients[0]}, OR={odds_ratios[0]:.2f}",
-        f"has_links: Â²={coefficients[1]}, OR={odds_ratios[1]:.2f}", 
-        f"sender_reputation: Â²={coefficients[2]}, OR={odds_ratios[2]:.2f}"
+        f"word_count: β={coefficients[0]}, OR={odds_ratios[0]:.2f}",
+        f"has_links: β={coefficients[1]}, OR={odds_ratios[1]:.2f}", 
+        f"sender_reputation: β={coefficients[2]}, OR={odds_ratios[2]:.2f}"
     ]
     
     for interp in interpretations:
@@ -767,13 +767,13 @@ print(f"No reg weights: {custom_lr.weights}")
     ```
 
     **Interpretation:**
-    - **word_count (Â²=0.1)**: Each additional word increases spam odds by 10%
-    - **has_links (Â²=1.2)**: Having links increases spam odds by 232%  
-    - **sender_reputation (Â²=-0.8)**: Better reputation decreases spam odds by 55%
+    - **word_count (β=0.1)**: Each additional word increases spam odds by 10%
+    - **has_links (β=1.2)**: Having links increases spam odds by 232%  
+    - **sender_reputation (β=-0.8)**: Better reputation decreases spam odds by 55%
 
     **Key points:**
-    - Positive Â²: Increases probability of positive class
-    - Negative Â²: Decreases probability of positive class
+    - Positive β: Increases probability of positive class
+    - Negative β: Decreases probability of positive class
     - Magnitude indicates strength of effect
     - Sign indicates direction of effect
 
@@ -786,7 +786,7 @@ print(f"No reg weights: {custom_lr.weights}")
     - P(event occurs) = number of favorable outcomes / total outcomes
 
     **Odds:**
-    - Range: [0, ]
+    - Range: [0, ∞]
     - Odds = P(event occurs) / P(event doesn't occur) = p / (1-p)
 
     **Mathematical relationship:**
@@ -800,21 +800,21 @@ print(f"No reg weights: {custom_lr.weights}")
     # Examples
     probabilities = [0.1, 0.25, 0.5, 0.75, 0.9]
     
-    print("Probability Â Odds conversion:")
+    print("Probability → Odds conversion:")
     for p in probabilities:
         odds = prob_to_odds(p)
-        print(f"P = {p:.2f} Â Odds = {odds:.2f}")
+        print(f"P = {p:.2f} → Odds = {odds:.2f}")
     
     # Output:
-    # P = 0.10 Â Odds = 0.11  (1:9 against)
-    # P = 0.25 Â Odds = 0.33  (1:3 against) 
-    # P = 0.50 Â Odds = 1.00  (1:1 even)
-    # P = 0.75 Â Odds = 3.00  (3:1 for)
-    # P = 0.90 Â Odds = 9.00  (9:1 for)
+    # P = 0.10 → Odds = 0.11  (1:9 against)
+    # P = 0.25 → Odds = 0.33  (1:3 against) 
+    # P = 0.50 → Odds = 1.00  (1:1 even)
+    # P = 0.75 → Odds = 3.00  (3:1 for)
+    # P = 0.90 → Odds = 9.00  (9:1 for)
     ```
 
     **Log-odds (logit):**
-    - Range: (-, +)  
+    - Range: (-∞, +∞)  
     - logit(p) = log(p/(1-p)) = log(odds)
     - This is what logistic regression actually models
 
@@ -879,7 +879,7 @@ print(f"No reg weights: {custom_lr.weights}")
 
     **Why regularization is needed:**
 
-    1. **Perfect separation**: When classes are linearly separable, coefficients Â 
+    1. **Perfect separation**: When classes are linearly separable, coefficients → ∞
     2. **Overfitting**: High-dimensional data with few samples
     3. **Multicollinearity**: Correlated features cause unstable estimates
     4. **Numerical stability**: Prevents extreme coefficient values

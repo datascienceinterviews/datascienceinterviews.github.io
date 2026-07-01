@@ -10,7 +10,7 @@ PCA is a fundamental dimensionality reduction technique that transforms high-dim
 
 **Resources:** [Scikit-learn PCA](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html) | [Elements of Statistical Learning - Chapter 14](https://web.stanford.edu/~hastie/ElemStatLearn/) | [Pattern Recognition and Machine Learning - Chapter 12](https://www.microsoft.com/en-us/research/uploads/prod/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf)
 
-##  Summary
+## ✍️ Summary
 
 Principal Component Analysis (PCA) is an unsupervised linear dimensionality reduction technique that identifies the principal components (directions of maximum variance) in high-dimensional data. It projects the original data onto a lower-dimensional subspace defined by these components, effectively reducing the number of features while retaining as much information as possible.
 
@@ -38,7 +38,7 @@ Principal Component Analysis (PCA) is an unsupervised linear dimensionality redu
 - **Sparse PCA**: Incorporates sparsity constraints on components
 - **Incremental PCA**: For large datasets that don't fit in memory
 
-## >� Intuition
+## 🧠 Intuition
 
 ### How PCA Works
 
@@ -89,7 +89,7 @@ $$\hat{X} = ZW^T + \mathbf{1}\mu^T$$
 The proportion of variance explained by the first $k$ components:
 $$\text{Explained Variance Ratio} = \frac{\sum_{i=1}^{k} \lambda_i}{\sum_{i=1}^{d} \lambda_i}$$
 
-## =" Implementation using Libraries
+## 🔢 Implementation using Libraries
 
 ### Scikit-learn Implementation
 
@@ -242,7 +242,7 @@ def compare_with_without_pca(X, y, n_components=2):
 compare_with_without_pca(X_scaled, y, n_components=2)
 ```
 
-## � From Scratch Implementation
+## ⚙️ From Scratch Implementation
 
 ```python
 import numpy as np
@@ -458,7 +458,7 @@ for comp, error in zip(components, errors):
     print(f"{comp} components: {error:.6f}")
 ```
 
-## � Assumptions and Limitations
+## ⚠️ Assumptions and Limitations
 
 ### Key Assumptions
 
@@ -492,12 +492,12 @@ for comp, error in zip(components, errors):
 
 | Method | Linear | Supervised | Interpretable | Non-linear |
 |--------|--------|------------|---------------|------------|
-| PCA |  |  | Partial |  |
-| LDA |  |  | Partial |  |
-| t-SNE |  |  |  |  |
-| UMAP |  |  |  |  |
-| Factor Analysis |  |  |  |  |
-| ICA |  |  |  |  |
+| PCA | ✅ | ❌ | Partial | ❌ |
+| LDA | ✅ | ✅ | Partial | ❌ |
+| t-SNE | ❌ | ❌ | ❌ | ✅ |
+| UMAP | ❌ | ❌ | ❌ | ✅ |
+| Factor Analysis | ✅ | ❌ | ✅ | ❌ |
+| ICA | ✅ | ❌ | ✅ | ❌ |
 
 **When to avoid PCA:**
 - When original features have clear business meaning that must be preserved
@@ -514,7 +514,7 @@ for comp, error in zip(components, errors):
     
     1. **Center the data**: Subtract the mean from each feature
     2. **Compute covariance matrix**: C = (X^T * X) / (n-1)
-    3. **Find eigenvalues and eigenvectors**: C*v = �*v
+    3. **Find eigenvalues and eigenvectors**: C*v = λ*v
     4. **Sort by eigenvalues**: Largest eigenvalues correspond to directions with most variance
     5. **Project data**: Transform original data onto selected eigenvectors
     
@@ -530,7 +530,7 @@ for comp, error in zip(components, errors):
     
     **Example**: Without standardization, if you have height (cm, ~170) and weight (kg, ~70), height will dominate simply due to larger numerical values, not because it's more important.
     
-    **Solution**: Use z-score standardization: (x - �) / � for each feature.
+    **Solution**: Use z-score standardization: (x - μ) / σ for each feature.
 
 ??? question "How do you choose the optimal number of principal components?"
 
@@ -583,8 +583,8 @@ for comp, error in zip(components, errors):
     
     **Example interpretation**:
     ```
-    PC1 loadings: [0.8 height, 0.7 weight, 0.1 age] � "Physical size factor"
-    PC2 loadings: [0.2 height, -0.1 weight, 0.9 age] � "Age factor"
+    PC1 loadings: [0.8 height, 0.7 weight, 0.1 age] → "Physical size factor"
+    PC2 loadings: [0.2 height, -0.1 weight, 0.9 age] → "Age factor"
     ```
 
 ??? question "What are the limitations of PCA and when should you not use it?"
@@ -592,11 +592,11 @@ for comp, error in zip(components, errors):
     **Answer:** Major limitations and alternatives:
     
     **Limitations**:
-    1. **Linear only**: Cannot capture non-linear relationships � Use Kernel PCA, t-SNE
-    2. **Variance ` Importance**: High variance doesn't always mean importance � Use domain knowledge
-    3. **Loss of interpretability**: PCs are combinations of original features � Use Sparse PCA, Factor Analysis
-    4. **Outlier sensitive**: Outliers can skew components � Use Robust PCA
-    5. **No class consideration**: Doesn't consider target variable � Use LDA for classification
+    1. **Linear only**: Cannot capture non-linear relationships → Use Kernel PCA, t-SNE
+    2. **Variance ≠ Importance**: High variance doesn't always mean importance → Use domain knowledge
+    3. **Loss of interpretability**: PCs are combinations of original features → Use Sparse PCA, Factor Analysis
+    4. **Outlier sensitive**: Outliers can skew components → Use Robust PCA
+    5. **No class consideration**: Doesn't consider target variable → Use LDA for classification
     
     **When NOT to use PCA**:
     - Categorical data without proper encoding
@@ -642,17 +642,17 @@ for comp, error in zip(components, errors):
     
     **SVD decomposition** of centered data matrix X:
     ```
-    X = U * � * V^T
+    X = U * Σ * V^T
     ```
     Where:
     - U: Left singular vectors
-    - �: Singular values (diagonal matrix)
+    - Σ: Singular values (diagonal matrix)
     - V: Right singular vectors
     
     **Connection to PCA**:
     - **Principal components** = columns of V
-    - **Explained variance** = (singular values)� / (n-1)
-    - **Transformed data** = U * �
+    - **Explained variance** = (singular values)² / (n-1)
+    - **Transformed data** = U * Σ
     
     **Advantages of SVD approach**:
     1. More numerically stable
@@ -700,12 +700,12 @@ for comp, error in zip(components, errors):
     - 2D/3D scatter plots for cluster visualization
     
     **Quality indicators**:
-    -  First few PCs explain >80% variance
-    -  Smooth eigenvalue decay (no sudden drops)
-    -  Components are interpretable
-    -  Downstream performance maintained
+    - ✅ First few PCs explain >80% variance
+    - ✅ Smooth eigenvalue decay (no sudden drops)
+    - ✅ Components are interpretable
+    - ✅ Downstream performance maintained
 
-## >� Examples
+## 🧠 Examples
 
 ### Real-world Example: Image Compression with PCA
 

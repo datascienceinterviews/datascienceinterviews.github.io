@@ -105,7 +105,7 @@ $$\frac{\partial J}{\partial \boldsymbol{\beta}} = \frac{1}{m} \mathbf{X}^T(\mat
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_regression, load_boston
+from sklearn.datasets import make_regression, fetch_california_housing
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
@@ -177,10 +177,10 @@ plt.tight_layout()
 plt.show()
 
 # Multiple Linear Regression Example
-# Load Boston housing dataset
-boston = load_boston()
-X_multi, y_multi = boston.data, boston.target
-feature_names = boston.feature_names
+# Load California housing dataset
+california = fetch_california_housing()
+X_multi, y_multi = california.data, california.target
+feature_names = california.feature_names
 
 # Split data
 X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(

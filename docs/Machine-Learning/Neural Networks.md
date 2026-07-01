@@ -10,8 +10,7 @@ Neural Networks are computing systems inspired by biological neural networks, co
 
 **Resources:** [Deep Learning Book](https://www.deeplearningbook.org/) | [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/) | [TensorFlow Tutorial](https://www.tensorflow.org/tutorials)
 
-## 
- Summary
+## ✍️ Summary
 
 Neural Networks (also known as Artificial Neural Networks or ANNs) are computational models inspired by the human brain's structure and function. They consist of interconnected processing units called neurons or nodes, organized in layers that transform input data through weighted connections and activation functions.
 
@@ -124,7 +123,7 @@ Where $\alpha$ is the learning rate.
 
 Neural networks with at least one hidden layer containing sufficient neurons can approximate any continuous function to arbitrary accuracy, making them powerful universal function approximators.
 
-## =" Implementation using Libraries
+## 🔢 Implementation using Libraries
 
 ### Using TensorFlow/Keras
 
@@ -356,7 +355,7 @@ with torch.no_grad():
     print(f'PyTorch Model Test Accuracy: {accuracy:.4f}')
 ```
 
-##  From Scratch Implementation
+## ⚙️ From Scratch Implementation
 
 ### Complete Neural Network from Scratch
 
@@ -760,7 +759,7 @@ class AdvancedNeuralNetwork(NeuralNetwork):
             return np.argmax(y_pred, axis=1)
 ```
 
-##   Assumptions and Limitations
+## ⚠️ Assumptions and Limitations
 
 ### Assumptions
 
@@ -882,8 +881,8 @@ class AdvancedNeuralNetwork(NeuralNetwork):
     |------------|---------|-------|------------|----------|------|------|
     | **Sigmoid** | $\frac{1}{1+e^{-x}}$ | (0,1) | $\sigma(x)(1-\sigma(x))$ | Binary classification output | Smooth, interpretable probabilities | Vanishing gradients, not zero-centered |
     | **Tanh** | $\frac{e^x-e^{-x}}{e^x+e^{-x}}$ | (-1,1) | $1-\tanh^2(x)$ | Hidden layers (legacy) | Zero-centered, smooth | Vanishing gradients |
-    | **ReLU** | $\max(0,x)$ | [0,) | $\begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases}$ | Hidden layers | Simple, no vanishing gradients | Dead neurons, not zero-centered |
-    | **Leaky ReLU** | $\begin{cases} x & x > 0 \\ \alpha x & x \leq 0 \end{cases}$ | (-,) | $\begin{cases} 1 & x > 0 \\ \alpha & x \leq 0 \end{cases}$ | Hidden layers | Fixes dead ReLU problem | Hyperparameter ± |
+    | **ReLU** | $\max(0,x)$ | [0,∞) | $\begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases}$ | Hidden layers | Simple, no vanishing gradients | Dead neurons, not zero-centered |
+    | **Leaky ReLU** | $\begin{cases} x & x > 0 \\ \alpha x & x \leq 0 \end{cases}$ | (-∞,∞) | $\begin{cases} 1 & x > 0 \\ \alpha & x \leq 0 \end{cases}$ | Hidden layers | Fixes dead ReLU problem | Hyperparameter ± |
     | **Softmax** | $\frac{e^{x_i}}{\sum_j e^{x_j}}$ | (0,1), $\sum=1$ | Complex | Multi-class output | Probability distribution | Only for output layer |
     
     **Recommendations:**

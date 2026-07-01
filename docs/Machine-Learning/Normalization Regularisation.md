@@ -57,8 +57,8 @@ Imagine you're comparing houses using price (in hundreds of thousands) and squar
 Think of regularisation like speed limits on roads. Without limits (regularisation), drivers (models) might go too fast (overfit) and crash. Regularisation enforces "speed limits" on model complexity, ensuring safer (more generalizable) performance.
 
 **Analogy**: 
-- **No regularisation**: Memorizing exam answers λ fails on new questions
-- **With regularisation**: Understanding concepts λ succeeds on new questions
+- **No regularisation**: Memorizing exam answers → fails on new questions
+- **With regularisation**: Understanding concepts → succeeds on new questions
 
 ### Mathematical Foundation
 
@@ -114,7 +114,7 @@ from sklearn.preprocessing import (
     StandardScaler, MinMaxScaler, RobustScaler, 
     Normalizer, QuantileTransformer, PowerTransformer
 )
-from sklearn.datasets import make_classification, load_boston
+from sklearn.datasets import make_classification, fetch_california_housing
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -532,7 +532,7 @@ print(f"- Optimal λ for Ridge: {alphas[np.argmax(ridge_scores)]:.4f}")
 print(f"- Optimal λ for Lasso: {alphas[np.argmax(lasso_scores)]:.4f}")
 ```
 
-## λ From Scratch Implementation
+## ⚙️ From Scratch Implementation
 
 ### Custom Scalers Implementation
 
@@ -732,7 +732,7 @@ data_reconstructed = scaler_test.inverse_transform(data_scaled)
 
 reconstruction_error = np.max(np.abs(data - data_reconstructed))
 print(f"Max reconstruction error: {reconstruction_error:.2e}")
-print(" Inverse transform working correctly" if reconstruction_error < 1e-10 else " Inverse transform failed")
+print("✅ Inverse transform working correctly" if reconstruction_error < 1e-10 else "❌ Inverse transform failed")
 ```
 
 ### Custom Regularised Regression
@@ -931,7 +931,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-## λ Assumptions and Limitations
+## ⚠️ Assumptions and Limitations
 
 ### Normalization Assumptions and Limitations
 
@@ -1080,10 +1080,10 @@ plt.show()
     ```
     
     **Decision framework**:
-    1. **Check for outliers** λ If many, use RobustScaler
-    2. **Check distribution** λ If normal, use StandardScaler  
-    3. **Check requirements** λ If bounded output needed, use MinMaxScaler
-    4. **Algorithm requirements** λ Neural networks often prefer MinMax
+    1. **Check for outliers** → If many, use RobustScaler
+    2. **Check distribution** → If normal, use StandardScaler  
+    3. **Check requirements** → If bounded output needed, use MinMaxScaler
+    4. **Algorithm requirements** → Neural networks often prefer MinMax
 
 ??? question "Explain the difference between L1 and L2 regularization. When would you use each?"
 
@@ -1103,25 +1103,25 @@ plt.show()
     
     **Mathematical intuition**:
     ```
-    L1 gradient: /w (λ|w|) = λλsign(w)    # Constant push toward zero
-    L2 gradient: /w (λwλ) = 2λw           # Proportional shrinkage
+    L1 gradient: ∂/∂w (λ|w|) = λ·sign(w)    # Constant push toward zero
+    L2 gradient: ∂/∂w (λw²) = 2λw           # Proportional shrinkage
     ```
     
     **Visual difference**:
-    - **L1 constraint region**: Diamond shape λ creates sparsity at corners
-    - **L2 constraint region**: Circle shape λ shrinks uniformly
+    - **L1 constraint region**: Diamond shape → creates sparsity at corners
+    - **L2 constraint region**: Circle shape → shrinks uniformly
     
     **When to use L1**:
-    -  Feature selection needed
-    -  Interpretable sparse models
-    -  High-dimensional data with irrelevant features
-    -  Storage/computation constraints
+    - ✅ Feature selection needed
+    - ✅ Interpretable sparse models
+    - ✅ High-dimensional data with irrelevant features
+    - ✅ Storage/computation constraints
     
     **When to use L2**:
-    -  All features potentially relevant
-    -  Multicollinearity present
-    -  Stability over sparsity
-    -  Better numerical properties
+    - ✅ All features potentially relevant
+    - ✅ Multicollinearity present
+    - ✅ Stability over sparsity
+    - ✅ Better numerical properties
     
     **Elastic Net** combines both: $\alpha \rho ||w||_1 + \alpha(1-\rho)||w||_2^2$
 
@@ -1198,13 +1198,13 @@ plt.show()
     **With Regularization**:
     - **Higher bias**: Model constrained, can't fit training data perfectly
     - **Lower variance**: More stable predictions across different training sets
-    - **Goal**: Minimize total error = Biasλ + Variance + Noise
+    - **Goal**: Minimize total error = Bias² + Variance + Noise
     
     **Regularization effects**:
     ```python
     # No regularization (λ = 0): High variance, low bias
     # Strong regularization (λ >> 1): Low variance, high bias  
-    # Optimal λ: Minimizes biasλ + variance
+    # Optimal λ: Minimizes bias² + variance
     ```
     
     **Visual intuition**:
@@ -1490,14 +1490,14 @@ plt.show()
     **Advanced combinations**:
     ```python
     # Multi-task learning with shared regularization
-    Loss = λ TaskLoss_i + λλ||W_shared||λλ + λλ||W_specific||λ
+    Loss = Σ TaskLoss_i + λ₁||W_shared||₁ + λ₂||W_specific||₂
     
     # Adaptive regularization (learning λ)
-    λ = λλ * exp(-decay * epoch)
+    λ = λ₀ * exp(-decay * epoch)
     ```
     
     **Selection criteria**:
-    - **Data structure**: Spatial/temporal data λ Fused Lasso
+    - **Data structure**: Spatial/temporal data → Fused Lasso
     - **High dimensions**: Group Lasso, Nuclear norm
     - **Neural networks**: Dropout, Batch norm, Weight decay
     - **Interpretability needs**: L1, Group Lasso
@@ -1839,7 +1839,7 @@ plt.show()
 print(f"\nTop 10 Most Important Features:")
 for i, (_, row) in enumerate(top_features.iterrows()):
     direction = "increases" if row['coefficient'] > 0 else "decreases"
-    print(f"{i+1:2d}. {row['feature']:25} λ {direction} churn risk (coef: {row['coefficient']:+.3f})")
+    print(f"{i+1:2d}. {row['feature']:25} → {direction} churn risk (coef: {row['coefficient']:+.3f})")
 ```
 
 ### Financial Risk Assessment Example
@@ -2169,7 +2169,7 @@ feature_importance = pd.DataFrame({
 print(f"\nFeature Importance Ranking:")
 for i, (_, row) in enumerate(feature_importance.iterrows()):
     direction = "increases" if row['coefficient'] > 0 else "decreases"
-    print(f"{i+1:2d}. {row['feature']:20} λ {direction} risk (coef: {row['coefficient']:+.4f})")
+    print(f"{i+1:2d}. {row['feature']:20} → {direction} risk (coef: {row['coefficient']:+.4f})")
 
 # Final visualization
 plt.figure(figsize=(12, 5))
