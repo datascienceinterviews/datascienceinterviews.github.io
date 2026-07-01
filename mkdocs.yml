@@ -190,9 +190,7 @@ markdown_extensions:
 nav:
   - 🏡 Home: index.md
 
-  # - 😬 Introduction: Introduction.md
-
-  # - 📅 Suggested Learning Paths: Suggested-Learning-Paths.md
+  - ℹ️ About: Introduction.md
 
   - 👨🏿‍🏫 Interview Questions:
       - 📇 Flashcards: flashcards.md
@@ -271,14 +269,13 @@ nav:
 
   - 🤝 Contribute: Contribute.md
 
-  # - <small>Privacy Policy</small>: privacy.md
-  # - <small>Contact</small>: contact.md
+  - <small>Privacy Policy</small>: privacy.md
+  - <small>Contact</small>: contact.md
 
 # Copyright
 copyright: >-
   Copyright &copy; 2020 - 
   <script>document.write(/\d{4}/.exec(Date())[0])</script>
   • <strong><a href="https://sourcestrongai.com" target="_blank">SourceStrongAI</a></strong>
-  • <u><a href="https://choosealicense.com/licenses/agpl-3.0/" target=”_blank”>License</a></u> 
-  • <u><a href="/privacy">Privacy Policy</a></u> • <u><a href="/contact">Contact</a></u> 
-  •
+  • <u><a href="https://choosealicense.com/licenses/agpl-3.0/" target="_blank">License</a></u>
+  • <u><a href="/privacy">Privacy Policy</a></u> • <u><a href="/contact">Contact</a></u>

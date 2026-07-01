@@ -1,11 +1,11 @@
 ---
 title: Contact
 description: Contact for https://dsprep.com
-hide: 
-    -toc
+hide:
+  - toc
 ---
 
-# Contact for https://dsprep.com
+# Contact
 
 Welcome to https://dsprep.com/ 
 

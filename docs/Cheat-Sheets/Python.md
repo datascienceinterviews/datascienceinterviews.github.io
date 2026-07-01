@@ -1,4 +1,3 @@
-
 ---
 title: Python Cheat Sheet
 description: A comprehensive reference guide for Python, covering syntax, data structures, functions, modules, and more.

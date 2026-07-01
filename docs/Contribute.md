@@ -1,9 +1,9 @@
 ---
 title: Contribute
-description: This is a completely open-source. This platform is maintained by you! 🤗 You can help us by answering/ improving existing questions as well as by sharing any new questions that you faced during your interviews. You can also improve topics and articles. Check this page to learn about contrubuting
+description: This is a completely open-source platform maintained by the community! 🤗 You can help us by answering or improving existing questions, sharing new questions you faced during your interviews, and improving topics and articles. Check this page to learn about contributing.
 
-hide: 
-    -toc
+hide:
+  - toc
 ---
 
 # Contributions to **dsprep.com**
@@ -14,9 +14,13 @@ For any correspondence please check <a href="/contact">contact</a>
 
 <!-- [TOC] -->
 
-Detailed step by step contributions guide coming soon!
+Contributing is simple:
 
-For now, plese open a <a href="https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions" target="_blank">discussion here</a> for anything!
+1. **Found an error or have a better answer?** Open an issue or edit the page directly via the ✏️ edit link at the top of any page.
+2. **Have a new question or topic to add?** [Open a discussion](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions) or submit a pull request.
+3. **Not sure where to start?** Browse the [list of things to contribute](/#__tabbed_1_3) below.
+
+For anything else, please [open a discussion](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions).
 
 <a href="/#__tabbed_1_3">**List of things to contribute!**</a>
 

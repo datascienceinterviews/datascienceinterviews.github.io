@@ -6619,7 +6619,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
 | 4 | What is broadcasting in NumPy? | [NumPy Docs](https://numpy.org/doc/stable/user/basics.broadcasting.html) | Google, Amazon, Meta, Apple | Medium | Broadcasting, Vectorization |
 | 5 | How to handle shapes and reshaping? | [NumPy Docs](https://numpy.org/doc/stable/reference/generated/numpy.reshape.html) | Most Tech Companies | Easy | Array Manipulation |
 | 6 | What are ufuncs (universal functions)? | [NumPy Docs](https://numpy.org/doc/stable/reference/ufuncs.html) | Google, Amazon, OpenAI | Medium | ufuncs, Vectorization |
-| 7 | How to check memory usage of an array? | [Stack Overflow](https://stackoverflow.com/questions/11285613/selecting-multiple-columns-in-a-pandas-dataframe) | Google, Amazon, Netflix | Easy | Memory, Performance |
+| 7 | How to check memory usage of an array? | [NumPy Docs](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.nbytes.html) | Google, Amazon, Netflix | Easy | Memory, Performance |
 | 8 | Difference between flatten() and ravel() | [Stack Overflow](https://stackoverflow.com/questions/28930465/what-is-the-difference-between-flatten-and-ravel-functions-in-numpy) | Google, Amazon, Meta | Medium | Array Manipulation |
 | 9 | How to perform matrix multiplication? | [NumPy Docs](https://numpy.org/doc/stable/reference/generated/numpy.matmul.html) | Most Tech Companies | Easy | Linear Algebra |
 | 10 | What is dot product vs cross product? | [NumPy Docs](https://numpy.org/doc/stable/reference/routines.linalg.html) | Google, Amazon, Meta | Medium | Linear Algebra |

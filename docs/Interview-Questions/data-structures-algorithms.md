@@ -6972,7 +6972,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
 
 ## Quick Reference: 100+ Interview Questions
 
-
+| #   | Question Title                                      | Practice Links                                                                                                                                                          | Companies Asking                                | Difficulty   | Topics                                           |
 |-----|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|--------------|--------------------------------------------------|
 | 1   | Two Number Sum                                      | [LeetCode Two Sum](https://leetcode.com/problems/two-sum/)                                                                                                              | Google, Facebook, Amazon                        | Easy         | Array, Hashing                                   |
 | 2   | Reverse Linked List                                 | [LeetCode Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/)                                                                                        | Amazon, Facebook, Microsoft                     | Easy         | Linked List                                      |

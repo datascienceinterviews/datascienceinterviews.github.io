@@ -1,4 +1,3 @@
-
 ---
 title: Django Cheat Sheet
 description: A comprehensive reference guide for Django, covering commands, models, views, templates, forms, security, testing, deployment, caching, signals, and more.

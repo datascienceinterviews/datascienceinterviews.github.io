@@ -1,4 +1,3 @@
-
 ---
 title: Regular Expressions (RegEx) Cheat Sheet
 description: A comprehensive reference guide for regular expressions, covering syntax, character classes, quantifiers, anchors, groups, and more, with Python examples.

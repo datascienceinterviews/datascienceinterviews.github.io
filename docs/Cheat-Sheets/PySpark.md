@@ -1,4 +1,3 @@
-
 ---
 title: PySpark Cheat Sheet
 description: A comprehensive reference guide for PySpark, covering setup, data loading, transformations, actions, SQL, MLlib, structured streaming, performance tuning, and more.
@@ -482,6 +481,7 @@ schema = StructType([
     StructField("Age", IntegerType(), True)
 ])
 df = spark.createDataFrame([], schema)
+```
 
 ### DataFrame Operations
 

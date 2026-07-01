@@ -1,4 +1,3 @@
-
 ---
 title: SQL Cheat Sheet
 description: A comprehensive reference guide for SQL, covering data types, DDL, DML, DQL, TCL, joins, subqueries, window functions, and more.
@@ -12,25 +11,25 @@ This cheat sheet provides an exhaustive overview of SQL (Structured Query Langua
 
 ??? tip "SQL Cheat Sheet Images"
     <figure markdown="span">
-        ![Image not found, use the link below](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheet-Sheet-1.png){ width="100%" }
-        ![Image not found, use the link below](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-2.png){ width="100%" }
-        ![Image not found, use the link below](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-3.png){ width="100%" }
+        ![SQL cheat sheet — page 1](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheet-Sheet-1.png){ width="100%" }
+        ![SQL cheat sheet — page 2](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-2.png){ width="100%" }
+        ![SQL cheat sheet — page 3](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-3.png){ width="100%" }
         <figcaption>https://www.sqltutorial.org/sql-cheat-sheet/</figcaption>
     </figure>
     ---
     <figure markdown="span">
-        ![Image not found, use the link below](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-1.webp){ width="100%" }
-        ![Image not found, use the link below](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-2.webp){ width="100%" }
+        ![MySQL cheat sheet — page 1](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-1.webp){ width="100%" }
+        ![MySQL cheat sheet — page 2](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-2.webp){ width="100%" }
         <figcaption>https://learnsql.com/blog/mysql-cheat-sheet/</figcaption>
     </figure>
     ---
     <figure markdown="span">
-        ![Image not found, use the link below](https://media.datacamp.com/legacy/image/upload/v1714038485/SQL_for_Data_Science_826c347c43.png){ width="100%" }
+        ![SQL for Data Science cheat sheet](https://media.datacamp.com/legacy/image/upload/v1714038485/SQL_for_Data_Science_826c347c43.png){ width="100%" }
         <figcaption>https://www.datacamp.com/cheat-sheet/sql-basics-cheat-sheet</figcaption>
     </figure>
     ---
     <figure markdown="span">
-        ![Image not found, use the link below](https://media.datacamp.com/legacy/image/upload/v1698139537/My_SQL_Cheat_Sheet_f2d0d7da20.png){ width="100%" }
+        ![MySQL cheat sheet](https://media.datacamp.com/legacy/image/upload/v1698139537/My_SQL_Cheat_Sheet_f2d0d7da20.png){ width="100%" }
         <figcaption>https://www.datacamp.com/cheat-sheet/my-sql-basics-cheat-sheet</figcaption>
     </figure>
     
@@ -403,7 +402,7 @@ HAVING AVG(salary) > 50000;
 ## Order of execution
 ??? tip "Order of execution"
     <figure markdown="span">
-        ![Image not found, use the link below](../assets/img/SQL_order_of_execution.gif){ width="100%" }
+        ![SQL order of execution](../assets/img/SQL_order_of_execution.gif){ width="100%" }
     </figure>
 
 ## Joins
@@ -414,7 +413,7 @@ Visualise joins:
 - https://sql-joins.leopard.in.ua/
 
 <figure markdown="span">
-    ![Image not found, use the link below](../assets/img/sqlJoinsSummary.png){ width="100%" }
+    ![SQL joins summary](../assets/img/sqlJoinsSummary.png){ width="100%" }
     <figcaption>https://www.atlassian.com/data/sql/sql-join-types-explained-visually</figcaption>
 </figure>
 

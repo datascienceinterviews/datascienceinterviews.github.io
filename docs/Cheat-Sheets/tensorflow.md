@@ -1,4 +1,3 @@
-
 ---
 title: TensorFlow Cheat Sheet
 description: A comprehensive reference guide for TensorFlow 2.x, covering tensors, operations, models, layers, training, and more.

@@ -3,7 +3,7 @@ title: Privacy Policy
 description: This is the Privacy Policy for https://dsprep.com
 ---
 
-# Privacy Policy for https://dsprep.com
+# Privacy Policy
 
 ## Introduction
 

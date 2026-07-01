@@ -1756,4 +1756,3 @@ Streaming:                Batch:
 - Unit-test prompts/parsers; integration-test full chains.
 - Log prompts + responses securely (redact PII).
 - Monitor latency, cost, and error rates continuously.
-```

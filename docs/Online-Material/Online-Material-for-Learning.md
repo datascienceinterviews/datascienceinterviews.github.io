@@ -129,7 +129,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 ### **Specialized Domain Courses**
 
 #### **Computer Vision**
-- **[CS231n: Convolutional Neural Networks for Visual Recognition (Stanford)](http://cs231n.stanford.edu/)**
+- **[CS231n: Convolutional Neural Networks for Visual Recognition (Stanford)](https://cs231n.stanford.edu/)**
   - *Instructor*: Andrej Karpathy, Fei-Fei Li
   - *Duration*: 16 weeks, 10+ hours/week
   - *Prerequisites*: Linear algebra, Python, basic machine learning
@@ -147,7 +147,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *Frameworks*: TensorFlow, Keras
 
 #### **Natural Language Processing**
-- **[CS224n: Natural Language Processing with Deep Learning (Stanford)](http://web.stanford.edu/class/cs224n/)**
+- **[CS224n: Natural Language Processing with Deep Learning (Stanford)](https://web.stanford.edu/class/cs224n/)**
   - *Instructor*: Christopher Manning
   - *Duration*: 10 weeks, 12+ hours/week
   - *Prerequisites*: Python, linear algebra, probability, machine learning
@@ -165,7 +165,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *Tools*: NLTK, spaCy, Gensim, scikit-learn
 
 #### **Reinforcement Learning**
-- **[CS285: Deep Reinforcement Learning (UC Berkeley)](http://rail.eecs.berkeley.edu/deeprlcourse/)**
+- **[CS285: Deep Reinforcement Learning (UC Berkeley)](https://rail.eecs.berkeley.edu/deeprlcourse/)**
   - *Instructor*: Sergey Levine
   - *Duration*: 16 weeks, 8-12 hours/week
   - *Prerequisites*: Machine learning, linear algebra, probability
@@ -523,7 +523,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 ### **Computer Vision**
 
 #### **Computer Vision Foundations**
-- **[Computer Vision: Algorithms and Applications](http://szeliski.org/Book/)**
+- **[Computer Vision: Algorithms and Applications](https://szeliski.org/Book/)**
   - *Author*: Richard Szeliski (Microsoft Research)
   - *Coverage*: Classical to modern computer vision
   - *Length*: 950+ pages comprehensive treatment

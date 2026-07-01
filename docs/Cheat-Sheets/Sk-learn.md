@@ -1,4 +1,3 @@
-
 ---
 title: Scikit-learn Cheat Sheet
 description: A comprehensive reference guide for Scikit-learn, covering data preprocessing, model selection, training, evaluation, and more.

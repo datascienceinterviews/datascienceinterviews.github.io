@@ -1,4 +1,3 @@
-
 ---
 title: Keras Cheat Sheet
 description: A comprehensive reference guide for Keras, covering model building, layers, training, evaluation, and best practices with validated code examples.
