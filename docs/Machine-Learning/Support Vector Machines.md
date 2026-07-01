@@ -121,7 +121,7 @@ $$\min_{w,b,\xi,\xi^*} \frac{1}{2}||w||^2 + C\sum_{i=1}^n (\xi_i + \xi_i^*)$$
 - $w^T x_i + b - y_i \leq \varepsilon + \xi_i^*$
 - $\xi_i, \xi_i^* \geq 0$
 
-## =" Implementation using Libraries
+## 🔢 Implementation using Libraries
 
 ### Scikit-learn Implementation
 
