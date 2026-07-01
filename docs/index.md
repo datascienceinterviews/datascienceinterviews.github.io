@@ -183,5 +183,14 @@ Not only this, the platform will also serve as one point destination for all you
 
         </div>
 
+---
+
+<div class="grid cards" markdown>
+
+- [:fontawesome-solid-user-shield: Project __Maintainer__](https://github.com/datascienceinterviews)
+- [:fontawesome-solid-users-between-lines: All __Contributors__ list](https://github.com/datascienceinterviews/datascienceinterviews.github.io/graphs/contributors)
+
+</div>
+
 
 
