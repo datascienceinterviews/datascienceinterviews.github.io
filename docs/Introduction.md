@@ -1,7 +1,7 @@
 ---
 comments: true
 title: About This Platform - Data Science Interview Prep
-description: Learn how to use this open-source data science interview preparation platform. Explore 500+ curated questions, cheat sheets, ML tutorials, and community-contributed resources.
+description: Learn how to use this open-source data science interview preparation platform. Explore 900+ curated questions, cheat sheets, ML tutorials, and community-contributed resources.
 ---
 
 # About This Platform
@@ -26,56 +26,56 @@ Contribution in any form will be deeply appreciated. 🙏
 
 ### Add questions
 
-❓ Add your questions [here](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues). Please ensure to provide a detailed description to allow your fellow contributors to understand your questions and answer them to your satisfaction.
+❓ Add your questions [here](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions). Please ensure to provide a detailed description to allow your fellow contributors to understand your questions and answer them to your satisfaction.
 
-[![Add New question](https://img.shields.io/badge/Use%20label-Interview%20Questions-%3CCOLOR%3E.svg)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/issues/new)
+[![Add New question](https://img.shields.io/badge/Use%20label-Interview%20Questions-blue.svg)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions)
 
-🤝 Please note that as of now, you cannot directly add a question via a pull request. This will help us to maintain the **quality** of the content **for you**.
+🤝 You can also contribute directly — edit any page via the ✏️ edit link at the top, or open a [discussion](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions) / submit a pull request. See the [Contribute](Contribute.md) page for details.
 
 ### Add answers/topics 
 
-📝 These are the answers/topics that need your help at the moment
+📝 Most core topics are now covered — unchecked items below still need your help!
 
 * [x] Add documentation for the project
-* [ ] Online Material for Learning
+* [x] Online Material for Learning
 * [ ] Suggested Learning Paths
-* [ ] Cheat Sheets
-    * [ ] Django
-    * [ ] Flask
-    * [ ] Numpy
-    * [ ] Pandas
-    * [ ] PySpark
-    * [ ] Python
-    * [ ] RegEx
-    * [ ] SQL
-* [ ] NLP Interview Questions
-* [ ] Add python common DSA interview questions
-* [ ] Add Major ML topics
-    * [ ] Linear Regression 
-    * [ ] Logistic Regression 
-    * [ ] SVM 
-    * [ ] Random Forest 
-    * [ ] Gradient boosting 
-    * [ ] PCA 
-    * [ ] Collaborative Filtering 
-    * [ ] K-means clustering 
-    * [ ] kNN 
-    * [ ] ARIMA 
-    * [ ] Neural Networks 
-    * [ ] Decision Trees 
-    * [ ] Overfitting, Underfitting
-    * [ ] Unbalanced, Skewed data
-    * [ ] Activation functions relu/ leaky relu
-    * [ ] Normalization
-    * [ ] DBSCAN 
-    * [ ] Normal Distribution 
-    * [ ] Precision, Recall 
-    * [ ] Loss Function MAE, RMSE 
-* [ ] Add Pandas questions
-* [ ] Add NumPy questions
-* [ ] Add TensorFlow questions
-* [ ] Add PyTorch questions
-* [ ] Add list of learning resources
+* [x] Cheat Sheets
+    * [x] Django
+    * [x] Flask
+    * [x] Numpy
+    * [x] Pandas
+    * [x] PySpark
+    * [x] Python
+    * [x] RegEx
+    * [x] SQL
+* [x] NLP Interview Questions
+* [x] Add python common DSA interview questions
+* [x] Add Major ML topics
+    * [x] Linear Regression 
+    * [x] Logistic Regression 
+    * [x] SVM 
+    * [x] Random Forest 
+    * [x] Gradient boosting 
+    * [x] PCA 
+    * [x] Collaborative Filtering 
+    * [x] K-means clustering 
+    * [x] kNN 
+    * [x] ARIMA 
+    * [x] Neural Networks 
+    * [x] Decision Trees 
+    * [x] Overfitting, Underfitting
+    * [x] Unbalanced, Skewed data
+    * [x] Activation functions relu/ leaky relu
+    * [x] Normalization
+    * [x] DBSCAN 
+    * [x] Normal Distribution 
+    * [x] Precision, Recall 
+    * [x] Loss Function MAE, RMSE 
+* [x] Add Pandas questions
+* [x] Add NumPy questions
+* [ ] Add TensorFlow questions *(interview questions — a [TensorFlow cheat sheet](Cheat-Sheets/tensorflow.md) is already available)*
+* [ ] Add PyTorch questions *(interview questions — a [PyTorch cheat sheet](Cheat-Sheets/PyTorch.md) is already available)*
+* [x] Add list of learning resources
 
 ### Report/Solve Issues 
 
@@ -91,8 +91,8 @@ Contribution in any form will be deeply appreciated. 🙏
 
 
 [![](https://img.shields.io/badge/Share%20to-LinkedIn-blue?logo=linkedin&style=flat&labelColor=blue&color=black)](https://www.linkedin.com/sharing/share-offsite/?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:&url=https://dsprep.com/)
-[![](https://img.shields.io/badge/Share%20to-Twitter-blue?logo=twitter&style=flat&labelColor=black&color=blue)](https://twitter.com/intent/tweet?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:%20%F0%9F%91%89%20https://dsprep.com/%20%F0%9F%91%88%20#data-science%20#machine-learning%20#interview-preparation)
-[![](https://img.shields.io/badge/Share%20to-Facebook-blue?logo=facebook&style=flat&labelColor=black&color=blue)](https://www.facebook.com/sharer.php?s=100&p[title]=Free%20Data%20Science%20Preperation%20Platform&p[summary]=Check%20out%20this%20&p[url]=https%3A%2F%2Fdsprep.com%2F)
+[![](https://img.shields.io/badge/Share%20to-Twitter-blue?logo=twitter&style=flat&labelColor=black&color=blue)](https://x.com/intent/tweet?text=Check%20out%20this%20%F0%9F%91%87%20platform%20%F0%9F%91%87%20for%20data%20science%20content:%20%F0%9F%91%89%20https://dsprep.com/%20%F0%9F%91%88%20#data-science%20#machine-learning%20#interview-preparation)
+[![](https://img.shields.io/badge/Share%20to-Facebook-blue?logo=facebook&style=flat&labelColor=black&color=blue)](https://www.facebook.com/sharer.php?s=100&p[title]=Free%20Data%20Science%20Preparation%20Platform&p[summary]=Check%20out%20this%20&p[url]=https%3A%2F%2Fdsprep.com%2F)
 ![](https://img.shields.io/badge/Share-Copy%20from%20here%20%F0%9F%91%87-blue?logo=stackshare&style=flat&labelColor=black&color=success)
 
 <!--
@@ -127,7 +127,7 @@ and watch-out for any updates
 * **🧐 Searchable:** almost magically, all the content on the website is searchable without any further ado. The built-in search – server-less – is fast and accurate in responses to any of the queries.
 
 * **🙌 Accessible:**
-    * **Easy to use:** 👌 The website is hosted on github-pages and is free and open to use to over 40 million users of GitHub in 100+ countries.
+    * **Easy to use:** 👌 The website is hosted on github-pages and is free and open to use to the global GitHub community of over 100 million developers in 100+ countries.
     * **Easy to contribute:** 🤝 The website embodies the concept of collaboration to the latter. Allowing anyone to add/improve the content. To make contributing easy, everything is written in MarkDown and then compiled to beautiful html.
 
 ## FAQ
@@ -170,7 +170,6 @@ Twitter (X): [sourcestrongai](https://x.com/sourcestrongai)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 [![Website shields.io](https://img.shields.io/website?url=https%3A%2F%2Fdsprep.com%2F)](https://dsprep.com/)
 [![GitHub pages status](https://img.shields.io/github/deployments/datascienceinterviews/datascienceinterviews.github.io/github-pages)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/deployments/activity_log?environment=github-pages)
-[![GitHub up-time BOT](https://badgen.net/uptime-robot/month/ur967659-422c6e77bfb79bb6a47c642c)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/deployments/activity_log?environment=github-pages)
 [![Commits](https://img.shields.io/github/last-commit/datascienceinterviews/datascienceinterviews.github.io)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/commits/master)
 [![Pull Requests](https://img.shields.io/github/issues-pr/datascienceinterviews/datascienceinterviews.github.io?style=flat)](https://img.shields.io/github/issues-pr/datascienceinterviews/datascienceinterviews.github.io)
 
