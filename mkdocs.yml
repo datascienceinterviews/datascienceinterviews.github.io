@@ -135,6 +135,8 @@ plugins:
           - "Interview-Questions/Scikit-Learn.md"
           - "Interview-Questions/LangChain.md"
           - "Interview-Questions/LangGraph.md"
+          - "Interview-Questions/TensorFlow.md"
+          - "Interview-Questions/PyTorch.md"
         #   - another_page.md
         restart_increment_after:
           - Interview-Questions/*"
@@ -192,6 +194,8 @@ nav:
 
   - ℹ️ About: Introduction.md
 
+  - 📅 Suggested Learning Paths: Suggested-Learning-Paths.md
+
   - 👨🏿‍🏫 Interview Questions:
       - 📇 Flashcards: flashcards.md
       # - 👨🏿‍🏫 Interview Questions: Interview-Questions/Interview-Questions.md
@@ -209,6 +213,8 @@ nav:
       - LangChain: Interview-Questions/LangChain.md
       - LangGraph: Interview-Questions/LangGraph.md
       - Transformers: Interview-Questions/Transformers.md
+      - TensorFlow: Interview-Questions/TensorFlow.md
+      - PyTorch: Interview-Questions/PyTorch.md
       - Interview Question Resources: Interview-Questions/Interview-Question-Resources.md
   
   - 📝 Cheat Sheets:

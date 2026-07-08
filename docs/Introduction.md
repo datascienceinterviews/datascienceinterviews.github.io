@@ -1,7 +1,7 @@
 ---
 comments: true
 title: About This Platform - Data Science Interview Prep
-description: Learn how to use this open-source data science interview preparation platform. Explore 900+ curated questions, cheat sheets, ML tutorials, and community-contributed resources.
+description: Learn how to use this open-source data science interview preparation platform. Explore 1000+ curated questions, cheat sheets, ML tutorials, and community-contributed resources.
 ---
 
 # About This Platform
@@ -34,11 +34,11 @@ Contribution in any form will be deeply appreciated. 🙏
 
 ### Add answers/topics 
 
-📝 Most core topics are now covered. Unchecked items below still need your help!
+📝 All the topics below are now covered. Have a new topic in mind? Contributions are always welcome!
 
 * [x] Add documentation for the project
 * [x] Online Material for Learning
-* [ ] Suggested Learning Paths
+* [x] Suggested Learning Paths
 * [x] Cheat Sheets
     * [x] Django
     * [x] Flask
@@ -73,8 +73,8 @@ Contribution in any form will be deeply appreciated. 🙏
     * [x] Loss Function MAE, RMSE 
 * [x] Add Pandas questions
 * [x] Add NumPy questions
-* [ ] Add TensorFlow questions *(a [TensorFlow cheat sheet](Cheat-Sheets/tensorflow.md) already exists; a dedicated questions page is still needed)*
-* [ ] Add PyTorch questions *(a [PyTorch cheat sheet](Cheat-Sheets/PyTorch.md) already exists; a dedicated questions page is still needed)*
+* [x] Add TensorFlow questions
+* [x] Add PyTorch questions
 * [x] Add list of learning resources
 
 ### Report/Solve Issues 

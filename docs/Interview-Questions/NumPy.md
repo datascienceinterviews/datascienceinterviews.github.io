@@ -1,4 +1,3 @@
-
 ---
 title: NumPy Interview Questions
 description: 100+ NumPy interview questions for cracking Data Science, Machine Learning, and Quant Developer interviews

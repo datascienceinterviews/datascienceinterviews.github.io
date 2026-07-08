@@ -1,4 +1,3 @@
-
 ---
 title: Pandas Interview Questions
 description: 100+ Pandas interview questions for cracking Data Science and Python Developer interviews
