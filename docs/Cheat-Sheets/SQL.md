@@ -11,15 +11,15 @@ This cheat sheet provides an exhaustive overview of SQL (Structured Query Langua
 
 ??? tip "SQL Cheat Sheet Images"
     <figure markdown="span">
-        ![SQL cheat sheet — page 1](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheet-Sheet-1.png){ width="100%" }
-        ![SQL cheat sheet — page 2](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-2.png){ width="100%" }
-        ![SQL cheat sheet — page 3](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-3.png){ width="100%" }
+        ![SQL cheat sheet page 1](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheet-Sheet-1.png){ width="100%" }
+        ![SQL cheat sheet page 2](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-2.png){ width="100%" }
+        ![SQL cheat sheet page 3](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-3.png){ width="100%" }
         <figcaption>https://www.sqltutorial.org/sql-cheat-sheet/</figcaption>
     </figure>
     ---
     <figure markdown="span">
-        ![MySQL cheat sheet — page 1](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-1.webp){ width="100%" }
-        ![MySQL cheat sheet — page 2](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-2.webp){ width="100%" }
+        ![MySQL cheat sheet page 1](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-1.webp){ width="100%" }
+        ![MySQL cheat sheet page 2](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-2.webp){ width="100%" }
         <figcaption>https://learnsql.com/blog/mysql-cheat-sheet/</figcaption>
     </figure>
     ---

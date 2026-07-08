@@ -30,11 +30,11 @@ Contribution in any form will be deeply appreciated. 🙏
 
 [![Add New question](https://img.shields.io/badge/Use%20label-Interview%20Questions-blue.svg)](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions)
 
-🤝 You can also contribute directly — edit any page via the ✏️ edit link at the top, or open a [discussion](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions) / submit a pull request. See the [Contribute](Contribute.md) page for details.
+🤝 You can also contribute directly: edit any page via the ✏️ edit link at the top, or open a [discussion](https://github.com/datascienceinterviews/datascienceinterviews.github.io/discussions) / submit a pull request. See the [Contribute](Contribute.md) page for details.
 
 ### Add answers/topics 
 
-📝 Most core topics are now covered — unchecked items below still need your help!
+📝 Most core topics are now covered. Unchecked items below still need your help!
 
 * [x] Add documentation for the project
 * [x] Online Material for Learning
@@ -73,8 +73,8 @@ Contribution in any form will be deeply appreciated. 🙏
     * [x] Loss Function MAE, RMSE 
 * [x] Add Pandas questions
 * [x] Add NumPy questions
-* [ ] Add TensorFlow questions *(interview questions — a [TensorFlow cheat sheet](Cheat-Sheets/tensorflow.md) is already available)*
-* [ ] Add PyTorch questions *(interview questions — a [PyTorch cheat sheet](Cheat-Sheets/PyTorch.md) is already available)*
+* [ ] Add TensorFlow questions *(a [TensorFlow cheat sheet](Cheat-Sheets/tensorflow.md) already exists; a dedicated questions page is still needed)*
+* [ ] Add PyTorch questions *(a [PyTorch cheat sheet](Cheat-Sheets/PyTorch.md) already exists; a dedicated questions page is still needed)*
 * [x] Add list of learning resources
 
 ### Report/Solve Issues 

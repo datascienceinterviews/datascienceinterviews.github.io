@@ -20,7 +20,7 @@ Deploying a machine learning model means exposing it so that other systems (or u
 
 Most interview questions and most real systems revolve around the **online API** pattern, so that is the focus below.
 
-## 📦 Step 1 — Package the Model
+## 📦 Step 1: Package the Model
 
 Serialize the trained model into a portable artifact:
 
@@ -42,9 +42,9 @@ model.save("saved_model/")   # SavedModel format
 - Version every artifact (`model-v1.3.2.joblib`), never overwrite in place.
 - Store artifacts in an object store or a model registry (MLflow, Weights & Biases, SageMaker Model Registry), not in git.
 - Save the **preprocessing pipeline together with the model** (e.g. a scikit-learn `Pipeline`) so training and serving transformations can never drift apart.
-- Record the exact library versions used at training time — a model pickled under one scikit-learn version may not load under another.
+- Record the exact library versions used at training time; a model pickled under one scikit-learn version may not load under another.
 
-## 🌐 Step 2 — Serve It Behind an API
+## 🌐 Step 2: Serve It Behind an API
 
 ### FastAPI (recommended)
 
@@ -96,7 +96,7 @@ def predict():
     return jsonify({"churn_probability": float(model.predict_proba(X)[0][1])})
 ```
 
-Serve Flask with `gunicorn` in production — never the built-in dev server:
+Serve Flask with `gunicorn` in production. Never use the built-in dev server:
 
 ```shell
 gunicorn -w 4 -b 0.0.0.0:8000 main:app
@@ -104,7 +104,7 @@ gunicorn -w 4 -b 0.0.0.0:8000 main:app
 
 **API design essentials:** validate inputs (Pydantic does this for free), return a model version with every response, expose a `/health` endpoint for load balancers, and set request timeouts.
 
-## 🐳 Step 3 — Containerize with Docker
+## 🐳 Step 3: Containerize with Docker
 
 A container makes the service reproducible on any machine.
 
@@ -131,7 +131,7 @@ docker run -p 8000:8000 churn-api:1.3.2
 
 **Good practice:** pin dependency versions in `requirements.txt`, use slim base images, tag images with the model version, and keep images small (multi-stage builds; don't ship training code or datasets).
 
-## ☸️ Step 4 — Orchestrate with Kubernetes
+## ☸️ Step 4: Orchestrate with Kubernetes
 
 Kubernetes handles scaling, rolling updates, and self-healing for containerized services.
 
@@ -169,14 +169,14 @@ spec:
 
 Key concepts worth knowing for interviews:
 
-- **Deployment** — declares the desired number of identical pods and handles rolling updates.
-- **Service / Ingress** — stable networking in front of ephemeral pods.
-- **Horizontal Pod Autoscaler (HPA)** — scales replicas on CPU/memory or custom metrics (e.g. request latency).
-- **Readiness vs liveness probes** — readiness gates traffic; liveness restarts stuck containers.
+- **Deployment**: declares the desired number of identical pods and handles rolling updates.
+- **Service / Ingress**: stable networking in front of ephemeral pods.
+- **Horizontal Pod Autoscaler (HPA)**: scales replicas on CPU/memory or custom metrics (e.g. request latency).
+- **Readiness vs liveness probes**: readiness gates traffic; liveness restarts stuck containers.
 
 For teams that don't need full Kubernetes control, managed serverless containers (Cloud Run, AWS App Runner, Azure Container Apps) offer most of the benefit with far less operational load.
 
-## ☁️ Step 5 — Deploy to the Cloud
+## ☁️ Step 5: Deploy to the Cloud
 
 | | AWS | GCP | Azure |
 |---|---|---|---|
@@ -192,13 +192,13 @@ Rules of thumb:
 - **Steady traffic, standard API** → serverless containers or a small Kubernetes deployment.
 - **Heavy models / GPUs / autoscaling inference** → the managed ML platforms (SageMaker, Vertex AI, Azure ML) provide GPU serving, A/B endpoints, and built-in monitoring.
 
-## 🔁 Step 6 — CI/CD for ML
+## 🔁 Step 6: CI/CD for ML
 
 Automate the path from commit to deployment:
 
 1. **CI (on every commit):** run unit tests, data-schema tests, and a quick model smoke test (load artifact, predict on fixture rows, assert output shape/range).
 2. **Build:** package the service into a versioned Docker image.
-3. **CD (on approval or tag):** deploy with a **rolling update**, **blue-green**, or **canary** strategy — canary (send 5–10% of traffic to the new model, compare metrics, then promote) is the safest for model changes.
+3. **CD (on approval or tag):** deploy with a **rolling update**, **blue-green**, or **canary** strategy. Canary (send 5–10% of traffic to the new model, compare metrics, then promote) is the safest for model changes.
 4. **Rollback plan:** keep the previous image and model artifact one command away.
 
 GitHub Actions sketch:
@@ -218,25 +218,25 @@ jobs:
       - run: kubectl set image deployment/churn-api churn-api=$REGISTRY/churn-api:${{ github.ref_name }}
 ```
 
-## 📈 Step 7 — Monitor and Maintain (MLOps)
+## 📈 Step 7: Monitor and Maintain (MLOps)
 
 Deployment is the beginning, not the end. Monitor four layers:
 
-1. **Service health** — latency (p50/p95/p99), error rate, throughput, saturation. Standard tools: Prometheus + Grafana, CloudWatch, Datadog.
-2. **Input data quality** — missing fields, out-of-range values, schema changes from upstream.
-3. **Drift** — compare live input distributions to training distributions (PSI, KL divergence) and watch prediction distributions shift. Tools: Evidently, whylogs, SageMaker Model Monitor.
-4. **Model performance** — when ground-truth labels arrive (often delayed), track live accuracy/AUC against the offline baseline and alert on degradation.
+1. **Service health**: latency (p50/p95/p99), error rate, throughput, saturation. Standard tools: Prometheus + Grafana, CloudWatch, Datadog.
+2. **Input data quality**: missing fields, out-of-range values, schema changes from upstream.
+3. **Drift**: compare live input distributions to training distributions (PSI, KL divergence) and watch prediction distributions shift. Tools: Evidently, whylogs, SageMaker Model Monitor.
+4. **Model performance**: when ground-truth labels arrive (often delayed), track live accuracy/AUC against the offline baseline and alert on degradation.
 
-**Retraining strategy:** decide upfront whether retraining is scheduled (weekly/monthly), triggered by drift alerts, or continuous — and make sure every retrained model goes through the same evaluation gate before promotion.
+**Retraining strategy:** decide upfront whether retraining is scheduled (weekly/monthly), triggered by drift alerts, or continuous, and make sure every retrained model goes through the same evaluation gate before promotion.
 
 ## ⚠️ Common Pitfalls
 
-- **Training–serving skew** — preprocessing implemented twice (once in the notebook, once in the API) drifts apart. Ship one pipeline artifact.
-- **Loading the model per request** — load once at process startup; per-request loading destroys latency.
-- **No model versioning** — you cannot debug "the model got worse" if you don't know which artifact is live.
-- **Silent input changes** — an upstream team renames a field and your model quietly predicts on defaults. Validate schemas loudly.
-- **Ignoring cold starts** — large models on serverless functions can add seconds of latency; keep models warm or use provisioned concurrency.
-- **No rollback path** — every deployment should be reversible in one step.
+- **Training–serving skew**: preprocessing implemented twice (once in the notebook, once in the API) drifts apart. Ship one pipeline artifact.
+- **Loading the model per request**: load once at process startup; per-request loading destroys latency.
+- **No model versioning**: you cannot debug "the model got worse" if you don't know which artifact is live.
+- **Silent input changes**: an upstream team renames a field and your model quietly predicts on defaults. Validate schemas loudly.
+- **Ignoring cold starts**: large models on serverless functions can add seconds of latency; keep models warm or use provisioned concurrency.
+- **No rollback path**: every deployment should be reversible in one step.
 
 ## 💡 Interview Questions
 
@@ -251,9 +251,9 @@ Deployment is the beginning, not the end. Monitor four layers:
 ## 📚 References
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Docker — Getting Started](https://docs.docker.com/get-started/)
+- [Docker: Getting Started](https://docs.docker.com/get-started/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/home/)
 - [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html)
-- [Evidently — ML Monitoring](https://www.evidentlyai.com/)
+- [Evidently: ML Monitoring](https://www.evidentlyai.com/)
 - [Google MLOps: Continuous delivery and automation pipelines in machine learning](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)
 - [AWS SageMaker Deployment](https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html)

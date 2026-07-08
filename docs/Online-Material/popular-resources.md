@@ -264,7 +264,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 
 #### **Distill Publication Team**
 - **[Distill.pub](https://distill.pub/)**
-  - *Mission*: Clear, dynamic explanations of machine learning (archived — on hiatus since 2021; existing articles remain excellent)
+  - *Mission*: Clear, dynamic explanations of machine learning (on hiatus since 2021; existing articles remain excellent)
   - *Interactive Design*: Web-native scientific communication
   - *Peer Review*: Rigorous review process for quality
   - *Visual Innovation*: Setting new standards for technical explanation
@@ -321,7 +321,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 
 #### **Distill Magazine**
 - **[Interactive ML Explanations](https://distill.pub/)**
-  - *Innovation*: Web-native scientific communication (archived — on hiatus since 2021; existing articles remain excellent)
+  - *Innovation*: Web-native scientific communication (on hiatus since 2021; existing articles remain excellent)
   - *Visual Quality*: Interactive visualizations, animations
   - *Technical Accuracy*: Rigorous peer review
   - *Educational Impact*: Widely cited in academic courses

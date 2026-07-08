@@ -1015,7 +1015,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *Format*: Multiple exams required
 
 #### **Open Source Technology Certifications**
-- **[TensorFlow Developer Certificate](https://www.tensorflow.org/certificate)** (program discontinued — no longer accepting registrations)
+- **[TensorFlow Developer Certificate](https://www.tensorflow.org/certificate)** (program discontinued; no longer accepting registrations)
   - *Provider*: Google/TensorFlow team
   - *Format*: Hands-on coding exam in PyCharm
   - *Duration*: 5 hours to complete practical tasks

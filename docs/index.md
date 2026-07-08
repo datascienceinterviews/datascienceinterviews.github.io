@@ -150,10 +150,10 @@ Not only this, the platform will also serve as one point destination for all you
     === ":white_check_mark: Available Now"
         Every core section is live and actively maintained:
 
-        - **Interview Questions** — [DSA](Interview-Questions/data-structures-algorithms.md), [Machine Learning](Interview-Questions/Machine-Learning.md), [System Design](Interview-Questions/System-design.md), [NLP](Interview-Questions/Natural-Language-Processing.md), [Probability](Interview-Questions/Probability.md), [A/B Testing](Interview-Questions/AB-testing.md), [SQL](Interview-Questions/SQL-Interview-Questions.md), [Python](Interview-Questions/Python.md), [Pandas](Interview-Questions/Pandas.md), [NumPy](Interview-Questions/NumPy.md), [Scikit-Learn](Interview-Questions/Scikit-Learn.md), [LangChain](Interview-Questions/LangChain.md), [LangGraph](Interview-Questions/LangGraph.md), [Transformers](Interview-Questions/Transformers.md)
-        - **Cheat Sheets** — [Django](Cheat-Sheets/Django.md), [Flask](Cheat-Sheets/Flask.md), [Hypothesis Tests](Cheat-Sheets/Hypothesis-Tests.md), [Keras](Cheat-Sheets/Keras.md), [LangChain & LangGraph](Cheat-Sheets/LangChain-LangGraph.md), [NumPy](Cheat-Sheets/NumPy.ipynb), [Pandas](Cheat-Sheets/Pandas.ipynb), [PySpark](Cheat-Sheets/PySpark.md), [PyTorch](Cheat-Sheets/PyTorch.md), [Python](Cheat-Sheets/Python.md), [RegEx](Cheat-Sheets/RegEx.md), [Scikit-Learn](Cheat-Sheets/Sk-learn.md), [SQL](Cheat-Sheets/SQL.md), [TensorFlow](Cheat-Sheets/tensorflow.md)
-        - **ML Topics** — 20 from-scratch guides incl. [Linear Regression](Machine-Learning/Linear%20Regression.md), [Logistic Regression](Machine-Learning/Logistic%20Regression.md), [Decision Trees](Machine-Learning/Decision%20Trees.md), [Random Forest](Machine-Learning/Random%20Forest.md), [SVM](Machine-Learning/Support%20Vector%20Machines.md), [PCA](Machine-Learning/PCA.md), [Neural Networks](Machine-Learning/Neural%20Networks.md), and more
-        - **More** — [Flashcards](flashcards.md), [Online Study Material](Online-Material/Online-Material-for-Learning.md), [Popular Blogs](Online-Material/popular-resources.md), [Interview Question Resources](Interview-Questions/Interview-Question-Resources.md)
+        - **Interview Questions**: [DSA](Interview-Questions/data-structures-algorithms.md), [Machine Learning](Interview-Questions/Machine-Learning.md), [System Design](Interview-Questions/System-design.md), [NLP](Interview-Questions/Natural-Language-Processing.md), [Probability](Interview-Questions/Probability.md), [A/B Testing](Interview-Questions/AB-testing.md), [SQL](Interview-Questions/SQL-Interview-Questions.md), [Python](Interview-Questions/Python.md), [Pandas](Interview-Questions/Pandas.md), [NumPy](Interview-Questions/NumPy.md), [Scikit-Learn](Interview-Questions/Scikit-Learn.md), [LangChain](Interview-Questions/LangChain.md), [LangGraph](Interview-Questions/LangGraph.md), [Transformers](Interview-Questions/Transformers.md)
+        - **Cheat Sheets**: [Django](Cheat-Sheets/Django.md), [Flask](Cheat-Sheets/Flask.md), [Hypothesis Tests](Cheat-Sheets/Hypothesis-Tests.md), [Keras](Cheat-Sheets/Keras.md), [LangChain & LangGraph](Cheat-Sheets/LangChain-LangGraph.md), [NumPy](Cheat-Sheets/NumPy.ipynb), [Pandas](Cheat-Sheets/Pandas.ipynb), [PySpark](Cheat-Sheets/PySpark.md), [PyTorch](Cheat-Sheets/PyTorch.md), [Python](Cheat-Sheets/Python.md), [RegEx](Cheat-Sheets/RegEx.md), [Scikit-Learn](Cheat-Sheets/Sk-learn.md), [SQL](Cheat-Sheets/SQL.md), [TensorFlow](Cheat-Sheets/tensorflow.md)
+        - **ML Topics**: 20 from-scratch guides incl. [Linear Regression](Machine-Learning/Linear%20Regression.md), [Logistic Regression](Machine-Learning/Logistic%20Regression.md), [Decision Trees](Machine-Learning/Decision%20Trees.md), [Random Forest](Machine-Learning/Random%20Forest.md), [SVM](Machine-Learning/Support%20Vector%20Machines.md), [PCA](Machine-Learning/PCA.md), [Neural Networks](Machine-Learning/Neural%20Networks.md), and more
+        - **More**: [Flashcards](flashcards.md), [Online Study Material](Online-Material/Online-Material-for-Learning.md), [Popular Blogs](Online-Material/popular-resources.md), [Interview Question Resources](Interview-Questions/Interview-Question-Resources.md)
 
     === ":hourglass_flowing_sand: What's Next"
         This is a living, community-driven project. On the roadmap:
@@ -162,7 +162,7 @@ Not only this, the platform will also serve as one point destination for all you
         - Additional cheat sheets and worked examples
         - Deeper coverage of ML topics
 
-        The pace is set by the community — new content is added as contributors submit it.
+        The pace is set by the community. New content is added as contributors submit it.
 
     === ":handshake: How You Can Help"
         Contributions are always welcome! 🤗
@@ -171,7 +171,7 @@ Not only this, the platform will also serve as one point destination for all you
         - 📝 **Improve an answer** or expand a topic
         - 🐛 **Report an issue** or a broken link
 
-        You can submit content in `.py`, `.md`, `.txt`, or `.ipynb` — we'll take care of the formatting. See the [**Contribute**](/Contribute) page to get started.
+        You can submit content in `.py`, `.md`, `.txt`, or `.ipynb` and we'll take care of the formatting. See the [**Contribute**](/Contribute) page to get started.
 
     === ":material-information-outline: About"
         <div class="grid cards" markdown>
