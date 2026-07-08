@@ -15,17 +15,17 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 ### **Big Tech AI Research Divisions**
 
 #### **Google AI & DeepMind Research**
-- **[Google AI Blog](https://ai.googleblog.com/)**
+- **[Google Research Blog](https://research.google/blog/)**
   - *Focus*: Cutting-edge research, breakthrough announcements, product applications
   - *Frequency*: 2-3 posts per week
   - *Audience*: Researchers, practitioners, industry professionals
   - *Content Style*: Technical depth with accessible explanations
   - *Must-Read Series*: TensorFlow updates, ethical AI research, breakthrough model announcements
-  - *Notable Authors*: Jeff Dean, Yann LeCun, François Chollet
+  - *Notable Authors*: Jeff Dean, François Chollet
   - *Archive Value*: Historical record of AI progress since 2006
   - *Interaction*: Comments enabled, active community discussions
 
-- **[DeepMind Blog](https://deepmind.com/blog)**
+- **[Google DeepMind Blog](https://deepmind.google/discover/blog/)**
   - *Research Areas*: AGI research, scientific applications, reinforcement learning
   - *Publishing Schedule*: Weekly technical posts, monthly major announcements
   - *Signature Content*: AlphaFold protein folding, AlphaGo game analysis, climate applications
@@ -33,13 +33,6 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
   - *Video Content*: Accompanying YouTube channel with technical talks
   - *Impact*: Industry-setting research with societal applications
   - *Collaboration*: Joint posts with academic institutions
-
-- **[Google Research Blog](https://research.google.com/blog/)**
-  - *Broader Scope*: Beyond AI - quantum computing, systems, theory
-  - *Cross-Pollination*: Integration between AI and other research areas
-  - *Industry Applications*: How research translates to Google products
-  - *Open Source*: Regular announcements of open-sourced tools and datasets
-  - *Global Perspective*: Research from Google offices worldwide
 
 #### **OpenAI Publications**
 - **[OpenAI Blog](https://openai.com/blog/)**
@@ -58,7 +51,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
   - *Peer Review*: Pre-print and published paper discussions
 
 #### **Meta AI (Facebook AI Research)**
-- **[Meta AI Blog](https://ai.facebook.com/blog/)**
+- **[Meta AI Blog](https://ai.meta.com/blog/)**
   - *Product Integration*: AI in social media, AR/VR applications
   - *Open Source*: PyTorch development, Detectron2, fairseq
   - *Research Areas*: Computer vision, NLP, responsible AI, efficiency
@@ -165,8 +158,8 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 ### **ML Research Pioneers & Turing Award Winners**
 
 #### **Yann LeCun - Meta Chief AI Scientist**
-- **[Social Media Presence](https://twitter.com/ylecun)**
-  - *Platform*: Twitter (primary), LinkedIn, Facebook
+- **[Social Media Presence](https://x.com/ylecun)**
+  - *Platform*: X (Twitter), LinkedIn, Facebook
   - *Posting Frequency*: Daily insights, multiple posts
   - *Content Style*: Technical debates, research commentary, industry criticism
   - *Signature Topics*: Self-supervised learning, energy-based models, AI skepticism
@@ -247,8 +240,8 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 ### **Technical Writers & Educators**
 
 #### **Lilian Weng - Safety-Focused Research**
-- **[Blog](https://lilianweng.github.io/lil-log/)**
-  - *Position*: OpenAI Safety Team Lead
+- **[Blog](https://lilianweng.github.io/)**
+  - *Position*: Co-founder of Thinking Machines Lab, formerly OpenAI
   - *Writing Style*: Comprehensive technical surveys
   - *Research Focus*: Attention mechanisms, generative models, RL
   - *Academic Quality*: Paper-level rigor with accessibility
@@ -271,7 +264,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 
 #### **Distill Publication Team**
 - **[Distill.pub](https://distill.pub/)**
-  - *Mission*: Clear, dynamic explanations of machine learning
+  - *Mission*: Clear, dynamic explanations of machine learning (archived — on hiatus since 2021; existing articles remain excellent)
   - *Interactive Design*: Web-native scientific communication
   - *Peer Review*: Rigorous review process for quality
   - *Visual Innovation*: Setting new standards for technical explanation
@@ -328,7 +321,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 
 #### **Distill Magazine**
 - **[Interactive ML Explanations](https://distill.pub/)**
-  - *Innovation*: Web-native scientific communication
+  - *Innovation*: Web-native scientific communication (archived — on hiatus since 2021; existing articles remain excellent)
   - *Visual Quality*: Interactive visualizations, animations
   - *Technical Accuracy*: Rigorous peer review
   - *Educational Impact*: Widely cited in academic courses
@@ -433,23 +426,6 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
   - *Global Impact*: Societal implications, policy recommendations
   - *Research Context*: Academic research contextualization
   - *Historical Perspective*: Long-term technology trends
-
-### **Regional & Language-Specific Newsletters**
-
-#### **AI China Newsletter**
-- **[Chinese AI Industry](https://www.chinaai.com/)**
-  - *Regional Focus*: Chinese AI ecosystem
-  - *Policy Analysis*: Government AI strategy
-  - *Company Profiles*: Baidu, Alibaba, Tencent AI developments
-  - *Research Translation*: Chinese research paper highlights
-  - *Cultural Context*: AI development in Chinese society
-
-#### **European AI Newsletter**
-- **[EU AI Regulation](https://european-ai.org/newsletter/)**
-  - *Policy Focus*: EU AI Act developments
-  - *Research Institutions*: European academic contributions
-  - *Privacy Emphasis*: GDPR intersection with AI
-  - *Multilingual*: Available in multiple European languages
 
 ---
 
@@ -771,7 +747,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 
 ### **Academic Communities**
 
-#### **Academic Twitter**
+#### **Academic X (Twitter)**
 - **[#MachineLearning hashtag community](https://twitter.com/hashtag/machinelearning)**
   - *Participants*: Researchers, professors, PhD students
   - *Content*: Paper announcements, research insights
@@ -792,7 +768,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 ### **Chinese AI Ecosystem**
 
 #### **Chinese AI Platforms & Content**
-- **[机器之心 (Machine Learning Mastery China)](https://www.jiqizhixin.com/)**
+- **[Synced (机器之心)](https://www.jiqizhixin.com/)**
   - *Content*: Chinese AI industry news, research translations
   - *Audience*: Chinese-speaking AI professionals
   - *Industry Focus*: Baidu, Alibaba, Tencent AI developments
@@ -926,7 +902,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 #### **Information Diet Management**
 - **Tier 1: Daily Essentials (5-10 sources)**
   - *The Batch newsletter*
-  - *Key Twitter accounts (3-5 experts)*
+  - *Key X (Twitter) accounts (3-5 experts)*
   - *Primary work-related publications*
 
 - **Tier 2: Weekly Deep Dives (5-10 sources)**
@@ -962,7 +938,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 
 #### **Platform Strategy for Different Goals**
 - **Academic Career Path**
-  - *Twitter*: Research announcements, paper discussions
+  - *X (Twitter)*: Research announcements, paper discussions
   - *Personal Blog*: Long-form technical explanations
   - *YouTube*: Educational content, research presentations
   - *LinkedIn*: Professional networking, career updates
@@ -1074,7 +1050,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
   - Google AI Blog
   - OpenAI Blog
   - Distill.pub articles
-  - Selected Twitter follows (5-10 key experts)
+  - Selected X (Twitter) follows (5-10 key experts)
 
 #### **Weekly Learning**
 - **Technical Development**:
@@ -1145,7 +1121,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 #### **Real-Time Content**
 - **Live Research Discussion**
   - *Clubhouse-style AI discussions*
-  - *Twitter Spaces technical talks*
+  - *X (Twitter) Spaces technical talks*
   - *Discord stage channels for education*
   - *Real-time collaborative research*
 
@@ -1181,7 +1157,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 - **Technical Setup**
   - *Feedly for blog aggregation*
   - *Google Alerts for keyword monitoring*
-  - *Twitter lists for expert monitoring*
+  - *X (Twitter) lists for expert monitoring*
   - *Reddit saved searches for community insights*
 
 - **AI-Powered Curation**
@@ -1207,7 +1183,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
   - *How do ideas evolve across paper citations?*
 
 #### **Social Network Analysis**
-- **Twitter Network Analysis**
+- **X (Twitter) Network Analysis**
   - *Who do your favorite experts follow?*
   - *What hashtags correlate with quality content?*
   - *Which conversations generate the most insight?*
@@ -1237,7 +1213,7 @@ The most comprehensive collection of influential blogs, newsletters, podcasts, v
 > **💡 Content Consumption Philosophy**: Quality over quantity, diverse perspectives over echo chambers, practical application over pure theory, and continuous learning over passive consumption.
 
 > **🎯 Quick Start for Content Discovery**:
-> - **Time-Poor Professional**: The Batch + 5 key Twitter experts + 1 weekly podcast
+> - **Time-Poor Professional**: The Batch + 5 key X (Twitter) experts + 1 weekly podcast
 > - **Deep Learner**: arXiv alerts + 3 academic blogs + research paper reading group
 > - **Career Builder**: LinkedIn groups + industry newsletters + conference content + networking
 

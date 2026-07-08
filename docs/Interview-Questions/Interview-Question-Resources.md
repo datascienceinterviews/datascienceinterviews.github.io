@@ -19,15 +19,15 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
 | Topic | Total Sources | Direct Question Links | GitHub Repos | Practice Platforms |
 |-------|--------------|----------------------|--------------|-------------------|
-| [Python](#python) | 8+ | 6 links | 4 repos (8.8k⭐) | LeetCode, HackerRank, StrataScratch |
-| [Machine Learning](#machine-learning) | 10+ | 6 links | 6 repos (3.5k⭐) | Blind, Books | |
+| [Python](#python) | 8+ | 6 links | 4 repos (3.8k⭐) | LeetCode, HackerRank, StrataScratch |
+| [Machine Learning](#machine-learning) | 10+ | 6 links | 6 repos (8.5k⭐) | Blind, Books |
 | [NLP](#natural-language-processing-nlp) | 7+ | 6 links | 5 repos | Coursera, Glassdoor |
-| [GenAI](#generative-ai-genai) | 6+ | 6 links | 2 repos (5k⭐) | DataCamp, Medium |
+| [GenAI](#generative-ai-genai) | 6+ | 6 links | 2 repos (28k⭐) | DataCamp, Medium |
 | [Deep Learning](#deep-learning) | 8+ | 6 links | 4 repos | Blind, Glassdoor |
-| [Probability](#probability-statistics) | 10+ | 8 links | 3 repos (8.8k⭐) | StrataScratch, DataLemur |
-| [Pandas](#pandas) | 9+ | 7 links | 4 repos (20k⭐) | InterviewQuery, DataCamp |
-| [NumPy](#numpy) | 8+ | 7 links | 4 repos (20k⭐) | InterviewBit, MLStack.Cafe |
-| [SQL](#sql) | 12+ | 6 links | 6 repos (3.5k⭐) | DataLemur, StrataScratch, LeetCode |
+| [Probability](#probability-statistics) | 10+ | 8 links | 3 repos (3.8k⭐) | StrataScratch, DataLemur |
+| [Pandas](#pandas) | 9+ | 7 links | 4 repos (16k⭐) | InterviewQuery, DataCamp |
+| [NumPy](#numpy) | 8+ | 7 links | 4 repos (16k⭐) | InterviewBit, MLStack.Cafe |
+| [SQL](#sql) | 12+ | 6 links | 6 repos (1.2k⭐) | DataLemur, StrataScratch, LeetCode |
 
 ---
 
@@ -40,13 +40,13 @@ All topics have **5+ high-quality sources** with direct links to interview quest
     | # | Repository | Stars | Description |
     |---|------------|-------|-------------|
     | 1 | [youssefHosni/DS-Interview-QA](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers/blob/main/Python%20Interview%20Questions%20%26%20Answers%20for%20Data%20Scientists.md) | 1.5k+ ⭐ | Curated list of Python interview Q&A for data scientists |
-    | 2 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 8.5k+ ⭐ | Comprehensive interview questions including Python coding |
-    | 3 | [kojino/120-DS-Questions](https://github.com/kojino/120-Data-Science-Interview-Questions) | 8.8k+ ⭐ | Answers to 120 commonly asked data science interview questions |
-    | 4 | [Devinterview-io/data-scientist-questions](https://github.com/Devinterview-io/data-scientist-interview-questions) | Active | Data scientist interview questions 2025 |
+    | 2 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 10k+ ⭐ | Comprehensive interview questions including Python coding |
+    | 3 | [kojino/120-DS-Questions](https://github.com/kojino/120-Data-Science-Interview-Questions) | 3.8k+ ⭐ | Answers to 120 commonly asked data science interview questions |
+    | 4 | [Devinterview-io/data-scientist-questions](https://github.com/Devinterview-io/data-scientist-interview-questions) | Active | Data scientist interview questions |
     | 5 | [Devinterview-io/python-questions](https://github.com/Devinterview-io/python-interview-questions) | Active | Python interview questions for developers |
     | 6 | [Tanu-N-Prabhu/Python Coding Interview Prep](https://github.com/Tanu-N-Prabhu/Python/blob/master/Python%20Coding%20Interview%20Prep/Python%20Coding%20Interview%20Questions%20%28Beginner%20to%20Advanced%29.md) | Community | Beginner to advanced Python coding questions |
     | 7 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Curated data science interview resources |
-    | 8 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 3k+ ⭐ | Comprehensive DS interview preparation |
+    | 8 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 4.7k+ ⭐ | Comprehensive DS interview preparation |
     | 9 | [amitshekhariitbhu/ml-questions](https://github.com/amitshekhariitbhu/machine-learning-interview-questions) | 500+ ⭐ | ML interview questions including Python |
 
     ### 💻 Practice Platforms
@@ -96,15 +96,15 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars | Description |
     |---|------------|-------|-------------|
-    | 1 | [alirezadir/ML-Interviews](https://github.com/alirezadir/Machine-Learning-Interviews) | 3.5k+ ⭐ | Guide based on offers from Meta, Google, Amazon, Apple, Roku |
+    | 1 | [alirezadir/ML-Interviews](https://github.com/alirezadir/Machine-Learning-Interviews) | 8.5k+ ⭐ | Guide based on offers from Meta, Google, Amazon, Apple, Roku |
     | 2 | [khangich/ml-interview](https://github.com/khangich/machine-learning-interview) | 1k+ ⭐ | Real questions from FAANG, Snapchat, LinkedIn |
     | 3 | [amitshekhariitbhu/ml-questions](https://github.com/amitshekhariitbhu/machine-learning-interview-questions) | 500+ ⭐ | Your cheat sheet for machine learning interview |
-    | 4 | [andrewekhalel/MLQuestions](https://github.com/andrewekhalel/MLQuestions) | 1.5k+ ⭐ | ML and computer vision engineer technical questions |
+    | 4 | [andrewekhalel/MLQuestions](https://github.com/andrewekhalel/MLQuestions) | 4.7k+ ⭐ | ML and computer vision engineer technical questions |
     | 5 | [jl33-ai/1000-ml-questions](https://github.com/jl33-ai/1000-machine-learning-interview-questions) | 500+ ⭐ | Prepare for ML, programming, and quant interviews |
     | 6 | [youssefHosni/DS-Interview-QA (ML Section)](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers/blob/main/Machine%20Learning%20Interview%20Questions%20%26%20Answers%20for%20Data%20Scientists.md) | 1.5k+ ⭐ | ML interview questions & answers for data scientists |
-    | 7 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 3k+ ⭐ | Cheatsheets, books, questions, and portfolio |
+    | 7 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 4.7k+ ⭐ | Cheatsheets, books, questions, and portfolio |
     | 8 | [QuickLearner171998/ml-interview-prep](https://github.com/QuickLearner171998/Machine-Learning-Interview-Preparation) | Community | Comprehensive ML interview preparation |
-    | 9 | [aishwaryanr/awesome-genai-guide](https://github.com/aishwaryanr/awesome-generative-ai-guide) | 5k+ ⭐ | Generative AI guide with ML fundamentals |
+    | 9 | [aishwaryanr/awesome-genai-guide](https://github.com/aishwaryanr/awesome-generative-ai-guide) | 28k+ ⭐ | Generative AI guide with ML fundamentals |
     | 10 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Curated ML interview resources |
 
     ### 📚 Books & Comprehensive Guides
@@ -159,12 +159,12 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars/Type | Description |
     |---|------------|------------|-------------|
-    | 1 | [Devinterview-io/nlp-questions](https://github.com/Devinterview-io/nlp-interview-questions) | Active | NLP interview questions for 2025 |
+    | 1 | [Devinterview-io/nlp-questions](https://github.com/Devinterview-io/nlp-interview-questions) | Active | NLP interview questions |
     | 2 | [MukundAabha/DS-ML-DL-NLP-Qus](https://github.com/MukundAabha/Data_Science_ML_DL_NLP_Interview_Qus) | Community | Comprehensive cheat sheet with interview questions |
     | 3 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Curated sources including NLP resources |
     | 4 | [masmahbubalom/InterviewQuestions](https://github.com/masmahbubalom/InterviewQuestions) | Active | Collection of DS, AI, ML, DL, NLP, CV questions |
     | 5 | [youssefHosni/DS-Interview-QA](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers) | 1.5k+ ⭐ | Part of comprehensive DS interview collection |
-    | 6 | [andrewekhalel/MLQuestions](https://github.com/andrewekhalel/MLQuestions) | 1.5k+ ⭐ | Includes NLP technical questions |
+    | 6 | [andrewekhalel/MLQuestions](https://github.com/andrewekhalel/MLQuestions) | 4.7k+ ⭐ | Includes NLP technical questions |
 
     ### 💬 Reddit Community Discussions
 
@@ -212,9 +212,9 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars | Description |
     |---|------------|-------|-------------|
-    | 1 | [aishwaryanr/awesome-genai-guide](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/60_gen_ai_questions.md) | 5k+ ⭐ | One stop repository for generative AI research & interviews |
+    | 1 | [aishwaryanr/awesome-genai-guide](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/60_gen_ai_questions.md) | 28k+ ⭐ | One stop repository for generative AI research & interviews |
     | 2 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Frequently updated with new GenAI resources |
-    | 3 | [Devinterview-io/generative-ai-questions](https://github.com/Devinterview-io/generative-ai-interview-questions) | Active | Generative AI questions for 2025 |
+    | 3 | [Devinterview-io/generative-ai-questions](https://github.com/Devinterview-io/generative-ai-interview-questions) | Active | Generative AI questions |
     | 4 | [youssefHosni/DS-Interview-QA](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers) | 1.5k+ ⭐ | Includes GenAI section |
 
     ### 💬 Reddit Community Discussions
@@ -237,8 +237,8 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Source | Description |
     |---|--------|-------------|
-    | 11 | [DataCamp](https://www.datacamp.com/blog/genai-interview-questions) | Top 30 generative AI questions for 2025 |
-    | 12 | [Analytics Vidhya](https://www.analyticsvidhya.com/blog/2024/11/generative-ai-interview-questions/) | Updated May 2025 with MCQs |
+    | 11 | [DataCamp](https://www.datacamp.com/blog/genai-interview-questions) | Top 30 generative AI questions |
+    | 12 | [Analytics Vidhya](https://www.analyticsvidhya.com/blog/2024/11/generative-ai-interview-questions/) | Regularly updated with MCQs |
     | 13 | [ProjectPro](https://www.projectpro.io/article/generative-ai-interview-questions-and-answers/1051) | Most asked generative AI interview questions |
 
     ### 💡 Community Insights
@@ -269,11 +269,11 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars/Type | Description |
     |---|------------|------------|-------------|
-    | 1 | [Devinterview-io/dl-questions](https://github.com/Devinterview-io/deep-learning-interview-questions) | Active | Deep learning questions for 2025 |
+    | 1 | [Devinterview-io/dl-questions](https://github.com/Devinterview-io/deep-learning-interview-questions) | Active | Deep learning questions |
     | 2 | [youssefHosni/DS-Interview-QA (DL)](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers/blob/main/Deep%20Learning%20Questions%20%26%20Answers%20for%20Data%20Scientists.md) | 1.5k+ ⭐ | Deep learning Q&A for data scientists |
-    | 3 | [andrewekhalel/MLQuestions](https://github.com/andrewekhalel/MLQuestions) | 1.5k+ ⭐ | ML and DL technical interview questions |
+    | 3 | [andrewekhalel/MLQuestions](https://github.com/andrewekhalel/MLQuestions) | 4.7k+ ⭐ | ML and DL technical interview questions |
     | 4 | [Sroy20/ml-interview-questions](https://github.com/Sroy20/machine-learning-interview-questions/blob/master/list_of_questions_deep_learning.md) | Community | Curated deep learning questions |
-    | 5 | [alirezadir/ML-Interviews](https://github.com/alirezadir/Machine-Learning-Interviews) | 3.5k+ ⭐ | Includes DL sections from FAANG interviews |
+    | 5 | [alirezadir/ML-Interviews](https://github.com/alirezadir/Machine-Learning-Interviews) | 8.5k+ ⭐ | Includes DL sections from FAANG interviews |
     | 6 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Includes DL resources |
 
     ### 💬 Reddit Community Discussions
@@ -328,10 +328,10 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars | Description |
     |---|------------|-------|-------------|
-    | 1 | [kojino/120-DS-Questions (Prob)](https://github.com/kojino/120-Data-Science-Interview-Questions/blob/master/probability.md) | 8.8k+ ⭐ | Probability questions from 120 DS questions |
-    | 2 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 8.5k+ ⭐ | Statistics and probability questions |
+    | 1 | [kojino/120-DS-Questions (Prob)](https://github.com/kojino/120-Data-Science-Interview-Questions/blob/master/probability.md) | 3.8k+ ⭐ | Probability questions from 120 DS questions |
+    | 2 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 10k+ ⭐ | Statistics and probability questions |
     | 3 | [youssefHosni/DS-Interview-QA (Stats)](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers) | 1.5k+ ⭐ | Statistics interview questions |
-    | 4 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 3k+ ⭐ | Includes probability & stats sections |
+    | 4 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 4.7k+ ⭐ | Includes probability & stats sections |
     | 5 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Probability and statistics resources |
 
     ### 💬 Reddit Community Discussions
@@ -359,7 +359,7 @@ All topics have **5+ high-quality sources** with direct links to interview quest
     | # | Source | Description |
     |---|--------|-------------|
     | 16 | [NickSingh.com](https://www.nicksingh.com/posts/40-probability-statistics-data-science-interview-questions-asked-by-fang-wall-street) | Questions from FAANG & Wall Street |
-    | 17 | [DataCamp](https://www.datacamp.com/blog/statistics-interview-questions) | Top 35 statistics questions 2025 |
+    | 17 | [DataCamp](https://www.datacamp.com/blog/statistics-interview-questions) | Top 35 statistics questions |
     | 18 | [GeeksforGeeks](https://www.geeksforgeeks.org/data-science/statistics-interview-questions/) | Top 50+ statistics questions |
     | 19 | [Analytics Vidhya](https://www.analyticsvidhya.com/blog/2021/04/25-probability-and-statistics-questions-to-ace-your-data-science-interviews/) | 25 probability and statistics questions |
 
@@ -393,8 +393,8 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars/Type | Description |
     |---|------------|------------|-------------|
-    | 1 | [Devinterview-io/pandas-questions](https://github.com/Devinterview-io/pandas-interview-questions) | Active | Pandas questions for ML/DS interviews 2025 |
-    | 2 | [FavioVazquez/ds-cheatsheets](https://github.com/FavioVazquez/ds-cheatsheets) | 20k+ ⭐ | List of data science cheatsheets including Pandas |
+    | 1 | [Devinterview-io/pandas-questions](https://github.com/Devinterview-io/pandas-interview-questions) | Active | Pandas questions for ML/DS interviews |
+    | 2 | [FavioVazquez/ds-cheatsheets](https://github.com/FavioVazquez/ds-cheatsheets) | 16k+ ⭐ | List of data science cheatsheets including Pandas |
     | 3 | [pandas-dev/pandas (Official)](https://github.com/pandas-dev/pandas/blob/main/doc/cheatsheet/Pandas_Cheat_Sheet.pdf) | Official | Official pandas cheat sheet |
     | 4 | [aihubprojects/pandas-cheatsheet](https://github.com/aihubprojects/python-numpy-pandas-cheatsheet) | Community | Python, NumPy, Pandas cheatsheet collection |
     | 5 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Includes Pandas resources |
@@ -423,7 +423,7 @@ All topics have **5+ high-quality sources** with direct links to interview quest
     | # | Source | Description |
     |---|--------|-------------|
     | 15 | [InterviewBit](https://www.interviewbit.com/pandas-interview-questions/) | Pandas interview guide with downloadable PDF |
-    | 16 | [GeeksforGeeks](https://www.geeksforgeeks.org/pandas/pandas-interview-questions/) | Top 50 Pandas questions 2024 |
+    | 16 | [GeeksforGeeks](https://www.geeksforgeeks.org/pandas/pandas-interview-questions/) | Top 50 Pandas questions |
 
     ### 💡 Additional Resources
 
@@ -455,8 +455,8 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars/Type | Description |
     |---|------------|------------|-------------|
-    | 1 | [Devinterview-io/numpy-questions](https://github.com/Devinterview-io/numpy-interview-questions) | Active | NumPy questions for ML/DS interviews 2025 |
-    | 2 | [FavioVazquez/ds-cheatsheets](https://github.com/FavioVazquez/ds-cheatsheets) | 20k+ ⭐ | Includes comprehensive NumPy cheatsheets |
+    | 1 | [Devinterview-io/numpy-questions](https://github.com/Devinterview-io/numpy-interview-questions) | Active | NumPy questions for ML/DS interviews |
+    | 2 | [FavioVazquez/ds-cheatsheets](https://github.com/FavioVazquez/ds-cheatsheets) | 16k+ ⭐ | Includes comprehensive NumPy cheatsheets |
     | 3 | [aihubprojects/numpy-cheatsheet](https://github.com/aihubprojects/python-numpy-pandas-cheatsheet) | Community | NumPy cheatsheet with examples |
     | 4 | [tpn/pdfs](https://github.com/tpn/pdfs/blob/master/Pandas,%20SciPy,%20NumPy%20-%20Cheat%20Sheet.pdf) | Collection | Technically-oriented PDF collection |
     | 5 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Includes NumPy resources |
@@ -475,7 +475,7 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Platform | Description |
     |---|----------|-------------|
-    | 11 | [InterviewQuery](https://www.interviewquery.com/p/numpy-interview-questions) | Top 19 NumPy questions updated for 2025 |
+    | 11 | [InterviewQuery](https://www.interviewquery.com/p/numpy-interview-questions) | Top 19 NumPy questions regularly updated |
     | 12 | [DataCamp](https://www.datacamp.com/blog/numpy-interview-questions) | Top 20 NumPy questions: basic to advanced |
     | 13 | [Prepfully - NumPy](https://www.prepfully.com/practice-interviews/numpy) | NumPy practice questions |
 
@@ -483,7 +483,7 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Source | Description |
     |---|--------|-------------|
-    | 14 | [InterviewBit](https://www.interviewbit.com/numpy-interview-questions/) | NumPy interview guide updated Dec 2024 |
+    | 14 | [InterviewBit](https://www.interviewbit.com/numpy-interview-questions/) | NumPy interview guide regularly updated |
     | 15 | [MLStack.Cafe](https://www.mlstack.cafe/blog/numpy-interview-questions) | 27 advanced NumPy interview questions |
     | 16 | [GeeksforGeeks](https://www.geeksforgeeks.org/numpy/numpy-interview-questions/) | Comprehensive NumPy questions |
 
@@ -517,13 +517,13 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars | Description |
     |---|------------|-------|-------------|
-    | 1 | [shawlu95/Beyond-LeetCode-SQL](https://github.com/shawlu95/Beyond-LeetCode-SQL) | 3.5k+ ⭐ | Analysis of SQL LeetCode & classic interview questions |
+    | 1 | [shawlu95/Beyond-LeetCode-SQL](https://github.com/shawlu95/Beyond-LeetCode-SQL) | 1.2k+ ⭐ | Analysis of SQL LeetCode & classic interview questions |
     | 2 | [mdh266/SQL-Practice](https://github.com/mdh266/SQL-Practice) | 500+ ⭐ | Solutions from LeetCode, HackerRank & DataLemur |
     | 3 | [Thomas-George-T/HackerRank-SQL](https://github.com/Thomas-George-T/HackerRank-SQL-Challenges-Solutions) | 1k+ ⭐ | All SQL HackerRank challenges using MySQL |
     | 4 | [mrinal1704/SQL-Leetcode](https://github.com/mrinal1704/SQL-Leetcode-Challenge) | 100+ ⭐ | All 117 LeetCode questions with solutions |
     | 5 | [ManikantaSanjay/LeetCode-SQL-70](https://github.com/ManikantaSanjay/LeetCode-Curated-SQL-70) | Active | Collection to ace coding interviews |
     | 6 | [TulipAggarwal/LeetCode-SQL50](https://github.com/TulipAggarwal/LeetCode-SQL50-Solutions) | Active | Wide array of SQL concepts |
-    | 7 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 8.5k+ ⭐ | Includes SQL interview questions |
+    | 7 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 10k+ ⭐ | Includes SQL interview questions |
     | 8 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | SQL resources for DS roles |
 
     ### 💬 Reddit Community Discussions
@@ -588,10 +588,10 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | # | Repository | Stars | Description |
     |---|------------|-------|-------------|
-    | 1 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 8.5k+ ⭐ | Technical questions covering SQL, Python, coding |
-    | 2 | [kojino/120-DS-Questions](https://github.com/kojino/120-Data-Science-Interview-Questions) | 8.8k+ ⭐ | 120 commonly asked DS questions with answers |
+    | 1 | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) | 10k+ ⭐ | Technical questions covering SQL, Python, coding |
+    | 2 | [kojino/120-DS-Questions](https://github.com/kojino/120-Data-Science-Interview-Questions) | 3.8k+ ⭐ | 120 commonly asked DS questions with answers |
     | 3 | [youssefHosni/DS-Interview-QA](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers) | 1.5k+ ⭐ | Curated list across 6 categories |
-    | 4 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 3k+ ⭐ | Cheatsheets, books, questions, portfolio |
+    | 4 | [khanhnamle1994/cracking-ds-interview](https://github.com/khanhnamle1994/cracking-the-data-science-interview) | 4.7k+ ⭐ | Cheatsheets, books, questions, portfolio |
     | 5 | [rbhatia46/DS-Interview-Resources](https://github.com/rbhatia46/Data-Science-Interview-Resources) | 500+ ⭐ | Potential sources, frequently updated |
     | 6 | [PavelGrigoryevDS/awesome-data-analysis](https://github.com/PavelGrigoryevDS/awesome-data-analysis) | 1k+ ⭐ | 500+ curated resources for beginners & experts |
     | 7 | [benthecoder/ds-interview-resources](https://github.com/benthecoder/ds-interview-resources) | 500+ ⭐ | Collection of awesome DS interview resources |
@@ -740,7 +740,7 @@ All topics have **5+ high-quality sources** with direct links to interview quest
 
     | Category | Top Recommendation | Why? |
     |----------|-------------------|------|
-    | **GitHub** | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) (8.5k⭐) | Most comprehensive, actively maintained |
+    | **GitHub** | [alexeygrigorev/data-science-interviews](https://github.com/alexeygrigorev/data-science-interviews) (10k⭐) | Most comprehensive, actively maintained |
     | **SQL Practice** | DataLemur + StrataScratch | Real company questions, DS-focused |
     | **ML Theory** | Chip Huyen's ML Interviews Book | 200+ questions with difficulty levels |
     | **Real Questions** | Glassdoor + Blind community | Actual interview experiences |

@@ -33,7 +33,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 
 - **[Machine Learning by Stanford (Andrew Ng)](https://www.coursera.org/learn/machine-learning)**
   - *Duration*: 11 weeks, 8-10 hours/week
-  - *Language*: MATLAB/Octave (classic version)
+  - *Language*: Python (part of the updated Machine Learning Specialization)
   - *Theory Focus*: Mathematical foundations, algorithm derivations
   - *Assignments*: Implement algorithms from scratch
   - *Legacy*: Original ML course that launched modern AI education
@@ -702,13 +702,6 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 
 ### **Project-Based Learning**
 
-#### **Google Colab Notebooks**
-- **[Seedbank](https://research.google.com/seedbank/)**
-  - *Collection*: Curated machine learning examples
-  - *Categories*: Vision, language, music, art
-  - *Interactive*: Run in browser with free GPU
-  - *Educational*: Well-documented example projects
-
 #### **GitHub Learning Repositories**
 - **[ML-For-Beginners (Microsoft)](https://github.com/microsoft/ML-For-Beginners)**
   - *Duration*: 12-week curriculum
@@ -962,7 +955,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 - Predictive Modeling: Risk assessment, treatment optimization
 
 **Resources**
-- **[Healthcare AI Course (Stanford)](https://cs236.stanford.edu/)**
+- **[AI in Healthcare Specialization (Stanford)](https://www.coursera.org/specializations/ai-healthcare)**
 - **[Medical Image Analysis (Coursera)](https://www.coursera.org/learn/medical-image-analysis)**
 - **[Clinical Data Science (MIT)](https://www.edx.org/course/clinical-data-science)**
 
@@ -1022,12 +1015,11 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *Format*: Multiple exams required
 
 #### **Open Source Technology Certifications**
-- **[TensorFlow Developer Certificate](https://www.tensorflow.org/certificate)**
+- **[TensorFlow Developer Certificate](https://www.tensorflow.org/certificate)** (program discontinued — no longer accepting registrations)
   - *Provider*: Google/TensorFlow team
   - *Format*: Hands-on coding exam in PyCharm
   - *Duration*: 5 hours to complete practical tasks
   - *Skills*: Neural networks, computer vision, NLP, time series
-  - *Cost*: $100
 
 - **[NVIDIA Deep Learning Institute Certificates](https://www.nvidia.com/en-us/training/)**
   - *Courses*: Fundamentals, computer vision, NLP, accelerated computing
@@ -1159,7 +1151,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *r/LearnMachineLearning*: Educational content, beginner questions
 
 #### **Conference Participation**
-- **[Major ML Conferences]()**
+- **Major ML Conferences**
   - *Attendance*: NeurIPS, ICML, ICLR (virtual options available)
   - *Workshops*: Specialized topic sessions
   - *Networking*: Industry mixer events and social gatherings
@@ -1186,7 +1178,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *Data*: Quantitative analysis of AI adoption
 
 - **[Kaggle State of ML and Data Science Survey](https://www.kaggle.com/kaggle-survey-2022)**
-  - *Annual*: Industry survey results
+  - *(final edition: 2022)*: Industry survey results
   - *Demographics*: Role distribution, education, experience
   - *Tools*: Popular technologies and platforms
 
@@ -1304,13 +1296,13 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 ### **Accessibility and Inclusive Learning**
 
 #### **Visual Accessibility**
-- **[Screen Reader Compatible Resources]()**
+- **Screen Reader Compatible Resources**
   - *Courses*: Text-based alternatives to video content
   - *Documentation*: Well-structured HTML documentation
   - *Code*: Accessible code examples with descriptions
 
 #### **Learning Differences Support**
-- **[Dyslexia-Friendly Resources]()**
+- **Dyslexia-Friendly Resources**
   - *Formats*: Audio lectures, visual learning materials
   - *Tools*: Text-to-speech software compatibility
   - *Support*: Extended time accommodations for assessments
@@ -1318,7 +1310,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 ### **Financial Accessibility**
 
 #### **Free and Low-Cost Options**
-- **[Financial Aid Programs]()**
+- **Financial Aid Programs**
   - *Coursera*: Financial aid for most courses
   - *edX*: Audit tracks available for free
   - *Udacity*: Scholarship programs for underrepresented groups
@@ -1349,7 +1341,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
   - *Recognition*: LinkedIn integration available
 
 #### **Self-Assessment Frameworks**
-- **[Bloom's Taxonomy for ML Learning]()**
+- **Bloom's Taxonomy for ML Learning**
   - *Levels*: Remember → Understand → Apply → Analyze → Evaluate → Create
   - *Application*: Structure learning objectives
   - *Assessment*: Evaluate depth of understanding
@@ -1357,13 +1349,13 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 ### **Portfolio Assessment Guidelines**
 
 #### **Project Quality Criteria**
-- **[Technical Excellence]()**
+- **Technical Excellence**
   - *Code Quality*: Clean, documented, reproducible code
   - *Methodology*: Appropriate algorithms and evaluation
   - *Performance*: Competitive results with proper validation
   - *Innovation*: Novel approaches or insights
 
-- **[Communication Effectiveness]()**
+- **Communication Effectiveness**
   - *Documentation*: Clear README and methodology explanation
   - *Visualization*: Effective data visualization and results presentation
   - *Storytelling*: Compelling narrative and business relevance
@@ -1396,7 +1388,7 @@ The most comprehensive collection of online resources, courses, tutorials, learn
 ### **Industry Transformation Trends**
 
 #### **AutoML and No-Code AI**
-- **[AutoML Platforms]()**
+- **AutoML Platforms**
   - *Google AutoML*: Automated model development
   - *DataRobot*: Enterprise automated machine learning
   - *H2O.ai*: Open source automated ML platform
