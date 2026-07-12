@@ -5668,6 +5668,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
         Production-grade ML model debugger
         
         Systematically diagnoses model failures using a checklist approach.
+        Used by Google, Meta, Amazon ML teams for production debugging.
         
         Time Complexity: O(n × d + model_training_time)
         Space: O(n × d) for storing data

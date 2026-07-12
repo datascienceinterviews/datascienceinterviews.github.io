@@ -1,5 +1,4 @@
 ---
-robots: noindex, follow
 title: Data Science Interview Questions - Complete Collection
 description: Comprehensive collection of 1000+ data science interview questions covering ML, Python, SQL, NLP, statistics, and system design asked at Google, Meta, Amazon, and top tech companies.
 # hide:

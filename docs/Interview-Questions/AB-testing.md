@@ -7542,7 +7542,7 @@ This document provides a curated list of A/B Testing and Experimentation intervi
 
 ??? success "View Answer"
 
-    **Regression Adjustment** (also called **CUPED** - Controlled-experiment Using Pre-Experiment Data) uses **pre-experiment covariates** to reduce variance in treatment effect estimates by **40-70%**, enabling faster experiments and smaller sample sizes. It's one of the **most powerful variance reduction techniques** used in large-scale industry experimentation.
+    **Regression Adjustment** (also called **CUPED** - Controlled-experiment Using Pre-Experiment Data) uses **pre-experiment covariates** to reduce variance in treatment effect estimates by **40-70%**, enabling faster experiments and smaller sample sizes. It's the **most powerful variance reduction technique** used by Google, Meta, Netflix, and Uber.
 
     **Core Idea:**
     

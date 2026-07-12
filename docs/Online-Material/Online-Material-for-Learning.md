@@ -1,5 +1,4 @@
 ---
-robots: noindex, follow
 title: Online Study Material
 description: Ultra-comprehensive collection of online resources, courses, tutorials, learning platforms, and career development materials for data science, machine learning, AI, and related fields.
 comments: true

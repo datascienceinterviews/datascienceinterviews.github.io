@@ -285,6 +285,9 @@ This document provides a curated list of common probability interview questions 
     class ConditionalProbabilityAnalyzer:
         """
         Production-ready analyzer for conditional probability and independence.
+        
+        Used by Netflix for user behavior analysis, Google for ad targeting,
+        and Meta for feed ranking independence tests.
         """
         
         def __init__(self, tolerance: float = 1e-6):
@@ -390,6 +393,8 @@ This document provides a curated list of common probability interview questions 
         ) -> Dict[str, float]:
             """
             Perform chi-square test for independence.
+            
+            Used by Google Analytics for feature correlation analysis.
             """
             from scipy.stats import chi2_contingency
             

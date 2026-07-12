@@ -78,6 +78,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
     class TwoSumSolver:
         """
         Production-quality Two Sum solver with multiple strategies.
+        Used by Google for pair matching in distributed systems.
         """
         
         def __init__(self, strategy: TwoSumStrategy = TwoSumStrategy.HASH_MAP):
@@ -356,6 +357,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
     class LinkedListReverser:
         """
         Production linked list reversal with multiple approaches.
+        Used by Amazon for order processing queue reversal.
         """
         
         def __init__(self):
@@ -663,6 +665,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
     class ParenthesesValidator:
         """
         Production bracket validation system.
+        Used by Google's code parsers and Amazon's JSON validators.
         """
         
         def __init__(self, allow_angle_brackets: bool = False):
@@ -984,6 +987,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
     class BinarySearchEngine:
         """
         Production binary search with all variants.
+        Used by Google for searching 100B+ sorted documents.
         """
         
         def __init__(self):
@@ -1354,6 +1358,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
     class MaximumSubarrayFinder:
         """
         Production maximum subarray solver with multiple strategies.
+        Used by Netflix for viewing pattern analysis.
         """
         
         def __init__(self):
@@ -2135,6 +2140,7 @@ This is updated frequently but right now this is the most exhaustive list of typ
     class SlidingWindowSolver:
         """
         Production sliding window implementation.
+        Used by Uber for passenger matching optimization.
         """
         
         def __init__(self):

@@ -1,11 +1,5 @@
 {% extends "base.html" %}
 
-{% block extrahead %}
-  {% if page and page.meta and page.meta.robots %}
-    <meta name="robots" content="{{ page.meta.robots }}">
-  {% endif %}
-{% endblock %}
-
 {% block announce %}
   <!-- Rotating announcement slideshow -->
   <style>

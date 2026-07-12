@@ -1,5 +1,4 @@
 ---
-robots: noindex, follow
 title: Projects
 description: This is a list of projects that you can try yourself and add them to your portfolio.
 ---
