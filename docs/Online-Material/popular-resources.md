@@ -1,4 +1,5 @@
 ---
+robots: noindex, follow
 title: Popular Blogs & Resources
 description: Ultra-comprehensive collection of the best blogs, newsletters, podcasts, content creators, and thought leaders in data science, machine learning, AI, and related fields.
 comments: true

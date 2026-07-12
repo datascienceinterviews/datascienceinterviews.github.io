@@ -1,4 +1,5 @@
 ---
+robots: noindex, follow
 title: Data Science Interview Question Resources
 description: Community-curated collection of the best sources for data science interview questions - GitHub repositories, practice platforms, and real interview experiences
 ---

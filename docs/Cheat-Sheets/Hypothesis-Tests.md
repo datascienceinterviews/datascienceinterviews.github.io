@@ -15,7 +15,7 @@ A [**statistical hypothesis test**](https://en.wikipedia.org/wiki/Statistical_h
 
 **Few Notes:**
 
-- When it comes to assumptions such as the expected distribution of data or sample size, the results of a given test are likely to degrade gracefully rather than become immediately unusable if an assumption is violated.
+- Most tests tolerate mild violations of their assumptions (expected distribution, sample size, and so on): the reliability of the result erodes gradually as an assumption is stretched, instead of the test suddenly producing nonsense.
 - Generally, data samples need to be representative of the domain and large enough to expose their distribution to analysis.
 - In some cases, the data can be corrected to meet the assumptions, such as correcting a nearly normal distribution to be normal by removing outliers, or using a correction to the degrees of freedom in a statistical test when samples have differing variance, to name two examples.
 

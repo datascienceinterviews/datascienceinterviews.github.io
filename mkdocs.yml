@@ -145,8 +145,8 @@ plugins:
         - en
   # - privacy:
       # cache: false
-  # - git-revision-date-localized:
-  #     type: date
+  - git-revision-date-localized:
+      type: date
   - minify:
       minify_html: true
   - mkdocs-jupyter: #https://github.com/danielfrg/mkdocs-jupyter

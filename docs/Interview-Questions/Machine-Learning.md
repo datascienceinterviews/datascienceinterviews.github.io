@@ -95,9 +95,6 @@ Master these frequently asked ML questions with detailed explanations, code exam
     class BiasVarianceAnalyzer:
         """
         Production-quality analyzer for bias-variance tradeoff.
-        
-        Used by Google's AutoML team to diagnose model selection issues
-        and by Netflix to optimize recommendation model complexity.
         """
         
         def __init__(self, n_bootstrap: int = 30):
@@ -180,7 +177,7 @@ Master these frequently asked ML questions with detailed explanations, code exam
             """
             Estimate bias and variance using bootstrap sampling.
             
-            This is the technique used by Meta's ML platform to
+            This technique is widely used in production ML platforms to
             diagnose model performance issues at scale.
             """
             predictions = np.zeros((self.n_bootstrap, len(X_test)))
@@ -1204,7 +1201,7 @@ Master these frequently asked ML questions with detailed explanations, code exam
     │  4. COSINE ANNEALING:                                          │
     │     η ─────╲    ╱─────╲                                      │
     │            ╲__╱       ╲__╱                                   │
-    │     Smooth cycles (used by OpenAI)                            │
+    │     Smooth cycles                                             │
     │                                                                │
     │  5. WARMUP + DECAY:                                            │
     │     η      ╱‾‾╲                                               │
@@ -1491,7 +1488,7 @@ Master these frequently asked ML questions with detailed explanations, code exam
             """
             Nested cross-validation for unbiased hyperparameter tuning.
             
-            This is the gold standard used by Google for model selection.
+            This is a widely used standard for model selection.
             Outer loop estimates generalization error.
             Inner loop selects best hyperparameters.
             """

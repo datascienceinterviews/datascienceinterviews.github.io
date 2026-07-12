@@ -9,29 +9,43 @@ description: A comprehensive reference guide for SQL, covering data types, DDL, 
 
 This cheat sheet provides an exhaustive overview of SQL (Structured Query Language), covering data types, Data Definition Language (DDL), Data Manipulation Language (DML), Data Query Language (DQL), Transaction Control Language (TCL), joins, subqueries, window functions, common table expressions (CTEs), and best practices. It aims to be a complete reference for writing and understanding SQL queries.  This cheat sheet is designed to be generally applicable across different SQL database systems (e.g., MySQL, PostgreSQL, SQL Server, Oracle, SQLite), but notes specific differences where significant.
 
-??? tip "SQL Cheat Sheet Images"
-    <figure markdown="span">
-        ![SQL cheat sheet page 1](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheet-Sheet-1.png){ width="100%" }
-        ![SQL cheat sheet page 2](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-2.png){ width="100%" }
-        ![SQL cheat sheet page 3](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-Cheat-Sheet-3.png){ width="100%" }
-        <figcaption>https://www.sqltutorial.org/sql-cheat-sheet/</figcaption>
-    </figure>
-    ---
-    <figure markdown="span">
-        ![MySQL cheat sheet page 1](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-1.webp){ width="100%" }
-        ![MySQL cheat sheet page 2](https://learnsql.com/blog/mysql-cheat-sheet/mysql-cheat-sheet-a4-page-2.webp){ width="100%" }
-        <figcaption>https://learnsql.com/blog/mysql-cheat-sheet/</figcaption>
-    </figure>
-    ---
-    <figure markdown="span">
-        ![SQL for Data Science cheat sheet](https://media.datacamp.com/legacy/image/upload/v1714038485/SQL_for_Data_Science_826c347c43.png){ width="100%" }
-        <figcaption>https://www.datacamp.com/cheat-sheet/sql-basics-cheat-sheet</figcaption>
-    </figure>
-    ---
-    <figure markdown="span">
-        ![MySQL cheat sheet](https://media.datacamp.com/legacy/image/upload/v1698139537/My_SQL_Cheat_Sheet_f2d0d7da20.png){ width="100%" }
-        <figcaption>https://www.datacamp.com/cheat-sheet/my-sql-basics-cheat-sheet</figcaption>
-    </figure>
+??? tip "SQL at a Glance"
+    **Command categories:**
+
+    | Category | Purpose | Key statements |
+    |----------|---------|----------------|
+    | DQL | Read data | `SELECT` |
+    | DML | Change data | `INSERT`, `UPDATE`, `DELETE` |
+    | DDL | Change structure | `CREATE`, `ALTER`, `DROP`, `TRUNCATE` |
+    | DCL | Permissions | `GRANT`, `REVOKE` |
+    | TCL | Transactions | `BEGIN`, `COMMIT`, `ROLLBACK`, `SAVEPOINT` |
+
+    **Query skeleton (written order vs. logical execution order):**
+
+    | Written order | Executed order |
+    |---------------|----------------|
+    | `SELECT` | 5th |
+    | `FROM` / `JOIN` | 1st |
+    | `WHERE` | 2nd |
+    | `GROUP BY` | 3rd |
+    | `HAVING` | 4th |
+    | `ORDER BY` | 6th |
+    | `LIMIT` / `OFFSET` | 7th |
+
+    This is why a column alias defined in `SELECT` cannot be referenced in `WHERE`, but usually can in `ORDER BY`.
+
+    **Join types in one line each:**
+
+    | Join | Returns |
+    |------|---------|
+    | `INNER JOIN` | Only rows with a match in both tables |
+    | `LEFT JOIN` | All left rows, matched right rows or NULLs |
+    | `RIGHT JOIN` | All right rows, matched left rows or NULLs |
+    | `FULL OUTER JOIN` | All rows from both sides, NULLs where unmatched |
+    | `CROSS JOIN` | Every combination (Cartesian product) |
+    | `SELF JOIN` | A table joined to itself via aliases |
+
+    **Filter fast-picks:** `BETWEEN a AND b` (inclusive), `IN (...)`, `LIKE 'A%'` (prefix match), `IS NULL` (never `= NULL`), `EXISTS (subquery)` for correlated checks.
     
 
 ## Data Types
