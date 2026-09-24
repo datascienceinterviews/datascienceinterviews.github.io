@@ -207,6 +207,26 @@ nav:
       - Product Architecture: Grokking/product-architecture.md
       - System Design Fast-Track (48 Hours): Grokking/system-design-fast-track.md
 
+  - 🏅 Claude Certifications:
+      - Overview and Exam Logistics: Certifications/index.md
+      - Claude Certified Associate (CCAO-F): Certifications/claude-certified-associate.md
+      - Claude Certified Developer (CCDV-F): Certifications/claude-certified-developer.md
+      - Claude Certified Architect Foundations (CCAR-F): Certifications/claude-certified-architect-foundations.md
+      - Claude Certified Architect Professional (CCAR-P): Certifications/claude-certified-architect-professional.md
+      - Knowledge Base:
+          - Claude API Essentials: Certifications/knowledge/claude-api.md
+          - Tool Use and MCP: Certifications/knowledge/tool-use-and-mcp.md
+          - Agents and the Agent SDK: Certifications/knowledge/agents-and-agent-sdk.md
+          - Claude Code Configuration: Certifications/knowledge/claude-code-configuration.md
+          - Claude Code Workflows, Hooks and CI/CD: Certifications/knowledge/claude-code-workflows.md
+          - Prompt Engineering and Structured Output: Certifications/knowledge/prompt-engineering.md
+          - Context Engineering: Certifications/knowledge/context-engineering.md
+          - Evaluation, Debugging and Reliability: Certifications/knowledge/evaluation-and-reliability.md
+          - Security, Safety and Governance: Certifications/knowledge/security-and-governance.md
+          - Claude Apps for Work: Certifications/knowledge/claude-for-work.md
+          - Solution Architecture and Delivery: Certifications/knowledge/solution-architecture.md
+      - Quick Reference and Glossary: Certifications/quick-reference.md
+
   - 👨🏿‍🏫 Interview Questions:
       - 📇 Flashcards: flashcards.md
       # - 👨🏿‍🏫 Interview Questions: Interview-Questions/Interview-Questions.md
