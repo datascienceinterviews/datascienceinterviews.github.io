@@ -227,8 +227,6 @@ nav:
           - Solution Architecture and Delivery: Certifications/knowledge/solution-architecture.md
       - Quick Reference and Glossary: Certifications/quick-reference.md
 
-  - 🚀 FDE Interview Prep: https://fdeprep.dev/
-
   - 👨🏿‍🏫 Interview Questions:
       - 📇 Flashcards: flashcards.md
       # - 👨🏿‍🏫 Interview Questions: Interview-Questions/Interview-Questions.md
@@ -306,6 +304,8 @@ nav:
   # - 📳 Projects: projects.md
 
   - 🤝 Contribute: Contribute.md
+
+  - 🚀 FDE Interview Prep: https://fdeprep.dev/
 
   - <small>Privacy Policy</small>: privacy.md
   - <small>Contact</small>: contact.md
